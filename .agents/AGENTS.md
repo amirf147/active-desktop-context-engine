@@ -7,8 +7,13 @@
 - **CLI Commands:** Use `dotnet build` and `dotnet run --project <path>` in PowerShell (`pwsh`).
 - **UIA Stack:** Exclusively use `FlaUI.UIA3` (v5.0.0+) over native `UIAutomationCore.dll`.
 
-### Documentation Pointers
-- Foundational research, telemetry, and architectural post-mortems live in Caster docs at [caster-user-directory-and-notes](https://github.com/amirf147/caster-user-directory-and-notes/tree/master/docs/accessibility_mcp).
+### Documentation & Progressive Disclosure Hub
+- **Primary Domain Context Hub:** [`docs/CONTEXT.md`](../docs/CONTEXT.md)
+- **UI Automation SSOT:** [`docs/UI_AUTOMATION_STRUCTURES_REFERENCE.md`](../docs/UI_AUTOMATION_STRUCTURES_REFERENCE.md)
+- **Requirements & Archetype Spec:** [`docs/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md`](../docs/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md)
+- **MCP Schema & Tool Endpoints:** [`docs/MCP_SCHEMA_SPEC.md`](../docs/MCP_SCHEMA_SPEC.md)
+- **External Research & Ecosystem Audit:** [`docs/external_research/README.md`](../docs/external_research/README.md)
+- **Upstream Caster Research:** Foundational research (001–018) lives in [caster-user-directory-and-notes](https://github.com/amirf147/caster-user-directory-and-notes/tree/master/docs/accessibility_mcp).
 - All internal documentation within this repo must use relative links or reference `https://github.com/amirf147/caster-user-directory-and-notes/tree/master/docs/accessibility_mcp/`.
 
 ### 4-Gate Epistemic Protocol (Mandatory)

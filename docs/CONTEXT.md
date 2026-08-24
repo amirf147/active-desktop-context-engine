@@ -46,6 +46,9 @@ The **Active Desktop Context Engine (ADCE)** is a high-performance, lightweight 
 ## 2. Foundational Research & Single Source of Truth References
 
 * **UI Automation Hierarchy SSOT:** [`docs/UI_AUTOMATION_STRUCTURES_REFERENCE.md`](UI_AUTOMATION_STRUCTURES_REFERENCE.md)
+* **Requirements & Dynamic Discovery Spec:** [`docs/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md`](REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md)
+* **MCP Schema & Tool Specification:** [`docs/MCP_SCHEMA_SPEC.md`](MCP_SCHEMA_SPEC.md)
+* **External Research & Wheel Reinvention Audit:** [`docs/external_research/README.md`](external_research/README.md)
 * **Empirical Benchmarks:**
   * [001: FlaUI UIA3 Telemetry](benchmarks/001_micro_spike_1_flaui_telemetry.md)
   * [002: Python Shallow vs C# Multi-Zone Telemetry](benchmarks/002_micro_spike_2_python_shallow_telemetry.md)
@@ -55,67 +58,31 @@ The **Active Desktop Context Engine (ADCE)** is a high-performance, lightweight 
   * [`015`: Epistemic Recalibration & 4-Gate Protocol](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/015_recalibration_and_adversarial_architecture_review.md)
   * [`016`: Micro-Spike 2 Telemetry & Unified Architecture](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/016_micro_spike_2_win32_shallow_python_telemetry.md)
   * [`017`: Comprehensive UI Automation Tree Structures SSOT](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/017_ui_automation_tree_structures_and_target_zones_reference.md)
+  * [`018`: Epistemic Gaps, Dynamic App Discovery & Requirements](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/018_epistemic_gaps_dynamic_app_discovery_and_requirements.md)
 
 ---
 
 ## 3. Core Architectural Principles
-
-1. **Zero Browser DOM Crawling (Strict Pruning):**  
+ 
+1. **Dual-Plane Discovery (Fast Win32 Gating):**  
+   Filter candidate windows in `<1ms` via native Win32 `EnumWindows` and `GetWindowLongPtr` before engaging the heavy UI Automation plane.
+2. **Zero Browser DOM Crawling (Strict Pruning):**  
    Never recursively search descendant trees of `MozillaWindowClass` or `Chrome_WidgetWin_1`. Target specific container classes directly (`tabs-container`, `tabs normal`, `monaco-breadcrumbs`).
-2. **Direct Container Targeting:**  
-   Query specific named UI zones (e.g. `tabs-container` for editor tabs, `actions-container` for active sidebar view, `TabView` for File Explorer tabs).
-3. **Decoupled WinEvent Dispatching:**  
-   `SetWinEventHook` callbacks only push lightweight tokens into a `Channel<DesktopEvent>` and return instantly. UIA queries execute on dedicated MTA worker threads with 50–75 ms trailing-edge debouncing.
-4. **Historical State Persistence:**  
+3. **MTA Thread Scheduler Isolation:**  
+   Execute all `FlaUI.UIA3` instance creation and COM queries on an isolated Multi-Threaded Apartment (`ApartmentState.MTA`) worker to eliminate cross-process COM reentrancy deadlocks.
+4. **Decoupled WinEvent Dispatching:**  
+   `SetWinEventHook` callbacks only push lightweight tokens into a `Channel<DesktopEvent>` and return instantly. UIA queries execute with 50–75 ms trailing-edge debouncing.
+5. **Historical State Persistence:**  
    Persist state snapshots and focus transitions to an embedded high-performance database (SQLite / DuckDB) to enable historical queries ("what was open 15 minutes ago?").
-5. **Universal Consumption via MCP:**  
+6. **Universal Consumption via MCP:**  
    Expose both live current state and historical queries over standard Model Context Protocol resources and tools.
 
----
+## 4. MCP Context Envelope & Progressive Disclosure
 
-## 4. MCP Unified Desktop Context Schema
+ADCE exposes desktop context as a 4-part semantic snapshot partitioned into decoupled envelopes:
+* **Workspace Envelope:** Virtual desktop GUID, friendly name, and multi-monitor index.
+* **Window Envelope:** Process metadata, HWND, window title, and Win32 class.
+* **App Semantic Context:** Extracted tabs, breadcrumbs, sidebar views, or document paths.
+* **Focus & Control Context:** Focused control type, name, automation ID, and screen bounding box.
 
-```json
-{
-  "timestamp": "2026-08-24T02:40:00.000Z",
-  "workspace": {
-    "virtual_desktop_id": "3f2a1b0c-4d5e-6f7a-8b9c-0d1e2f3a4b5c",
-    "virtual_desktop_name": "Development",
-    "desktop_index": 1
-  },
-  "window": {
-    "hwnd": "0x00DB083E",
-    "title": "caster - Antigravity IDE - CacheRequest.cs",
-    "process_name": "Antigravity.exe",
-    "pid": 26420,
-    "class_name": "Chrome_WidgetWin_1"
-  },
-  "ide_context": {
-    "active_file_path": "C:\\Projects\\FlaUI\\src\\FlaUI.Core\\CacheRequest.cs",
-    "active_sidebar_view": "Explorer (Ctrl+Shift+E)",
-    "open_editor_tabs": [
-      { "title": "Preview 016_micro_spike_2.md", "is_active": false },
-      { "title": "016_micro_spike_2.md", "is_active": false },
-      { "title": "Walkthrough", "is_active": false },
-      { "title": "CacheRequest.cs, preview", "is_active": true },
-      { "title": "spike_win32_shallow_python.py", "is_active": false }
-    ],
-    "edit_buffer": "CacheRequest.cs, preview"
-  },
-  "browser_context": {
-    "container_type": "TreeStyleTab",
-    "total_count": 30,
-    "active_tab": "Technical Documentation",
-    "tabs": [
-      { "index": 1, "title": "Technical Documentation", "is_active": true },
-      { "index": 2, "title": "API Reference", "is_active": false }
-    ]
-  },
-  "focus": {
-    "control_type": "Edit",
-    "element_name": "CacheRequest.cs, preview",
-    "automation_id": "",
-    "bounding_box": { "left": 400, "top": 120, "width": 1200, "height": 800 }
-  }
-}
-```
+> 📑 **Full Specification & Draft JSON Schema:** See [`docs/MCP_SCHEMA_SPEC.md`](MCP_SCHEMA_SPEC.md) for complete field dictionaries, JSON schemas, and MCP tool endpoint definitions.
