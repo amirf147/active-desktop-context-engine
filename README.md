@@ -20,15 +20,42 @@ Instead of relying on resource-heavy screenshot OCR, periodic screen polling, or
 * **Token-Efficient MCP Streaming:** Compact, high-density JSON context snapshots over local MCP endpoints (`get_desktop_context`, `desktop://current`), giving local LLMs actionable workflow awareness without wasting context tokens on raw visual screen dumps.
 * **Historical State Persistence:** Embedded time-series storage (SQLite / DuckDB) tracking focus transitions and tab history for temporal agent reasoning.
 
-> **Research Status:** This codebase is actively exploring low-level COM performance and UI tree traversal boundaries. Capabilities, heuristics, and transport architectures reflect empirical benchmarks from our research spikes.
+---
+
+## 2. Architecture: The Dual-Engine Model
+
+Synthesized from our research across the **Roman Baeriswyl (`Roemer` / FlaUI)** and **Simon Mourier (`smourier`)** ecosystems:
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                                ADCE DUAL-ENGINE ARCHITECTURE                           │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│  INFRASTRUCTURE & HOST PLANE (Leveraging Simon Mourier Patterns)                       │
+│  ├── Win32 Shallow Filter (< 0.5 ms): Fast HWND, process & WS/WS_EX bitmask gating     │
+│  ├── Concurrency Plane: Dedicated MTA SingleThreadTaskScheduler queue (No STA locks)   │
+│  ├── Daemon Host & IPC: RegfreeNetComServer / NativeAOT COM Endpoint                   │
+│  └── Telemetry & Diagnostics: TraceSpy ETW event provider for zero-overhead metrics    │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│  EXECUTION & CONTEXT EXTRACTION PLANE (Leveraging Roman Baeriswyl / FlaUI Patterns)    │
+│  ├── UIA Automation Engine: FlaUI.UIA3 (Direct UIAutomationClient vtable interop)      │
+│  ├── Batch Context Extraction: FlaUI.Core CacheRequest DSL (< 15 ms multi-tab batch)   │
+│  ├── Strongly-Typed Multi-Zone Parsing: 40+ typed controls (Tab, Edit, Text, Grid)     │
+│  └── Asynchronous Retry Resilience: Retry.WhileNull for lazy Chromium/Monaco buffers   │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│  PERSISTENCE & MODEL CONTEXT PROTOCOL (MCP) INTERFACE                                  │
+│  ├── In-Memory Semantic Context Graph: Sub-millisecond pre-cached query responses      │
+│  ├── Embedded Time-Series Store: SQLite WAL / DuckDB for focus and tab history         │
+│  └── MCP Server Endpoint (Stdio / SSE / HTTP): Universal agent & Caster integration    │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## 2. Public Research Ledger & Architecture Hub
+## 3. Public Research Ledger & Architecture Hub
 
-This project evolved directly from foundational accessibility telemetry and COM reverse-engineering conducted within the [Caster](https://github.com/amirf147/caster-user-directory-and-notes) accessibility ecosystem. This repository functions as an **evolving public research ledger** and implementation hub, tracking low-level COM experiments, UI Automation latency benchmarks, and architectural design decisions.
+This repository functions as an **evolving public research ledger** and implementation hub, tracking low-level COM experiments, UI Automation latency benchmarks, and architectural design decisions.
 
-### Primary References & Guides:
+### Primary References & Specifications:
 * 📘 **[Educational Refresher & Architecture Guide](docs/EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md)**: Plain-English walkthrough of UI Automation, Win32 systems programming, FlaUI caching, and the Dual-Plane architecture.
 * 📑 **[UI Automation Structures Reference (SSOT)](docs/UI_AUTOMATION_STRUCTURES_REFERENCE.md)**: Definitive structural map of UIA node hierarchies, class names, and target zones for Antigravity IDE, Waterfox, and File Explorer.
 * 📋 **[Requirements & Dynamic Discovery Specification](docs/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md)**: 5 Desktop Framework Archetypes, dynamic heuristic discovery pipeline, database tradeoffs, and performance SLAs.
@@ -43,7 +70,22 @@ Foundational accessibility research documents (001–018) live in the [caster-us
 
 ---
 
-## 3. Technology Stack
+## 4. Engineering Roadmap & Phase Status
+
+Following our **4-Gate Epistemic Protocol**:
+
+| Phase | Description | Status | Deliverables & Artifacts |
+| :--- | :--- | :--- | :--- |
+| **Phase 1: Physical Observation & Problem Isolation** | Identify DOM traversal traps and latency bottlenecks across real-world apps. | `[x]` Complete | • [Doc 010: DOM Traversal Telemetry](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/010_telemetry_benchmarks_and_live_findings.md)<br/>• Exposed 6,800-node DOM COM stall (5,897 ms). |
+| **Phase 2: Adversarial Evaluation & Micro-Spikes** | Gate 2 & Gate 3 empirical tests validating container targeting and Win32 gating. | `[x]` Complete | • [Micro-Spike 1 Telemetry (FlaUI UIA3)](docs/benchmarks/001_micro_spike_1_flaui_telemetry.md) (10.17 ms)<br/>• [Micro-Spike 2 Telemetry (Win32 Shallow)](docs/benchmarks/002_micro_spike_2_python_shallow_telemetry.md) (0.66 ms) |
+| **Phase 3: Ecosystem Audit & Wheel Reinvention** | Deep-dive audits of leading open-source Windows/COM/UIA tooling catalogs. | `[x]` Complete | • [Simon Mourier Ecosystem Suite](docs/external_research/README.md)<br/>• [Roman Baeriswyl (Roemer / FlaUI) Deep Dive](docs/external_research/FlaUI_And_Roemer_Ecosystem.md)<br/>• [Synthesis & Wheel Reinvention Audit](docs/external_research/SYNTHESIS_AND_WHEEL_REINVENTION_AUDIT.md) |
+| **Phase 4: Architectural Specifications & SSOT** | Formalize ground-truth target zones, heuristic discovery archetypes, and MCP schemas. | `[x]` Complete | • [UI Automation SSOT Reference](docs/UI_AUTOMATION_STRUCTURES_REFERENCE.md)<br/>• [Dynamic Discovery & Requirements Spec](docs/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md)<br/>• [MCP JSON Schema Specification](docs/MCP_SCHEMA_SPEC.md) |
+| **Phase 5: Production Daemon Implementation** | Build standalone background daemon with system tray UI, SQLite WAL persistence, and MCP server. | `[ ]` **In Progress** | • Scaffold `ADCE.Daemon` (.NET 10)<br/>• Dedicated MTA `Channel<DesktopEvent>` Worker<br/>• SQLite time-series storage & MCP JSON-RPC Server |
+| **Phase 6: Voice & AI Client Integration** | Connect Caster Dragonfly grammars and local AI assistants to the live MCP endpoint. | `[ ]` Planned | • Caster MCP client bindings<br/>• Live active window context streaming to Antigravity/Claude |
+
+---
+
+## 5. Technology Stack
 
 * **Language & Framework:** C# 14 / .NET 10 (LTS) (`net10.0-windows`)
 * **UI Automation Engine:** [FlaUI.UIA3](https://github.com/FlaUI/FlaUI) (v5.0.0+) over native `UIAutomationCore.dll`
@@ -53,18 +95,7 @@ Foundational accessibility research documents (001–018) live in the [caster-us
 
 ---
 
-## 4. Current Status: Phase 5 (Production Daemon Implementation)
-
-Following the 4-Gate Epistemic Gating Protocol ([015](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/015_recalibration_and_adversarial_architecture_review.md)):
-
-* `[x]` **Gate 1 (Physical Observation):** Identified 6,800-node DOM COM crawling stalls in unpruned traversals.
-* `[x]` **Gate 2 (Adversarial Red-Team):** Evaluated FlaUI C# vs. Win32 Python vs. WebExtensions with fatal flaws exposed.
-* `[x]` **Gate 3 (Empirical Micro-Spikes):** Empirically verified that direct container targeting extracts 30 tabs in **10.17 ms** and shallow focus in **0.66 ms**.
-* `[ ]` **Gate 4 / Phase 5 (Production Daemon):** Scaffold `ADCE.Daemon` with system tray UI, MCP server, and historical SQLite storage.
-
----
-
-## 5. Building & Running Spikes
+## 6. Building & Running Spikes
 
 ```powershell
 # Build the solution
@@ -76,6 +107,6 @@ dotnet run --project src/ADCE.Spikes
 
 ---
 
-## 6. License
+## 7. License
 
 Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for details.

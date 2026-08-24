@@ -10,6 +10,7 @@
 > **Target System:** Active Desktop Context Engine (ADCE)
 > **Source Lineage:** Evolved from research in [caster-user-directory-and-notes](https://github.com/amirf147/caster-user-directory-and-notes/tree/master/docs/accessibility_mcp)
 > **Runtime:** .NET 10 (x64) + `FlaUI.UIA3 5.0.0`
+> **Architecture:** Dual-Engine Synthesis (Roman Baeriswyl / FlaUI + Simon Mourier Systems Patterns)
 
 ---
 
@@ -26,8 +27,8 @@ The **Active Desktop Context Engine (ADCE)** is a high-performance, lightweight 
 │                                    ▼                                                   │
 │               [Async Channel<DesktopEvent>] (0% Idle CPU Loop)                         │
 │                                    │                                                   │
-│                                    ▼ (MTA Worker Pool)                                 │
-│        [Targeted Multi-Zone UIA3 Extractor] (10–50 ms, Zero DOM Crawling)              │
+│                                    ▼ (MTA Dedicated Worker Pool)                       │
+│        [Targeted Multi-Zone UIA3 Extractor] (10–15 ms, Zero DOM Crawling)              │
 │        ├── Antigravity / VS Code: tabs-container, monaco-breadcrumbs, sidebar, edit    │
 │        ├── Waterfox / Gecko: tabs normal, tabs pinned, urlbar-input                    │
 │        ├── Windows 11 Explorer: TabView, PART_BreadcrumbBar, Items View                │
@@ -36,7 +37,7 @@ The **Active Desktop Context Engine (ADCE)** is a high-performance, lightweight 
 │                                    ▼                                                   │
 │                   [Live Semantic Context Graph Engine]                                 │
 │                     ├── Active State In-Memory Cache (< 1 ms MCP query)                │
-│                     └── Historical Context Store (Embedded SQLite / DuckDB)            │
+│                     └── Historical Context Store (Embedded SQLite WAL / DuckDB)        │
 │                                    │                                                   │
 │                                    ▼                                                   │
 │                 [MCP Server Endpoint (SSE / HTTP / Stdio)]                             │
@@ -53,7 +54,10 @@ The **Active Desktop Context Engine (ADCE)** is a high-performance, lightweight 
 * **Requirements & Dynamic Discovery Spec:** [`docs/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md`](REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md)
 * **MCP Schema & Tool Specification:** [`docs/MCP_SCHEMA_SPEC.md`](MCP_SCHEMA_SPEC.md)
 * **Educational Guide & Architecture Refresher:** [`docs/EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md`](EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md)
-* **External Research & Wheel Reinvention Audit:** [`docs/external_research/README.md`](external_research/README.md)
+* **External Research & Wheel Reinvention Audit Hub:** [`docs/external_research/README.md`](external_research/README.md)
+  * [Roman Baeriswyl (Roemer) & FlaUI Ecosystem](external_research/FlaUI_And_Roemer_Ecosystem.md)
+  * [Simon Mourier Ecosystem & Systems Tools](external_research/README.md)
+  * [Synthesis & Wheel Reinvention Audit](external_research/SYNTHESIS_AND_WHEEL_REINVENTION_AUDIT.md)
 * **Empirical Benchmarks:**
   * [001: FlaUI UIA3 Telemetry](benchmarks/001_micro_spike_1_flaui_telemetry.md)
   * [002: Python Shallow vs C# Multi-Zone Telemetry](benchmarks/002_micro_spike_2_python_shallow_telemetry.md)
@@ -67,20 +71,24 @@ The **Active Desktop Context Engine (ADCE)** is a high-performance, lightweight 
 
 ---
 
-## 3. Core Architectural Principles
+## 3. Core Architectural Principles (The Dual-Engine Model)
 
-1. **Dual-Plane Discovery (Fast Win32 Gating):**
-   Filter candidate windows in `<1ms` via native Win32 `EnumWindows` and `GetWindowLongPtr` before engaging the heavy UI Automation plane.
+1. **Dual-Plane Discovery (Fast Win32 Gating — *from HwndExplorer*):**
+   Filter candidate windows in `< 0.5 ms` via native Win32 `EnumWindows` and `GetWindowLongPtr` before engaging the heavy UI Automation plane.
 2. **Zero Browser DOM Crawling (Strict Pruning):**
    Never recursively search descendant trees of `MozillaWindowClass` or `Chrome_WidgetWin_1`. Target specific container classes directly (`tabs-container`, `tabs normal`, `monaco-breadcrumbs`).
-3. **MTA Thread Scheduler Isolation:**
+3. **MTA Thread Scheduler Isolation (*from UInspect*):**
    Execute all `FlaUI.UIA3` instance creation and COM queries on an isolated Multi-Threaded Apartment (`ApartmentState.MTA`) worker to eliminate cross-process COM reentrancy deadlocks.
-4. **Decoupled WinEvent Dispatching:**
+4. **Single-Roundtrip Batch Caching (*from FlaUI.UIA3*):**
+   Dispatch scoped `CacheRequest.Activate()` requests with `AutomationElementMode.None` to fetch names, patterns, and rectangles in 1 single OS call without spawning active COM proxies.
+5. **Decoupled WinEvent Dispatching:**
    `SetWinEventHook` callbacks only push lightweight tokens into a `Channel<DesktopEvent>` and return instantly. UIA queries execute with 50–75 ms trailing-edge debouncing.
-5. **Historical State Persistence:**
-   Persist state snapshots and focus transitions to an embedded high-performance database (SQLite / DuckDB) to enable historical queries ("what was open 15 minutes ago?").
-6. **Universal Consumption via MCP:**
-   Expose both live current state and historical queries over standard Model Context Protocol resources and tools.
+6. **Historical State Persistence:**
+   Persist state snapshots and focus transitions to an embedded high-performance database (SQLite WAL mode / DuckDB) to enable historical queries ("what was open 15 minutes ago?").
+7. **Registration-Free COM & Universal MCP Transport:**
+   Expose both live current state and historical queries over standard Model Context Protocol resources/tools and NativeAOT COM endpoints.
+
+---
 
 ## 4. MCP Context Envelope & Progressive Disclosure
 

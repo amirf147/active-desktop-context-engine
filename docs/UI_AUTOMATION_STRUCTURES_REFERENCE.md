@@ -10,7 +10,7 @@
 > **Document Status:** Active / Master Architecture Reference
 > **Target Systems:** Active Desktop Context Engine (ADCE) & Caster Accessibility Engine
 > **Engines Tested:** C# .NET 10 (`FlaUI.UIA3 5.0.0`) & Python 3.10 (`uiautomation` / `ctypes`)
-> **Related Documents:** [010: Traversal Telemetry](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/010_telemetry_benchmarks_and_live_findings.md) | [014: C# Daemon Handover](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/014_csharp_daemon_handover_and_skill_spec.md) | [015: Epistemic Recalibration](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/015_recalibration_and_adversarial_architecture_review.md) | [016: Micro-Spike 2 Telemetry](benchmarks/002_micro_spike_2_python_shallow_telemetry.md)
+> **Related Documents:** [010: Traversal Telemetry](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/010_telemetry_benchmarks_and_live_findings.md) | [014: C# Daemon Handover](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/014_csharp_daemon_handover_and_skill_spec.md) | [015: Epistemic Recalibration](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/015_recalibration_and_adversarial_architecture_review.md) | [016: Micro-Spike 2 Telemetry](benchmarks/002_micro_spike_2_python_shallow_telemetry.md) | [FlaUI & Roemer Ecosystem](external_research/FlaUI_And_Roemer_Ecosystem.md)
 
 ---
 
@@ -207,47 +207,81 @@ Windows 11 File Explorer is rendered via WinUI 3 XAML Islands hosted inside the 
 
 ---
 
-## 5. Summary of Recommended Query Recipes
+## 5. Summary of Recommended Query Recipes (FlaUI 5 + CacheRequest)
 
-### C# FlaUI 5 Query Patterns:
+### High-Performance Batched Query Patterns:
 
 ```csharp
-// 1. Antigravity / VS Code Editor Tabs
-public static List<string> GetVSCodeTabs(AutomationElement window)
+// 1. Antigravity / VS Code Editor Tabs (Batched in 1 COM call)
+public static List<(string Name, bool IsActive)> GetVSCodeTabs(AutomationElement window)
 {
     var cf = window.Automation.ConditionFactory;
     var tabstrip = window.FindFirstDescendant(cf.ByClassName("tabs-container"));
     if (tabstrip == null) return new();
 
-    return tabstrip.FindAllChildren(cf.ByControlType(ControlType.TabItem))
-                   .Select(t => t.Properties.Name.ValueOrDefault)
-                   .Where(name => !string.IsNullOrEmpty(name))
-                   .ToList();
+    // Create CacheRequest: Zero active COM proxies, 1 batched round-trip
+    using var cacheRequest = window.Automation.CreateCacheRequest();
+    cacheRequest.AutomationElementMode = AutomationElementMode.None;
+    cacheRequest.TreeScope = TreeScope.Children;
+    cacheRequest.AddProperty(AutomationElement.NameProperty);
+    cacheRequest.AddPattern(window.Automation.PatternLibrary.SelectionItemPattern);
+
+    using (cacheRequest.Activate())
+    {
+        return tabstrip.FindAllChildren(cf.ByControlType(ControlType.TabItem))
+                       .Select(t => (
+                           Name: t.Properties.Name.ValueOrDefault ?? "",
+                           IsActive: t.Patterns.SelectionItem.PatternOrDefault?.IsSelected.ValueOrDefault ?? false
+                       ))
+                       .Where(x => !string.IsNullOrEmpty(x.Name))
+                       .ToList();
+    }
 }
 
-// 2. Waterfox Tree Style Tab Extraction
-public static List<string> GetWaterfoxTabs(AutomationElement window)
+// 2. Waterfox Tree Style Tab Extraction (Batched in 1 COM call)
+public static List<(string Name, bool IsActive)> GetWaterfoxTabs(AutomationElement window)
 {
     var cf = window.Automation.ConditionFactory;
     var tabList = window.FindFirstDescendant(cf.ByClassName("tabs normal"));
     if (tabList == null) return new();
 
-    return tabList.FindAllChildren(cf.ByControlType(ControlType.ListItem))
-                  .Select(t => t.Properties.Name.ValueOrDefault)
-                  .Where(name => !string.IsNullOrEmpty(name))
-                  .ToList();
+    using var cacheRequest = window.Automation.CreateCacheRequest();
+    cacheRequest.AutomationElementMode = AutomationElementMode.None;
+    cacheRequest.TreeScope = TreeScope.Children;
+    cacheRequest.AddProperty(AutomationElement.NameProperty);
+    cacheRequest.AddPattern(window.Automation.PatternLibrary.SelectionItemPattern);
+
+    using (cacheRequest.Activate())
+    {
+        return tabList.FindAllChildren(cf.ByControlType(ControlType.ListItem))
+                      .Select(t => (
+                          Name: t.Properties.Name.ValueOrDefault ?? "",
+                          IsActive: t.Patterns.SelectionItem.PatternOrDefault?.IsSelected.ValueOrDefault ?? false
+                      ))
+                      .Where(x => !string.IsNullOrEmpty(x.Name))
+                      .ToList();
+    }
 }
 
-// 3. Windows 11 File Explorer Tabs
+// 3. Windows 11 File Explorer Tabs (Batched in 1 COM call)
 public static List<string> GetExplorerTabs(AutomationElement window)
 {
     var cf = window.Automation.ConditionFactory;
     var tabView = window.FindFirstDescendant(cf.ByAutomationId("TabListView"));
     if (tabView == null) return new();
 
-    return tabView.FindAllChildren(cf.ByControlType(ControlType.TabItem))
-                  .Select(t => t.Properties.Name.ValueOrDefault)
-                  .ToList();
+    using var cacheRequest = window.Automation.CreateCacheRequest();
+    cacheRequest.AutomationElementMode = AutomationElementMode.None;
+    cacheRequest.TreeScope = TreeScope.Children;
+    cacheRequest.AddProperty(AutomationElement.NameProperty);
+
+    using (cacheRequest.Activate())
+    {
+        return tabView.FindAllChildren(cf.ByControlType(ControlType.TabItem))
+                      .Select(t => t.Properties.Name.ValueOrDefault)
+                      .Where(n => !string.IsNullOrEmpty(n))
+                      .ToList();
+    }
 }
 ```
 

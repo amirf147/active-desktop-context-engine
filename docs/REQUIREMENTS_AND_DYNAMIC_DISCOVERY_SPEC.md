@@ -72,14 +72,14 @@ graph TD
     A5 --> P5["Probe Pattern: Universal SelectionItem Heuristic"]
 ```
 
-### The 4-Tier Self-Healing Extraction Pipeline:
+### The 4-Tier Self-Healing Extraction Pipeline (Dual-Engine Implementation):
 
-1. **Tier 1: Fast Win32 Envelope (< 1 µs):**
-   * Instantly query HWND, Process Name, Window Title, and Window Rect via direct Win32 C-calls.
-2. **Tier 2: Universal Pattern Probing (1–3 ms):**
-   * Query `GetFocusedControl()`. Probe for standard UIA patterns (`ValuePattern`, `TextPattern`, `SelectionItemPattern`) regardless of application class.
-3. **Tier 3: Archetype Container Discovery (5–15 ms):**
-   * If the window matches a known archetype, use heuristic role-based probing (e.g. search for any container whose children implement `SelectionItemPattern` and have tab-like bounding boxes) rather than strict string matching.
+1. **Tier 1: Fast Win32 Envelope (< 0.5 ms — *from HwndExplorer*):**
+   * Instantly query HWND, Process Name, Window Title, and Window Rect via direct Win32 C-calls before entering the COM pipeline.
+2. **Tier 2: Universal Pattern Probing (1–3 ms — *via MTA Worker Queue*):**
+   * Query `GetFocusedControl()`. Probe for standard UIA patterns (`ValuePattern`, `TextPattern`, `SelectionItemPattern`) on a dedicated MTA thread (`SingleThreadTaskScheduler`).
+3. **Tier 3: Archetype Container Discovery & Batch Caching (5–15 ms — *via FlaUI.UIA3 CacheRequest*):**
+   * If the window matches a known archetype, use heuristic role-based probing and activate a scoped `CacheRequest.Activate()` (`AutomationElementMode.None`) to extract all child items in a single cross-process round-trip.
 4. **Tier 4: Declarative App Definition Overrides (JSON):**
    * Maintain an extensible, user-editable `app_definitions.json` for complex edge cases (e.g. Tree Style Tab sidebar or custom multi-group IDEs) without requiring code recompilation.
 
