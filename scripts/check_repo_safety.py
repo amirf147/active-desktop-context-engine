@@ -24,6 +24,7 @@ IGNORED_DIRS = {
     ".idea",
     "__pycache__",
     ".pytest_cache",
+    "external",
 }
 
 # Ignore file extensions / binary files

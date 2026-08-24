@@ -39,3 +39,6 @@ __pycache__/
 *$py.class
 .pytest_cache/
 .ruff_cache/
+
+# Cloned third-party reference repositories
+external/

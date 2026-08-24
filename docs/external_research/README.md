@@ -20,6 +20,7 @@ This directory contains technical audits, architectural analyses, and reverse-en
 | [`HwndExplorer.md`](./HwndExplorer.md) | `smourier/HwndExplorer` | Win32 shallow tree discovery, window hierarchy, style bitmasking (`WS`/`WS_EX`), process mapping, and z-order traversal. |
 | [`RegfreeNetCom_Suite.md`](./RegfreeNetCom_Suite.md) | `smourier/RegfreeNetComServer`, `smourier/RefreeNetCom`, `smourier/OutOfProcessCOMServer`, `smourier/ActiveN`, `smourier/AotNetComHost` | Out-of-proc & in-proc registration-free COM servers in .NET 10 / NativeAOT, manifest marshaling with `OleAut32`, custom `IClassFactory`. |
 | [`Interop_And_Telemetry_Tools.md`](./Interop_And_Telemetry_Tools.md) | `smourier/Win32InteropBuilder`, `smourier/TraceSpy`, `smourier/RawInputReader`, `smourier/DirectNAot` | Metadata-driven P/Invoke generation, zero-overhead ETW/debug tracing, raw HID input sinks, and GPU DirectX rendering. |
+| [`VirtualDesktop_And_Touchpoint_Audit.md`](./VirtualDesktop_And_Touchpoint_Audit.md) | `Slion/VirtualDesktop`, `MSCholtes/VirtualDesktop`, `Touchpoint-Labs/touchpoint` | Virtual Desktop COM version negotiation across Windows 10/11 builds, WinStasis lineage, and cross-platform accessibility MCP server architecture. |
 | [`SYNTHESIS_AND_WHEEL_REINVENTION_AUDIT.md`](./SYNTHESIS_AND_WHEEL_REINVENTION_AUDIT.md) | **Global Synthesis** | Strategic evaluation: Are we reinventing the wheel? Roemer vs. Simon supercedence matrix, standing on shoulders of existing primitives, and ADCE justification. |
 
 ---
