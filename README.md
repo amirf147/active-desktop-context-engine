@@ -9,13 +9,18 @@
 
 ## 1. Overview
 
-The **Active Desktop Context Engine (ADCE)** is an always-on, high-performance Windows background service and [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) provider. It starts with Windows, resides silently in the system tray with **0% idle CPU**, and maintains an instant, live semantic graph of the user's active desktop:
+The **Active Desktop Context Engine (ADCE)** is an experimental, privacy-first Windows background daemon and [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server.
 
-* **Active Window & Focus:** Foreground application envelope, window title, process ID, Win32 class name, and focused control metadata (< 1.0 ms).
-* **Multi-Zone Application Context:** Open editor tabs, active file path breadcrumbs, sidebar panels, and commit/prompt input buffers across IDEs (VS Code, Cursor, Antigravity) and browsers (Waterfox, Firefox, Edge, Chrome) in ~10–15 ms.
-* **Workspace & Virtual Desktops:** Active Virtual Desktop GUID, friendly desktop name, and desktop index via COM interfaces.
-* **Historical State Persistence:** Embedded time-series storage (SQLite / DuckDB) tracking focus transitions and tab states over time for AI temporal queries.
-* **Universal MCP Streaming:** Exposes live desktop state and historical tools over local JSON-RPC / SSE / Stdio endpoints to AI agents and voice command engines (Caster).
+Instead of relying on resource-heavy screenshot OCR, periodic screen polling, or cloud telemetry, ADCE integrates directly with native Win32 `WinEvent` hooks and UI Automation (UIA) caching to deliver a deterministic, structured desktop state in **< 20 ms** with near-zero CPU and memory overhead:
+
+* **100% Local Data Sovereignty:** Complete on-device execution. Active window titles, document contents, and application states never leave localhost—ensuring enterprise privacy and zero telemetry leakage.
+* **Deterministic Focus & Window Topology:** Instant tracking of the foreground application envelope, process metadata, window hierarchies, and focused UI controls (< 1.0 ms) via decoupled asynchronous event channels.
+* **Virtual Desktop & Workspace Awareness:** Direct extraction of active Virtual Desktop GUIDs, friendly names, and desktop indices via native COM interop.
+* **Container-Aware Tab Discovery:** Efficient tab enumeration across modern browsers (Waterfox, Firefox, Chrome, Edge) and code editors (VS Code, Antigravity) without triggering unpruned DOM crawling stalls (~10–15 ms).
+* **Token-Efficient MCP Streaming:** Compact, high-density JSON context snapshots over local MCP endpoints (`get_desktop_context`, `desktop://current`), giving local LLMs actionable workflow awareness without wasting context tokens on raw visual screen dumps.
+* **Historical State Persistence:** Embedded time-series storage (SQLite / DuckDB) tracking focus transitions and tab history for temporal agent reasoning.
+
+> **Research Status:** This codebase is actively exploring low-level COM performance and UI tree traversal boundaries. Capabilities, heuristics, and transport architectures reflect empirical benchmarks from our research spikes.
 
 ---
 
