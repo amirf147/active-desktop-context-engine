@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <!-- Copyright (c) 2024-2026 Amir Farhadi -->
 
-[ 🏠 Docs Home ](../README.md) › [ 📁 Accessibility MCP ](CONTEXT.md) › **018: Epistemic Gaps, Dynamic App Discovery & Engine Requirements**
+[ 🏠 ADCE Home ](../README.md) › [ 📚 Documentation Hub ](CONTEXT.md) › **Epistemic Gaps, Dynamic App Discovery & Engine Requirements**
 
 ---
 

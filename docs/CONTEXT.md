@@ -1,6 +1,10 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <!-- Copyright (c) 2024-2026 Amir Farhadi -->
 
+[ 🏠 ADCE Home ](../README.md) › **ADCE Domain Context & Reference Specification**
+
+---
+
 # ADCE Domain Context & Reference Specification
 
 > **Target System:** Active Desktop Context Engine (ADCE)

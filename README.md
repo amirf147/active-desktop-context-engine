@@ -33,7 +33,7 @@ This project evolved directly from foundational accessibility telemetry and COM 
 * 📑 **[UI Automation Structures Reference (SSOT)](docs/UI_AUTOMATION_STRUCTURES_REFERENCE.md)**: Definitive structural map of UIA node hierarchies, class names, and target zones for Antigravity IDE, Waterfox, and File Explorer.
 * 📋 **[Requirements & Dynamic Discovery Specification](docs/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md)**: 5 Desktop Framework Archetypes, dynamic heuristic discovery pipeline, database tradeoffs, and performance SLAs.
 * 🔌 **[Model Context Protocol (MCP) Schema Spec](docs/MCP_SCHEMA_SPEC.md)**: Evolving draft JSON schema, decoupled envelope definitions, and MCP tool endpoint specifications.
-* 🔬 **[External Research & Ecosystem Audit](docs/external_research/README.md)**: Deep dive on Simon Mourier's COM/UIA repositories (`UInspect`, `HwndExplorer`, `RegfreeNetComServer`, `TraceSpy`) and wheel reinvention analysis.
+* 🔬 **[External Research & Ecosystem Audit](docs/external_research/README.md)**: Comprehensive deep dive and comparative audit of **Roman Baeriswyl (`Roemer` / FlaUI)** and **Simon Mourier (`smourier`)** Windows systems/COM repositories, supercedence matrix, and wheel reinvention analysis.
 * 📊 **[Empirical Telemetry Benchmarks](docs/benchmarks/)**:
   * [001: FlaUI UIA3 Telemetry](docs/benchmarks/001_micro_spike_1_flaui_telemetry.md) — 30 tabs in 10.17 ms with zero DOM crawling.
   * [002: Python Shallow vs C# Multi-Zone Telemetry](docs/benchmarks/002_micro_spike_2_python_shallow_telemetry.md) — Sub-millisecond envelope extraction.

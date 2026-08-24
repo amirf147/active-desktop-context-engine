@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <!-- Copyright (c) 2024-2026 Amir Farhadi -->
 
-[ 🏠 Docs Home ](../README.md) › [ 📁 Accessibility MCP ](CONTEXT.md) › **017: UI Automation Tree Structures & Target Zones Reference (SSOT)**
+[ 🏠 ADCE Home ](../README.md) › [ 📚 Documentation Hub ](CONTEXT.md) › **UI Automation Tree Structures & Target Zones Reference (SSOT)**
 
 ---
 

@@ -3,6 +3,10 @@ SPDX-License-Identifier: Apache-2.0
 Copyright (c) 2024-2026 Amir Farhadi
 -->
 
+[ 🏠 ADCE Home ](../README.md) › [ 📚 Documentation Hub ](CONTEXT.md) › **MCP Schema Specification**
+
+---
+
 # ADCE Model Context Protocol (MCP) Schema Specification
 
 > **Status:** Draft / Evolving Specification

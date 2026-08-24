@@ -3,11 +3,16 @@ SPDX-License-Identifier: Apache-2.0
 Copyright (c) 2024-2026 Amir Farhadi
 -->
 
+[ 🏠 ADCE Home ](../README.md) › [ 📚 Documentation Hub ](CONTEXT.md) › **Educational Refresher & Architecture Guide**
+
+---
+
 # ADCE Educational Refresher & Architectural Guide
 
 > **Target Audience:** Contributors, AI pair-programmers, and researchers
 > **Purpose:** Plain-English educational breakdown of Windows UI Automation, Win32 systems programming, and the ADCE Dual-Plane architecture
 > **Parent Context:** [`docs/CONTEXT.md`](CONTEXT.md)
+> **External Research:** [`docs/external_research/README.md`](external_research/README.md)
 
 ---
 

@@ -3,45 +3,53 @@ SPDX-License-Identifier: Apache-2.0
 Copyright (c) 2024-2026 Amir Farhadi
 -->
 
-# Architectural Synthesis & Wheel Reinvention Audit: Simon Mourier Ecosystem
+[ 🏠 ADCE Home ](../../README.md) › [ 📚 Documentation Hub ](../CONTEXT.md) › [ 🔬 External Research ](README.md) › **Synthesis & Wheel Reinvention Audit**
+
+---
+
+# Architectural Synthesis & Wheel Reinvention Audit: Roemer & Simon Mourier Ecosystems
 
 ## 1. Problem Framing & Strategic Objective
 
-Before committing code to the Active Desktop Context Engine (ADCE), we performed an adversarial research investigation into the body of work authored by **Simon Mourier** (`github.com/smourier`), a leading Windows systems, COM, and UI Automation architect.
+Before committing code to the Active Desktop Context Engine (ADCE), we performed an adversarial research investigation into the bodies of work authored by **Simon Mourier** (`github.com/smourier`, Windows systems/COM architect) and **Roman Baeriswyl** (`github.com/Roemer`, architect of `FlaUI` & `FlaUInspect`).
 
 The goal is to answer three decisive epistemic questions:
-1. **What concrete value, patterns, and code can we extract from this ecosystem?**
+1. **What concrete value, patterns, and code can we extract from these two ecosystems?**
 2. **Are we reinventing the wheel?** Does an existing tool, framework, or daemon already solve the active desktop context problem for AI agents?
-3. **Is our proposed ADCE architecture necessary and justified?** How do we properly stand on the shoulders of existing giants?
+3. **Is our proposed ADCE architecture necessary and justified?** How do we synthesize the best of both worlds without redundant engineering?
 
 ---
 
 ## 2. Value Extraction Matrix
 
-The table below maps Simon Mourier's repositories directly to our architecture layers:
+The table below maps both research ecosystems directly to our architecture layers:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                            ADCE ENGINE LAYERS                               │
 ├──────────────────────────────┬──────────────────────────────────────────────┤
-│ ADCE Architectural Layer     │ Extracted Pattern / Asset from smourier Repos│
+│ ADCE Architectural Layer     │ Extracted Pattern / Asset from Ecosystems    │
 ├──────────────────────────────┼──────────────────────────────────────────────┤
 │ 1. Win32 Shallow Filter      │ • Win32Window OOP abstraction (HwndExplorer) │
-│    (<1ms Window Discovery)   │ • Style & Extended Style bitmasks (WS/WS_EX) │
+│    (< 0.5 ms Window Gating)  │ • Style & Extended Style bitmasks (WS/WS_EX) │
 │                              │ • Process-to-HWND fast lookup                │
 ├──────────────────────────────┼──────────────────────────────────────────────┤
-│ 2. UIA Automation Plane      │ • SingleThreadTaskScheduler MTA (UInspect)   │
-│    (Deep Context Extraction) │ • Structure changed event sinks (UInspect)   │
-│                              │ • COM thread deadlock avoidance rules        │
+│ 2. UIA Automation Plane      │ • FlaUI.UIA3 Custom COM wrappers & bindings  │
+│    (Deep Context Extraction) │ • FlaUI CacheRequest DSL (Single-trip batch) │
+│                              │ • SingleThreadTaskScheduler MTA (UInspect)   │
+│                              │ • Structure changed event sinks (UInspect)   │
+│                              │ • Retry.WhileNull resilience engine (FlaUI)  │
 ├──────────────────────────────┼──────────────────────────────────────────────┤
-│ 3. Interop & Code Generation │ • Win32Metadata P/Invoke builder             │
+│ 3. Interop & Host Daemon     │ • RegfreeNetComServer NativeAOT COM Host     │
+│                              │ • Win32Metadata P/Invoke builder             │
 │                              │ • Blittable struct memory layouts            │
 ├──────────────────────────────┼──────────────────────────────────────────────┤
-│ 4. Telemetry & User State    │ • Raw Input sink without LL-hooks            │
+│ 4. Telemetry & User State    │ • Raw Input sink without LL-hooks (smourier) │
 │                              │ • ETW EventProvider high-speed tracing       │
 ├──────────────────────────────┼──────────────────────────────────────────────┤
 │ 5. Visual HUD (Optional)     │ • DirectNAot zero-allocation D2D overlays    │
-└──────────────────────────────┴──────────────────────────────────────────────┘
+│                              │ • FlaUInspect visual highlight bounding box  │
+└────────────────────────────────┴──────────────────────────────────────────────┘
 ```
 
 ---
@@ -58,8 +66,8 @@ To evaluate this rigorously, we audited all existing tools in this space across 
 ├──────────────────────────┬──────────────────────────────────────────────────┤
 │ Category                 │ Existing Representatives                         │
 ├──────────────────────────┼──────────────────────────────────────────────────┤
-│ A. Diagnostic GUI Tools  │ Windows SDK Inspect, UInspect, HwndExplorer,     │
-│                          │ Accessibility Insights, Spy++                    │
+│ A. Diagnostic GUI Tools  │ FlaUInspect, UInspect, Windows SDK Inspect,      │
+│                          │ HwndExplorer, Accessibility Insights, Spy++      │
 │ B. UI Testing Frameworks │ FlaUI, WinAppDriver, White, pywinauto            │
 │ C. Raw Interop Libraries │ DirectN, UIAutomationClient PIA, Win32Metadata   │
 │ D. Agent Context Engines │ [GAP IDENTIFIED] → ADCE                          │
@@ -68,7 +76,7 @@ To evaluate this rigorously, we audited all existing tools in this space across 
 
 ### Detailed Gap Analysis:
 
-1. **Diagnostic GUI Tools (`UInspect`, `Inspect.exe`, `HwndExplorer`):**
+1. **Diagnostic GUI Tools (`FlaUInspect`, `UInspect`, `Inspect.exe`, `HwndExplorer`):**
    - *What they do:* Provide human-facing tree views, property inspection grids, and live highlight rectangles.
    - *Why they cannot solve our problem:* They are graphical user applications meant for human eyes. They have no programmatic API, no semantic zone categorization (e.g. TabStrip vs Editor vs Output), no token-efficient summarization, and no MCP (Model Context Protocol) interface.
 
@@ -86,17 +94,38 @@ To evaluate this rigorously, we audited all existing tools in this space across 
 
 ---
 
-## 4. Architectural Re-Evaluation & Synthesis
+## 4. Head-to-Head Synthesis: Roemer vs. Simon Mourier
 
-By standing on the shoulders of Simon Mourier's research and FlaUI's battle-tested abstractions, ADCE's technical blueprint is refined into five core principles:
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          SUPERPOSITIONS & DOMAINS                           │
+├──────────────────────────────────────┬──────────────────────────────────────┤
+│ Roman Baeriswyl (`Roemer`)           │ Simon Mourier (`smourier`)           │
+│ SUPERSEDES SIMON IN:                 │ SUPERSEDES ROEMER IN:                │
+├──────────────────────────────────────┼──────────────────────────────────────┤
+│ 1. Ergonomic Control Patterns        │ 1. Registration-Free COM Server Host │
+│    (Tabs, Grids, Trees, TextBoxes)   │    (NativeAOT / .NET 10 Out-of-Proc) │
+│ 2. UIA2 vs UIA3 Polymorphic Engine   │ 2. Win32 Window Styles & Fast Gating │
+│ 3. Expressive CacheRequest DSL       │    (HwndExplorer / WS_EX bitmasks)   │
+│ 4. Deterministic Retry Polling Loops │ 3. Strict MTA Thread Isolation Queue │
+│ 5. XPath Query & Navigation Engine   │ 4. Hardware Direct2D Overlay Engine  │
+│ 6. Visual Element Highlighting Tool  │ 5. Zero-Overhead ETW Event Tracing   │
+└──────────────────────────────────────┴──────────────────────────────────────┘
+```
+
+---
+
+## 5. Architectural Re-Evaluation & Synthesis
+
+By standing on the shoulders of Simon Mourier's research and Roman Baeriswyl's FlaUI abstractions, ADCE's technical blueprint is refined into five core principles:
 
 ### Principle 1: Fast Win32 Shallow Gating (from `HwndExplorer`)
-Before touching the UIA COM pipeline, ADCE uses `EnumWindows` and `GetWindowLongPtr` to filter out non-viable windows in `<1ms`. Only the focused or target process window is ever passed to the UIA plane.
+Before touching the UIA COM pipeline, ADCE uses `EnumWindows` and `GetWindowLongPtr` to filter out non-viable windows in `< 0.5ms`. Only the focused or target process window is ever passed to the UIA plane.
 
 ### Principle 2: MTA Thread Isolation (from `UInspect`)
 All `FlaUI.UIA3` automation instance creation, cache requests, and tree queries must execute on a dedicated MTA thread to guarantee absolute immunity from COM re-entrancy deadlocks.
 
-### Principle 3: Batch CacheRequests over Tree Crawling (from `UIA3` Caching Patterns)
+### Principle 3: Batch CacheRequests over Tree Crawling (from `FlaUI.UIA3`)
 Never perform iterative child-by-child COM calls across process boundaries. Always dispatch a single `CacheRequest` requesting `Name`, `ControlType`, `BoundingRectangle`, and `SelectionItemPattern` in one round-trip.
 
 ### Principle 4: High-Performance Telemetry & Diagnostic Tracing (from `TraceSpy`)
@@ -107,9 +136,9 @@ Maintain the daemon interface over standard Stdio / Named Pipe JSON-RPC to ensur
 
 ---
 
-## 5. Conclusion & Actionable Roadmap
+## 6. Conclusion & Actionable Roadmap
 
 The research confirms that our current architectural direction is optimal:
-1. **Low-level components are reused:** We leverage `FlaUI.UIA3` and adapt `HwndExplorer`'s Win32 structs.
-2. **System-level safety is hardened:** We adopt `UInspect`'s MTA thread scheduler pattern.
+1. **Low-level components are reused:** We leverage `FlaUI.UIA3` for control parsing and caching, and adapt `HwndExplorer`'s Win32 window structures.
+2. **System-level safety is hardened:** We adopt `UInspect`'s MTA thread scheduler pattern to eliminate STA deadlock risks.
 3. **Core innovation is focused:** We concentrate our development entirely on intelligent target zone extraction, caching algorithms, and MCP tool endpoints.

@@ -1,6 +1,10 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <!-- Copyright (c) 2024-2026 Amir Farhadi -->
 
+[ 🏠 ADCE Home ](../../README.md) › [ 📚 Documentation Hub ](../CONTEXT.md) › **Micro-Spike 1: FlaUI UIA3 Telemetry**
+
+---
+
 # Micro-Spike 1: FlaUI 5 / .NET 10 UIA3 Tab Extraction Empirical Telemetry
 
 > **Gate:** Gate 3 (Empirical Micro-Spikes)

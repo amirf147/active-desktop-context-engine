@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <!-- Copyright (c) 2024-2026 Amir Farhadi -->
 
-[ 🏠 Docs Home ](../README.md) › [ 📁 Accessibility MCP ](CONTEXT.md) › **016: Micro-Spike 2 Win32 Shallow Python Telemetry & Comparative Analysis**
+[ 🏠 ADCE Home ](../../README.md) › [ 📚 Documentation Hub ](../CONTEXT.md) › **Micro-Spike 2: Win32 Shallow Python Telemetry**
 
 ---
 

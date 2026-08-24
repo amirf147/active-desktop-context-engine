@@ -3,6 +3,10 @@ SPDX-License-Identifier: Apache-2.0
 Copyright (c) 2024-2026 Amir Farhadi
 -->
 
+[ 🏠 ADCE Home ](../../README.md) › [ 📚 Documentation Hub ](../CONTEXT.md) › [ 🔬 External Research ](README.md) › **Simon Mourier: Interop, Telemetry & Input Tools**
+
+---
+
 # Codebase Deep Dive: Interop, Telemetry & Input Tools
 
 This document analyzes Simon Mourier's specialized Windows systems tooling:
