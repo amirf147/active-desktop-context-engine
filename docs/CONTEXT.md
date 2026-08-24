@@ -91,7 +91,7 @@ The **Active Desktop Context Engine (ADCE)** is a high-performance, lightweight 
     "class_name": "Chrome_WidgetWin_1"
   },
   "ide_context": {
-    "active_file_path": "C:\\Users\\<User>\\Documents\\repos\\FlaUI\\src\\FlaUI.Core\\CacheRequest.cs",
+    "active_file_path": "C:\\Projects\\FlaUI\\src\\FlaUI.Core\\CacheRequest.cs",
     "active_sidebar_view": "Explorer (Ctrl+Shift+E)",
     "open_editor_tabs": [
       { "title": "Preview 016_micro_spike_2.md", "is_active": false },

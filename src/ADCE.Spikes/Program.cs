@@ -235,7 +235,7 @@ public class Program
         Console.WriteLine("--------------------------------------------------------------------------");
         Console.WriteLine($"[BIND] Bound AutomationElement: Median {GetMedian(bindTimes):F2} ms (Min: {bindTimes.Min():F2} ms, P95: {GetP95(bindTimes):F2} ms, Max: {bindTimes.Max():F2} ms)");
         Console.WriteLine($"[CONTAINER] Found container '{foundContainerLabel}' (AutoId: '{foundAutoId}'): Median {GetMedian(containerTimes):F2} ms (Min: {containerTimes.Min():F2} ms, P95: {GetP95(containerTimes):F2} ms, Max: {containerTimes.Max():F2} ms)");
-        
+
         double medianExtract = GetMedian(extractTimes);
         double perTabUs = tabsExtracted.Count > 0 ? (medianExtract * 1000.0) / tabsExtracted.Count : 0.0;
         Console.WriteLine($"[EXTRACTION] Extracted {tabsExtracted.Count} named tabs: Median {medianExtract:F2} ms ({perTabUs:F1} µs/tab) (Min: {extractTimes.Min():F2} ms, P95: {GetP95(extractTimes):F2} ms, Max: {extractTimes.Max():F2} ms)\n");
@@ -283,7 +283,7 @@ public class Program
                 string cls = c.Properties.ClassName.ValueOrDefault ?? "";
                 var type = c.Properties.ControlType.ValueOrDefault;
                 string indent = new string(' ', (depth + 1) * 2);
-                Console.WriteLine($"{indent}[D{depth+1}][{type}] AutoId='{autoId}' Class='{cls}' Name='{name}'");
+                Console.WriteLine($"{indent}[D{depth + 1}][{type}] AutoId='{autoId}' Class='{cls}' Name='{name}'");
                 DumpTree(c, depth + 1, maxDepth);
             }
         }

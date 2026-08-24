@@ -1,0 +1,27 @@
+# Pre-commit configuration for Active Desktop Context Engine (ADCE)
+# Install locally with: pip install pre-commit && pre-commit install
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+
+  - repo: local
+    hooks:
+      - id: check-repo-safety
+        name: Check Secrets, Absolute Paths & License Headers
+        entry: python scripts/check_repo_safety.py
+        language: system
+        pass_filenames: false
+
+      - id: dotnet-format
+        name: Verify C# Code Formatting (dotnet format)
+        entry: dotnet format --verify-no-changes
+        language: system
+        types: [c#]
+        pass_filenames: false

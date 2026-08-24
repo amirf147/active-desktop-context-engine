@@ -1,0 +1,46 @@
+name: ADCE CI & Security Hygiene
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  build-and-format:
+    name: Build & Code Formatting (.NET 10)
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore Dependencies
+        run: dotnet restore
+
+      - name: Build Solution & Projects (Release)
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Verify Code Formatting (dotnet format)
+        run: dotnet format --verify-no-changes
+
+  security-and-path-hygiene:
+    name: Security, Secrets & Path Hygiene
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run Repository Safety & Path Hygiene Checker
+        run: python scripts/check_repo_safety.py
