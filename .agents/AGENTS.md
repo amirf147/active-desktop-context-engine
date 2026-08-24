@@ -13,8 +13,8 @@
 - **Requirements & Archetype Spec:** [`docs/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md`](../docs/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md)
 - **MCP Schema & Tool Endpoints:** [`docs/MCP_SCHEMA_SPEC.md`](../docs/MCP_SCHEMA_SPEC.md)
 - **External Research & Ecosystem Audit:** [`docs/external_research/README.md`](../docs/external_research/README.md)
-- **Upstream Caster Research:** Foundational research (001–018) lives in [caster-user-directory-and-notes](https://github.com/amirf147/caster-user-directory-and-notes/tree/master/docs/accessibility_mcp).
-- All internal documentation within this repo must use relative links or reference `https://github.com/amirf147/caster-user-directory-and-notes/tree/master/docs/accessibility_mcp/`.
+- **Foundational Research Lineage:** Upstream accessibility research (documents 001–018) lives in [caster-user-directory-and-notes](https://github.com/amirf147/caster-user-directory-and-notes/tree/master/docs/accessibility_mcp).
+- All internal documentation within this repository must use clean relative links.
 
 ### 4-Gate Epistemic Protocol (Mandatory)
 Every architectural proposal must strictly adhere to the 4-gate verification protocol:
