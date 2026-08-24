@@ -50,5 +50,5 @@ public static List<TabItemModel> ExtractTabs(AutomationElement topWindow, string
 ```
 
 ## 4. Documentation Strategy & Path Portability
-* **Foundational Reference:** Historical research, telemetry benchmarks, and architectural investigations live at `%LOCALAPPDATA%\caster\docs\accessibility_mcp\`.
+* **Foundational Reference:** Historical research, telemetry benchmarks, and architectural investigations live in [caster-user-directory-and-notes](https://github.com/amirf147/caster-user-directory-and-notes/tree/master/docs/accessibility_mcp).
 * **Clean Boundaries:** This repo operates as a standalone C# system; historical documentation provides context on why certain UIA patterns and debounce parameters were chosen.

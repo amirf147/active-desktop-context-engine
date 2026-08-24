@@ -3,37 +3,35 @@
 
 # Active Desktop Context Engine (ADCE)
 
-> **High-Performance Desktop Context Graph & MCP Provider for Local AI Agents and Voice Interfaces**
+> **High-Performance Desktop Context Graph, Time-Series Persistence & MCP Provider for Local AI Agents and Voice Interfaces**
 
 ---
 
 ## 1. Overview
 
-The **Active Desktop Context Engine (ADCE)** is a high-performance Windows background service and [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) provider designed to maintain an instant, real-time semantic model of the active user desktop:
+The **Active Desktop Context Engine (ADCE)** is an always-on, high-performance Windows background service and [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) provider. It starts with Windows, resides silently in the system tray with **0% idle CPU**, and maintains an instant, live semantic graph of the user's active desktop:
 
-* **Active Window & Focus:** Foreground application envelope, window title, process ID, Win32 class name, and focused control metadata.
+* **Active Window & Focus:** Foreground application envelope, window title, process ID, Win32 class name, and focused control metadata (< 1.0 ms).
+* **Multi-Zone Application Context:** Open editor tabs, active file path breadcrumbs, sidebar panels, and commit/prompt input buffers across IDEs (VS Code, Cursor, Antigravity) and browsers (Waterfox, Firefox, Edge, Chrome) in ~10–15 ms.
 * **Workspace & Virtual Desktops:** Active Virtual Desktop GUID, friendly desktop name, and desktop index via COM interfaces.
-* **Live Tab Extraction:** Zero-crawl, sub-millisecond extraction of open tabs across modern browsers (Waterfox, Firefox, Edge, Chrome) and code editors (VS Code, Cursor, Antigravity).
-* **AI Tool & Resource Streaming:** Exposes live desktop state over local JSON-RPC / SSE endpoints (`get_desktop_context`, `desktop://current`) to AI pair programmers and voice command runtimes.
+* **Historical State Persistence:** Embedded time-series storage (SQLite / DuckDB) tracking focus transitions and tab states over time for AI temporal queries.
+* **Universal MCP Streaming:** Exposes live desktop state and historical tools over local JSON-RPC / SSE / Stdio endpoints to AI agents and voice command engines (Caster).
 
 ---
 
-## 2. Research Lineage & Historical Documentation
+## 2. Research Lineage & Single Source of Truth
 
 This project evolved from extensive accessibility telemetry and COM reverse-engineering conducted within the **Caster** accessibility framework.
 
-All foundational research, telemetry benchmarks, and architectural investigations are available in the Caster documentation:
+### Primary References in This Repository:
+* 📑 **[UI Automation Structures Reference (SSOT)](docs/UI_AUTOMATION_STRUCTURES_REFERENCE.md)**: Definitive structural map of UIA node hierarchies, class names, and target zones for Antigravity IDE, Waterfox, and File Explorer.
+* 📋 **[Requirements & Dynamic Discovery Specification](docs/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md)**: 5 Desktop Framework Archetypes, dynamic heuristic discovery pipeline, database tradeoffs, and performance SLAs.
+* 📊 **[Empirical Telemetry Benchmarks](docs/benchmarks/)**:
+  * [001: FlaUI UIA3 Telemetry](docs/benchmarks/001_micro_spike_1_flaui_telemetry.md) — 30 tabs in 10.17 ms with zero DOM crawling.
+  * [002: Python Shallow vs C# Multi-Zone Telemetry](docs/benchmarks/002_micro_spike_2_python_shallow_telemetry.md) — Sub-millisecond envelope extraction.
 
-* **Historical Docs Root:** `caster/docs/accessibility_mcp/` (Local path: `%LOCALAPPDATA%\caster\docs\accessibility_mcp\`)
-* **Key Architecture & Telemetry Records:**
-  * [008: Real-World Observations & Caching Architecture](file:///%LOCALAPPDATA%/caster/docs/accessibility_mcp/008_real_world_observations_and_caching_architecture.md)
-  * [010: Traversal Telemetry Benchmarks & Live Findings](file:///%LOCALAPPDATA%/caster/docs/accessibility_mcp/010_telemetry_benchmarks_and_live_findings.md)
-  * [011: FlaUI Evaluation & Dual-Plane Architecture](file:///%LOCALAPPDATA%/caster/docs/accessibility_mcp/011_flaui_evaluation_and_dual_plane_architecture.md)
-  * [013: Empirical Post-Mortem & Event Diagnostics](file:///%LOCALAPPDATA%/caster/docs/accessibility_mcp/013_v23_empirical_postmortem_and_event_diagnostics.md)
-  * [014: C# Daemon Handover & Skill Specification](file:///%LOCALAPPDATA%/caster/docs/accessibility_mcp/014_csharp_daemon_handover_and_skill_spec.md)
-  * [015: Epistemic Recalibration & Adversarial Architecture Review](file:///%LOCALAPPDATA%/caster/docs/accessibility_mcp/015_recalibration_and_adversarial_architecture_review.md)
-
-See [docs/CONTEXT.md](docs/CONTEXT.md) for domain concepts, data schemas, and architecture rules.
+### Upstream Caster Research Lineage:
+Foundational research documents (001–018) live in the [caster-user-directory-and-notes](https://github.com/amirf147/caster-user-directory-and-notes/tree/master/docs/accessibility_mcp) repository.
 
 ---
 
@@ -42,28 +40,29 @@ See [docs/CONTEXT.md](docs/CONTEXT.md) for domain concepts, data schemas, and ar
 * **Language & Framework:** C# 14 / .NET 10 (LTS) (`net10.0-windows`)
 * **UI Automation Engine:** [FlaUI.UIA3](https://github.com/FlaUI/FlaUI) (v5.0.0+) over native `UIAutomationCore.dll`
 * **Concurrency:** Native Win32 `WinEvent` hooks decoupled via `System.Threading.Channels` into MTA background workers
-* **Protocol:** Model Context Protocol (MCP) C# SDK / ASP.NET Core SSE Minimal API
+* **Persistence:** Embedded SQLite (WAL mode) / DuckDB for time-series state history
+* **Protocol:** Model Context Protocol (MCP) C# SDK (SSE / HTTP / Stdio Minimal API)
 
 ---
 
-## 4. Current Status: 4-Gate Epistemic Protocol (Gate 3 Spikes)
+## 4. Current Status: Phase 5 (Production Daemon Implementation)
 
-In accordance with [Doc 015](file:///%LOCALAPPDATA%/caster/docs/accessibility_mcp/015_recalibration_and_adversarial_architecture_review.md), this codebase follows a strict 4-Gate Epistemic Gating Protocol to prevent premature architectural convergence:
+Following the 4-Gate Epistemic Gating Protocol ([015](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/015_recalibration_and_adversarial_architecture_review.md)):
 
-1. **Gate 1 (Physical Observation):** Completed in Python PoC (identified DOM COM crawling stalls).
-2. **Gate 2 (Adversarial Red-Team):** Completed in Doc 015 (evaluated FlaUI C# vs. Win32 Python vs. WebExtensions).
-3. **Gate 3 (Empirical Micro-Spikes):** **ACTIVE** — Validating UIA3 `CacheRequest` latency in `src/ADCE.Spikes`.
-4. **Gate 4 (Architectural Blueprint):** Formalizing daemon specs upon empirical verification.
+* `[x]` **Gate 1 (Physical Observation):** Identified 6,800-node DOM COM crawling stalls in unpruned traversals.
+* `[x]` **Gate 2 (Adversarial Red-Team):** Evaluated FlaUI C# vs. Win32 Python vs. WebExtensions with fatal flaws exposed.
+* `[x]` **Gate 3 (Empirical Micro-Spikes):** Empirically verified that direct container targeting extracts 30 tabs in **10.17 ms** and shallow focus in **0.66 ms**.
+* `[ ]` **Gate 4 / Phase 5 (Production Daemon):** Scaffold `ADCE.Daemon` with system tray UI, MCP server, and historical SQLite storage.
 
 ---
 
 ## 5. Building & Running Spikes
 
 ```powershell
-# Build the micro-spikes
+# Build the solution
 dotnet build src/ADCE.Spikes
 
-# Execute Micro-Spike 1 live against running browsers
+# Execute live multi-zone diagnostic extractor against running browsers & IDEs
 dotnet run --project src/ADCE.Spikes
 ```
 

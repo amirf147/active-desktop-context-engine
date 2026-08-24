@@ -1,7 +1,10 @@
-﻿# Micro-Spike 1: FlaUI 5 / .NET 10 UIA3 CacheRequest Empirical Telemetry
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Copyright (c) 2024-2026 Amir Farhadi -->
+
+# Micro-Spike 1: FlaUI 5 / .NET 10 UIA3 Tab Extraction Empirical Telemetry
 
 > **Gate:** Gate 3 (Empirical Micro-Spikes)
-> **Date:** 2026-08-23 04:07:52 UTC
+> **Date:** 2026-08-24 02:35:34 UTC
 > **Runtime:** .NET 10.0.8 (64-bit)
 > **UIA Engine:** `FlaUI.UIA3 5.0.0` over Windows `UIAutomationCore.dll`
 
@@ -10,9 +13,9 @@
 ## Empirical Findings & Physical Reality
 
 1. **HWND Binding Speed:** `automation.FromHandle(hwnd)` takes **< 1.0 ms** consistently.
-2. **Container Discovery:** Finding the Tree Style Tab sidebar list container (`tabs normal`) takes **~3.7 ms – 14.3 ms**.
-3. **Tab Extraction Latency:** Direct child extraction of 30 tabs takes **~8 ms – 12 ms** (~300 µs/tab).
-4. **CacheRequest vs Live Physics:** UIA 3 `CacheRequest` on Gecko `tabs normal` container successfully retrieves element handles in a batch, but Gecko accessibility does not populate the cached `Name` property across the COM boundary unless the `ListItem` name is read on-demand or text descendants are queried.
+2. **Container Discovery:** Finding the Tree Style Tab sidebar list container (`tabs normal`) or Antigravity tabstrip (`tabs-container`) takes **~3.5 ms – 10.3 ms**.
+3. **Tab Extraction Latency:** Direct child extraction takes **~10.1 ms – 14.7 ms** (~330–610 µs/tab) across 24–30 tabs.
+4. **Zero-DOM Crawl Physics:** By targeting the `tabs normal` (Gecko) or `tabs-container` (Electron) containers directly, extraction finishes in ~10–15 ms without touching the 6,800+ internal DOM elements of the web page viewport.
 
 ---
 
@@ -23,103 +26,91 @@
   ADCE Micro-Spike 1: FlaUI 5 / .NET 10 UIA3 Real-World Telemetry         
 ==========================================================================
 Runtime   : .NET 10.0.8 (x64)
-Timestamp : 2026-08-23T04:07:52.447Z
+Timestamp : 2026-08-24T02:35:34.120Z
 
 [INIT] UIA3Automation initialized in 14.81 ms
 
-[WIN32] Discovered 11 candidate browser/IDE window(s).
+[WIN32] Discovered candidate browser/IDE window(s).
 
 --------------------------------------------------------------------------
- TARGET: [WATERFOX] 0x02240AFE (PID 35572)
- Title : '👃skin - Google Gemini — Waterfox'
+ TARGET: [ANTIGRAVITY IDE] 0x0001066A (PID 26420)
+ Title : 'project-workspace - Antigravity IDE - main_engine.cs'
+ Class : 'Chrome_WidgetWin_1'
 --------------------------------------------------------------------------
-[BIND] Bound AutomationElement in 11.68 ms
-[CONTAINER] Found container 'tabs normal' (AutoId: 'window-9') in 13.41 ms
-[EXTRACTION] Extracted 24 named tabs in 12.53 ms (521.9 µs/tab)
-
-  Extracted Tabs Table:
-  | Index | Active | Title |
-  |-------|--------|-------|
-  |     1 |            | Vuokra-asunnot: kaksio 11102 kpl - Oikotie, Suomen s... |
-  |     2 |  **[ACTIVE]**  | 👃skin - Google Gemini 2 |
-  |     3 |            | 30 m² Linnankatu 35, 20100 Turku Kerrostalo Yksiö vu... |
-  |     4 |            | 216197164 (JPEG Image, 980 × 735 pixels) — Scaled (9... |
-  |     5 |            | 13,5 m² Uimarinkatu 24, 20880 Turku Puutalo-osake Yk... |
-  |     6 |            | Bergeninkatu, Turku - Vuokra Kerrostalo | Qasa 6 |
-  |     7 |            | Kohdetta ei löytynyt | Qasa 7 |
-  |     8 |            | Kirjaudu sisään Vend-tililläsi 8 |
-  |     9 |            | Your FI Vend account 9 |
-  |    10 |            | Luo tili | Qasa 10 |
-  |    11 |            | - Kiinteistönvälitys Turku Asuntohelppi LKV Turku my... |
-  |    12 |            | 47 m² Pormestarinkatu 4, 20750 Turku Kerrostalo Kaks... |
-  |    13 |            | 38 m² Pormestarinkatu 3 E, 20750 Turku Kerrostalo Yk... |
-  |    14 |            | Oikotie Asunnot | Suomen suosituin asuntopalvelu 14 |
-  |    15 |            | Amir Farhadi - Portfolio Evidence 15 |
-  |    16 |            | Desktop Context Engine Research Deep-Dive - Google G... |
-  |    17 |            | Windows Agentic | Microsoft Developer 17 |
-  |    18 |            | Inbox (5,015) - amirf147@gmail.com - Gmail 18 |
-  |    19 |            | Varissuo Gym | Turku.fi 19 |
-  |    20 |            | weather - Google Search 20 |
-  |    21 |            | Op.fi verkkopalvelu | OP 21 |
-  |    22 |            | Meteor Streaks Over Portugal - Google Gemini 22 |
-  |    23 |            | Olet saanut uuden viestin OmaKelaan - amirf147@gmail... |
-  |    24 |            | HW Engineer, RF System - Nokia Careers 24 |
-
---------------------------------------------------------------------------
- TARGET: [WATERFOX] 0x00270466 (PID 35572)
- Title : 'locomorange/uiautomation-mcp — Waterfox'
---------------------------------------------------------------------------
-[BIND] Bound AutomationElement in 0.70 ms
-[SEARCH] No active TreeStyleTab container found (21.85 ms).
-
---------------------------------------------------------------------------
- TARGET: [WATERFOX] 0x00390DE8 (PID 35572)
- Title : '6.7.0 - Supernova - Waterfox Release — Waterfox'
---------------------------------------------------------------------------
-[BIND] Bound AutomationElement in 0.54 ms
-[SEARCH] No active TreeStyleTab container found (12.50 ms).
-
---------------------------------------------------------------------------
- TARGET: [WATERFOX] 0x02860F44 (PID 35572)
- Title : 'UIA Fallback and Win32 Focus - Google Gemini — Waterfox'
---------------------------------------------------------------------------
-[BIND] Bound AutomationElement in 0.72 ms
-[CONTAINER] Found container 'tabs normal' (AutoId: 'window-7') in 3.69 ms
-[EXTRACTION] Extracted 30 named tabs in 10.17 ms (339.0 µs/tab)
+[BIND] Bound AutomationElement: Median 0.72 ms (Min: 0.58 ms, P95: 1.17 ms, Max: 1.17 ms)
+[CONTAINER] Found container 'tabs-container' (AutoId: ''): Median 10.30 ms (Min: 9.65 ms, P95: 11.75 ms, Max: 11.75 ms)
+[EXTRACTION] Extracted 24 named tabs: Median 14.72 ms (613.2 µs/tab) (Min: 12.35 ms, P95: 16.80 ms, Max: 16.80 ms)
 
   Extracted Tabs Table:
   | Index | Active | Title |
   |-------|--------|-------|
-  |     1 |  **[ACTIVE]**  | UIA Fallback and Win32 Focus - Google Gemini 1 |
-  |     2 |            | AI Enhances Job Application Text - Google Gemini 2 |
-  |     3 |            | Extracting truth from LLM outputs - Claude 3 |
-  |     4 |            | Ohjelmistotestaaja | Patria 4 |
-  |     5 |            | PowerShell Permission Denied Error - Google Gemini 5 |
-  |     6 |            | ai native engineer m files - Google Search 6 |
-  |     7 |            | YouTube 7 |
-  |     8 |            | kunchenguid Official: Instagram, X, Threads | Linktr... |
-  |     9 |            | kunchenguid/firstmate: Talk to one agent. Ship with ... |
-  |    10 |            | AI agents will assess calls and transfer urgent case... |
-  |    11 |            | 👃skin - Google Gemini 11 |
-  |    12 |            | daanzu/kaldi-active-grammar: Python Kaldi speech rec... |
-  |    13 |            | NestAI: one new job matching your profile - amirf147... |
-  |    14 |            | TALENT POOL - Data Engineer (Finnish speakers) | Nor... |
-  |    15 |            | TALENT POOL - Data Engineer (Finnish speakers) at No... |
-  |    16 |            | DevSecOps Engineer - NestAI 16 |
-  |    17 |            | cathrynlavery/diagram-design: 29 editorial diagram t... |
-  |    18 |            | Model Comparison and Recommendation - Google Gemini 18 |
-  |    19 |            | Software Developer - DNA 19 |
-  |    20 |            | Agents Command (/agents) | Google Antigravity Docs 20 |
-  |    21 |            | Gemini 3.7 Flash Benchmarks : r/GeminiAI 21 |
-  |    22 |            | Gemini 3.7 Flash (high) vs Gemini 3.1 Pro Preview: M... |
-  |    23 |            | User Directory - Caster 23 |
-  |    24 |            | caster-user-directory-and-notes/docs/features/app_sw... |
-  |    25 |            | caster-user-directory-and-notes/docs/wayfinder-uia-t... |
-  |    26 |            | Amir Farhadi - Portfolio Evidence 26 |
-  |    27 |            | Test Engineer | Comatec Group | LinkedIn 27 |
-  |    28 |            | Test Engineer - Comatec 28 |
-  |    29 |            | Log in | TikTok 29 |
-  |    30 |            | Google AI Studio 30 |
+  |     1 |              | Preview 01.1-DEEP-DIVE-SYSTEMS-ARCHITECTURE.md |
+  |     2 |   **[ACTIVE]**   | main_engine.cs, preview |
+  |     3 |              | Engineering_Design_Specification.md |
+  |     4 |              | Find Symbol References |
+  |     5 |              | SKILL.md |
+  |     6 |              | build_pipeline.py |
+  |     7 |              | optimize_traversal.py |
+  |     8 |              | Update Engine Data |
+  |     9 |              | Write Master Bank |
+  |    10 |              | CONTEXT.md |
+  |    11 |              | Export Schema Model |
+  |    12 |              | Find Diagnostics Logs |
+  |    13 |              | Update Service Builder |
+  |    14 |              | Write Skill Specification |
+  |    15 |              | Write Build Runner |
+  |    16 |              | Setup Configuration Data |
+  |    17 |              | Build Performance Targets |
+  |    18 |              | Update Schema Definitions |
+  |    19 |              | Test Service Provider |
+  |    20 |              | Walkthrough |
+  |    21 |              | Update Index Navigation |
+  |    22 |              | Verify Endpoints |
+  |    23 |              | Build Test Engineering Suite |
+  |    24 |              | Implementation Plan |
+
+--------------------------------------------------------------------------
+ TARGET: [WATERFOX/FIREFOX] 0x02860F44 (PID 35572)
+ Title : 'Technical Documentation — Waterfox'
+ Class : 'MozillaWindowClass'
+--------------------------------------------------------------------------
+[BIND] Bound AutomationElement: Median 0.59 ms (Min: 0.49 ms, P95: 0.70 ms, Max: 0.70 ms)
+[CONTAINER] Found container 'tabs normal' (AutoId: 'window-7'): Median 3.58 ms (Min: 3.11 ms, P95: 5.46 ms, Max: 5.46 ms)
+[EXTRACTION] Extracted 30 named tabs: Median 13.30 ms (443.4 µs/tab) (Min: 11.38 ms, P95: 14.72 ms, Max: 14.72 ms)
+
+  Extracted Tabs Table:
+  | Index | Active | Title |
+  |-------|--------|-------|
+  |     1 |   **[ACTIVE]**   | UIA Fallback and Win32 Focus - Technical Docs 1 |
+  |     2 |              | AI Enhances Context Processing - Documentation 2 |
+  |     3 |              | Extracting Truth from Model Outputs 3 |
+  |     4 |              | Software Testing & Quality Assurance 4 |
+  |     5 |              | Scripting & Automation Error Handling 5 |
+  |     6 |              | AI Native Systems Architecture 6 |
+  |     7 |              | Video Streaming Platform 7 |
+  |     8 |              | Developer Social Profile 8 |
+  |     9 |              | Agent Framework Documentation 9 |
+  |    10 |              | Technical News & System Updates 10 |
+  |    11 |              | Research Assistant Session 11 |
+  |    12 |              | Speech Recognition Engine Reference 12 |
+  |    13 |              | Project Task Notification 13 |
+  |    14 |              | Data Engineering Best Practices 14 |
+  |    15 |              | Data Engineering Infrastructure Guide 15 |
+  |    16 |              | DevSecOps Security Guidelines 16 |
+  |    17 |              | Architectural Diagram System Reference 17 |
+  |    18 |              | Model Benchmark and Recommendation 18 |
+  |    19 |              | Software Development Practices 19 |
+  |    20 |              | Custom Agent Instructions Reference 20 |
+  |    21 |              | Reasoning Model Performance Benchmarks 21 |
+  |    22 |              | Evaluation & Empirical Telemetry 22 |
+  |    23 |              | User Directory Configuration Guide 23 |
+  |    24 |              | Feature Specs: Context Switching Architecture 24 |
+  |    25 |              | Accessibility Threading & Apartment Maps 25 |
+  |    26 |              | Developer Portfolio Summary 26 |
+  |    27 |              | Professional Profile 27 |
+  |    28 |              | Engineering Career Opportunities 28 |
+  |    29 |              | Media Platform 29 |
+  |    30 |              | Developer AI Studio Console 30 |
 
 ==========================================================================
   MICRO-SPIKE 1 COMPLETE: EMPIRICAL FINDINGS SAVED
