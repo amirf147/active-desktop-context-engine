@@ -14,9 +14,9 @@ namespace ADCE.Core.Interfaces;
 public interface IEventHookProvider : IDisposable
 {
     /// <summary>
-    /// Channel reader exposing the non-blocking stream of desktop event tokens.
+    /// Channel reader exposing the non-blocking stream of 16-byte unmanaged desktop event tokens.
     /// </summary>
-    ChannelReader<DesktopEvent> EventReader { get; }
+    ChannelReader<DesktopEventToken> EventReader { get; }
 
     /// <summary>
     /// Installs OS WinEvent hooks and starts dispatching events.

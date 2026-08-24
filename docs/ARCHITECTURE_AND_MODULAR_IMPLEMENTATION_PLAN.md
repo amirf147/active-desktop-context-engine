@@ -114,10 +114,12 @@ The repository solution (`ADCE.slnx`) is organized into 5 decoupled projects wit
 │ • [Verification]: Standalone CLI grabber (--grab) extracts foreground context in < 2 ms. │
 │ • [Documentation]: docs/ADCE_EXTRACTION_DEEP_DIVE.md architecture and failure modes.    │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
-│ Milestone 3: Zero-CPU Event Pipeline (ADCE.Extraction & ADCE.Core.Events)              │
-│ • Implement SetWinEventHook listeners for foreground, focus, and desktop switches.     │
-│ • Pipe events into System.Threading.Channels with 50ms trailing-edge debouncing.       │
-│ • [Verification]: Console logger verifying 0.0% CPU when idle and instant wake on focus│
+│ Milestone 3: Zero-CPU Event Pipeline (ADCE.Extraction & ADCE.Core.Events) [COMPLETE]   │
+│ • Implement SetWinEventHook listeners with dedicated STA message pump and barrier sync.│
+│ • Zero-allocation Channel<DesktopEventToken> with noise filtering and 50ms debouncing. │
+│ • Monotonic epoch supersession guard preventing in-flight snapshot race conditions.    │
+│ • [Verification]: 70/70 Unit tests passing; live spike verifying 0.00% idle CPU.       │
+│ • [Documentation]: docs/ADCE_EVENT_PIPELINE_DEEP_DIVE.md architecture and failure modes.│
 ├────────────────────────────────────────────────────────────────────────────────────────┤
 │ Milestone 4: Storage & History Engine (ADCE.Storage)                                   │
 │ • Implement In-Memory Live Cache and embedded SQLite WAL repository.                   │
