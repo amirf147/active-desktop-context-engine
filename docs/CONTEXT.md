@@ -48,6 +48,7 @@ The **Active Desktop Context Engine (ADCE)** is a high-performance, lightweight 
 * **UI Automation Hierarchy SSOT:** [`docs/UI_AUTOMATION_STRUCTURES_REFERENCE.md`](UI_AUTOMATION_STRUCTURES_REFERENCE.md)
 * **Requirements & Dynamic Discovery Spec:** [`docs/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md`](REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md)
 * **MCP Schema & Tool Specification:** [`docs/MCP_SCHEMA_SPEC.md`](MCP_SCHEMA_SPEC.md)
+* **Educational Guide & Architecture Refresher:** [`docs/EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md`](EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md)
 * **External Research & Wheel Reinvention Audit:** [`docs/external_research/README.md`](external_research/README.md)
 * **Empirical Benchmarks:**
   * [001: FlaUI UIA3 Telemetry](benchmarks/001_micro_spike_1_flaui_telemetry.md)

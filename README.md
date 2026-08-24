@@ -24,11 +24,12 @@ Instead of relying on resource-heavy screenshot OCR, periodic screen polling, or
 
 ---
 
-## 2. Research Lineage & Single Source of Truth
+## 2. Public Research Ledger & Architecture Hub
 
-This project evolved from extensive accessibility telemetry and COM reverse-engineering conducted within the **Caster** accessibility framework.
+This project evolved directly from foundational accessibility telemetry and COM reverse-engineering conducted within the [Caster](https://github.com/amirf147/caster-user-directory-and-notes) accessibility ecosystem. This repository functions as an **evolving public research ledger** and implementation hub, tracking low-level COM experiments, UI Automation latency benchmarks, and architectural design decisions.
 
-### Primary References in This Repository:
+### Primary References & Guides:
+* 📘 **[Educational Refresher & Architecture Guide](docs/EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md)**: Plain-English walkthrough of UI Automation, Win32 systems programming, FlaUI caching, and the Dual-Plane architecture.
 * 📑 **[UI Automation Structures Reference (SSOT)](docs/UI_AUTOMATION_STRUCTURES_REFERENCE.md)**: Definitive structural map of UIA node hierarchies, class names, and target zones for Antigravity IDE, Waterfox, and File Explorer.
 * 📋 **[Requirements & Dynamic Discovery Specification](docs/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md)**: 5 Desktop Framework Archetypes, dynamic heuristic discovery pipeline, database tradeoffs, and performance SLAs.
 * 🔌 **[Model Context Protocol (MCP) Schema Spec](docs/MCP_SCHEMA_SPEC.md)**: Evolving draft JSON schema, decoupled envelope definitions, and MCP tool endpoint specifications.
@@ -38,7 +39,7 @@ This project evolved from extensive accessibility telemetry and COM reverse-engi
   * [002: Python Shallow vs C# Multi-Zone Telemetry](docs/benchmarks/002_micro_spike_2_python_shallow_telemetry.md) — Sub-millisecond envelope extraction.
 
 ### Upstream Caster Research Lineage:
-Foundational research documents (001–018) live in the [caster-user-directory-and-notes](https://github.com/amirf147/caster-user-directory-and-notes/tree/master/docs/accessibility_mcp) repository.
+Foundational accessibility research documents (001–018) live in the [caster-user-directory-and-notes](https://github.com/amirf147/caster-user-directory-and-notes/tree/master/docs/accessibility_mcp) repository.
 
 ---
 

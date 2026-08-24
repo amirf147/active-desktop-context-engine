@@ -9,6 +9,7 @@
 
 ### Documentation & Progressive Disclosure Hub
 - **Primary Domain Context Hub:** [`docs/CONTEXT.md`](../docs/CONTEXT.md)
+- **Educational Guide & Architecture Refresher:** [`docs/EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md`](../docs/EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md)
 - **UI Automation SSOT:** [`docs/UI_AUTOMATION_STRUCTURES_REFERENCE.md`](../docs/UI_AUTOMATION_STRUCTURES_REFERENCE.md)
 - **Requirements & Archetype Spec:** [`docs/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md`](../docs/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md)
 - **MCP Schema & Tool Endpoints:** [`docs/MCP_SCHEMA_SPEC.md`](../docs/MCP_SCHEMA_SPEC.md)
