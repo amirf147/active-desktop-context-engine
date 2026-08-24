@@ -93,8 +93,10 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
                 case DesktopAppArchetype.ChromiumElectron when className.Contains("Chrome_WidgetWin", StringComparison.OrdinalIgnoreCase):
                     if (title.Contains("Visual Studio Code", StringComparison.OrdinalIgnoreCase) ||
                         title.Contains("Antigravity", StringComparison.OrdinalIgnoreCase) ||
-                        processName.Equals("Code", StringComparison.OrdinalIgnoreCase) ||
-                        processName.Equals("Antigravity", StringComparison.OrdinalIgnoreCase))
+                        title.Contains("Cursor", StringComparison.OrdinalIgnoreCase) ||
+                        processName.Contains("Code", StringComparison.OrdinalIgnoreCase) ||
+                        processName.Contains("Antigravity", StringComparison.OrdinalIgnoreCase) ||
+                        processName.Contains("Cursor", StringComparison.OrdinalIgnoreCase))
                     {
                         ideContext = MonacoIdeExtractor.Extract(windowElement, _automation);
                     }

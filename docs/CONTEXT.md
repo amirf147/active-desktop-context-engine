@@ -54,6 +54,7 @@ The **Active Desktop Context Engine (ADCE)** is a high-performance, lightweight 
 * **Gate 2 Hostile Architecture & Systems Review:** [`docs/HOSTILE_ARCHITECTURE_REVIEW.md`](HOSTILE_ARCHITECTURE_REVIEW.md)
 * **ADCE.Core Deep-Dive & Architecture Reference:** [`docs/ADCE_CORE_DEEP_DIVE.md`](ADCE_CORE_DEEP_DIVE.md)
 * **ADCE.Extraction Deep-Dive & Architecture Reference:** [`docs/ADCE_EXTRACTION_DEEP_DIVE.md`](ADCE_EXTRACTION_DEEP_DIVE.md)
+* **Milestone 2 Engineering Postmortem & Analysis:** [`docs/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_2.md`](LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_2.md)
 * **UI Automation Hierarchy SSOT:** [`docs/UI_AUTOMATION_STRUCTURES_REFERENCE.md`](UI_AUTOMATION_STRUCTURES_REFERENCE.md)
 * **Requirements & Dynamic Discovery Spec:** [`docs/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md`](REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md)
 * **MCP Schema & Tool Specification:** [`docs/MCP_SCHEMA_SPEC.md`](MCP_SCHEMA_SPEC.md)

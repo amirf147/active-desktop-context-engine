@@ -28,7 +28,9 @@ public static class GeckoBrowserExtractor
         string? activeTabTitle = null;
 
         // 1. Probe for Tree Style Tab Normal Tabs
-        var tstContainer = windowElement.FindFirstDescendant(cf.ByClassName("tabs normal"));
+        var tstContainer = windowElement.FindFirstDescendant(cf.ByClassName("tabs normal")) ??
+                           windowElement.FindAllDescendants(cf.ByControlType(ControlType.List))
+                                        .FirstOrDefault(l => (l.Properties.ClassName.ValueOrDefault ?? string.Empty).Contains("tabs", StringComparison.OrdinalIgnoreCase));
         if (tstContainer != null)
         {
             containerType = "TreeStyleTab";
@@ -41,6 +43,15 @@ public static class GeckoBrowserExtractor
             using (cacheRequest.Activate())
             {
                 var tabElements = tstContainer.FindAllChildren(cf.ByControlType(ControlType.ListItem));
+                if (tabElements.Length == 0)
+                {
+                    tabElements = tstContainer.FindAllChildren(cf.ByControlType(ControlType.TabItem));
+                }
+                if (tabElements.Length == 0)
+                {
+                    tabElements = tstContainer.FindAllChildren();
+                }
+
                 int index = 1;
                 foreach (var tab in tabElements)
                 {
@@ -73,7 +84,8 @@ public static class GeckoBrowserExtractor
         else
         {
             // 2. Probe for Native Firefox Tabstrip
-            var nativeTabstrip = windowElement.FindFirstDescendant(cf.ByClassName("tabbrowser-tabs"));
+            var nativeTabstrip = windowElement.FindFirstDescendant(cf.ByClassName("tabbrowser-tabs")) ??
+                                 windowElement.FindFirstDescendant(cf.ByControlType(ControlType.Tab));
             if (nativeTabstrip != null)
             {
                 containerType = "NativeTabstrip";
@@ -86,6 +98,11 @@ public static class GeckoBrowserExtractor
                 using (cacheRequest.Activate())
                 {
                     var tabElements = nativeTabstrip.FindAllChildren(cf.ByControlType(ControlType.TabItem));
+                    if (tabElements.Length == 0)
+                    {
+                        tabElements = nativeTabstrip.FindAllChildren();
+                    }
+
                     int index = 1;
                     foreach (var tab in tabElements)
                     {

@@ -12,6 +12,7 @@ using ADCE.Core.Enums;
 using ADCE.Core.Models;
 using ADCE.Core.Serialization;
 using ADCE.Extraction.Engine;
+using ADCE.Extraction.Win32;
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
 using FlaUI.UIA3;
@@ -37,7 +38,9 @@ public class Program
     [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
     private static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
     [DllImport("user32.dll", SetLastError = true)]
-    private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+    private static extern void GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetForegroundWindow();
 
     public record TargetWindow(IntPtr Hwnd, string Title, string ClassName, uint Pid);
     public record TabInfo(int Index, string Title, bool IsActive);
@@ -54,7 +57,11 @@ public class Program
 
         if (runGrab)
         {
-            await RunStandaloneGrabberAsync();
+            int grabIdx = Array.FindIndex(args, a => a.Equals("--grab", StringComparison.OrdinalIgnoreCase) ||
+                                                    a.Equals("--extract", StringComparison.OrdinalIgnoreCase) ||
+                                                    a.Equals("-g", StringComparison.OrdinalIgnoreCase));
+            string? filter = (grabIdx >= 0 && grabIdx + 1 < args.Length && !args[grabIdx + 1].StartsWith("-")) ? args[grabIdx + 1] : null;
+            await RunStandaloneGrabberAsync(filter);
         }
         else if (runBenchmark)
         {
@@ -494,7 +501,7 @@ public class Program
         return sorted[Math.Clamp(idx, 0, sorted.Count - 1)];
     }
 
-    private static async Task RunStandaloneGrabberAsync()
+    private static async Task RunStandaloneGrabberAsync(string? filter = null)
     {
         Console.ForegroundColor = ConsoleColor.Cyan;
         Console.WriteLine("==========================================================================");
@@ -502,13 +509,76 @@ public class Program
         Console.WriteLine("==========================================================================");
         Console.ResetColor();
 
-        using var engine = new UiaExtractionEngine();
-        var sw = Stopwatch.StartNew();
-        var snapshot = await engine.ExtractForegroundSnapshotAsync();
-        sw.Stop();
+        var hWinSta = OpenWindowStation("WinSta0", false, 0x37F);
+        if (hWinSta != IntPtr.Zero) SetProcessWindowStation(hWinSta);
+        var hDesktop = OpenDesktop("Default", 0, false, 0x1FF);
+        if (hDesktop != IntPtr.Zero) SetThreadDesktop(hDesktop);
 
+        using var engine = new UiaExtractionEngine();
+
+        var targets = new List<TargetWindow>();
+        EnumDesktopWindows(hDesktop != IntPtr.Zero ? hDesktop : IntPtr.Zero, (hWnd, lParam) =>
+        {
+            var sbTitle = new StringBuilder(512);
+            GetWindowText(hWnd, sbTitle, 512);
+            var sbClass = new StringBuilder(256);
+            GetClassName(hWnd, sbClass, 256);
+            GetWindowThreadProcessId(hWnd, out uint pid);
+            string title = sbTitle.ToString();
+            string className = sbClass.ToString();
+
+            if (!string.IsNullOrWhiteSpace(title) &&
+                (className == "MozillaWindowClass" || className == "Chrome_WidgetWin_1" || className == "CabinetWClass" || className.StartsWith("CASCADIA")))
+            {
+                targets.Add(new TargetWindow(hWnd, title, className, pid));
+            }
+            return true;
+        }, IntPtr.Zero);
+
+        List<TargetWindow> selectedTargets = [];
+        if (!string.IsNullOrWhiteSpace(filter) && !filter.Equals("all", StringComparison.OrdinalIgnoreCase))
+        {
+            selectedTargets = targets.Where(t => t.Title.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                                                 t.ClassName.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                                                 t.Pid.ToString() == filter).ToList();
+        }
+        else if (filter?.Equals("all", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            selectedTargets = targets;
+        }
+        else
+        {
+            var fg = GetForegroundWindow();
+            if (fg != nint.Zero)
+            {
+                selectedTargets = [new TargetWindow(fg, "Foreground Window", "", 0)];
+            }
+            else if (targets.Count > 0)
+            {
+                selectedTargets = [targets[0]];
+            }
+        }
+
+        if (selectedTargets.Count == 0)
+        {
+            Console.WriteLine("[WARN] No matching top-level target windows discovered.");
+            return;
+        }
+
+        foreach (var target in selectedTargets)
+        {
+            var sw = Stopwatch.StartNew();
+            var snapshot = await engine.ExtractSnapshotAsync(target.Hwnd);
+            sw.Stop();
+
+            PrintSnapshot(snapshot, sw.Elapsed.TotalMilliseconds);
+        }
+    }
+
+    private static void PrintSnapshot(DesktopContextSnapshot snapshot, double totalPipeMs)
+    {
         Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine($"[GRAB SUCCESS] Context snapshot captured in {snapshot.ExtractionDurationMs:F2} ms (Total pipe: {sw.Elapsed.TotalMilliseconds:F2} ms)\n");
+        Console.WriteLine($"[GRAB SUCCESS] Context snapshot captured in {snapshot.ExtractionDurationMs:F2} ms (Total pipe: {totalPipeMs:F2} ms)\n");
         Console.ResetColor();
 
         Console.ForegroundColor = ConsoleColor.Yellow;
@@ -580,5 +650,6 @@ public class Program
         Console.ForegroundColor = ConsoleColor.DarkGray;
         Console.WriteLine(json);
         Console.ResetColor();
+        Console.WriteLine();
     }
 }

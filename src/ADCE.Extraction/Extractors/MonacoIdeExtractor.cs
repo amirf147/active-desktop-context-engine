@@ -25,7 +25,9 @@ public static class MonacoIdeExtractor
 
         // 1. Extract Open Editor Tabs via CacheRequest
         var tabsBuilder = ImmutableArray.CreateBuilder<TabItemInfo>();
-        var tabContainer = windowElement.FindFirstDescendant(cf.ByClassName("tabs-container"));
+        var tabContainer = windowElement.FindFirstDescendant(cf.ByClassName("tabs-container")) ??
+                           windowElement.FindAllDescendants(cf.ByControlType(ControlType.Tab))
+                                        .FirstOrDefault(t => (t.Properties.ClassName.ValueOrDefault ?? string.Empty).Contains("tabs-container", StringComparison.OrdinalIgnoreCase));
 
         if (tabContainer != null)
         {
@@ -39,6 +41,10 @@ public static class MonacoIdeExtractor
             using (cacheRequest.Activate())
             {
                 var tabElements = tabContainer.FindAllChildren(cf.ByControlType(ControlType.TabItem));
+                if (tabElements.Length == 0)
+                {
+                    tabElements = tabContainer.FindAllChildren();
+                }
                 int index = 1;
                 foreach (var tab in tabElements)
                 {
