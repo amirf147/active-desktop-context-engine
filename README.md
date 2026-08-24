@@ -57,6 +57,7 @@ This repository functions as an **evolving public research ledger** and implemen
 
 ### Primary References & Specifications:
 * 🏗️ **[Architecture & Modular Implementation Plan](docs/ARCHITECTURE_AND_MODULAR_IMPLEMENTATION_PLAN.md)**: 5-project solution architecture, decoupled work packages, and phased execution milestones.
+* ⚔️ **[Gate 2 Hostile Architecture & Systems Review](docs/HOSTILE_ARCHITECTURE_REVIEW.md)**: Adversarial systems review evaluating COM apartment deadlocks, GC allocation churn, UIPI barriers, and lifecycle race conditions.
 * 🧠 **[ADCE.Core Deep-Dive & Architecture Reference](docs/ADCE_CORE_DEEP_DIVE.md)**: Plain-English architectural breakdown, end-to-end dataflow sequence diagrams, file-by-file failure mode analysis, and sequence equality mechanics.
 * 📘 **[Educational Refresher & Architecture Guide](docs/EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md)**: Plain-English walkthrough of UI Automation, Win32 systems programming, FlaUI caching, and the Dual-Plane architecture.
 * 📑 **[UI Automation Structures Reference (SSOT)](docs/UI_AUTOMATION_STRUCTURES_REFERENCE.md)**: Definitive structural map of UIA node hierarchies, class names, and target zones for Antigravity IDE, Waterfox, and File Explorer.
