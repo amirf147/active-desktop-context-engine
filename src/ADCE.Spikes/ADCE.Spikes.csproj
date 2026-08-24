@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ADCE.Core\ADCE.Core.csproj" />
+    <ProjectReference Include="..\ADCE.Extraction\ADCE.Extraction.csproj" />
   </ItemGroup>
 
 </Project>

@@ -2,14 +2,13 @@
 // Copyright (c) 2024-2026 Amir Farhadi
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 
 namespace ADCE.Core.Models;
 
 /// <summary>
 /// Represents contextual state extracted from Windows Terminal or console windows.
-/// Implements deep value-based equality across tab collections.
+/// Implements deep value-based equality across tab collections with zero heap allocations.
 /// </summary>
 public sealed record TerminalContext : IEquatable<TerminalContext>
 {
@@ -20,15 +19,25 @@ public sealed record TerminalContext : IEquatable<TerminalContext>
     public string? ActiveBuffer { get; init; }
 
     /// <summary>Open tabs in Windows Terminal.</summary>
-    public IReadOnlyList<TabItemInfo> Tabs { get; init; } = [];
+    public ImmutableArray<TabItemInfo> Tabs { get; init; } = ImmutableArray<TabItemInfo>.Empty;
 
     public bool Equals(TerminalContext? other)
     {
         if (other is null) return false;
         if (ReferenceEquals(this, other)) return true;
-        return ShellTitle == other.ShellTitle &&
-               ActiveBuffer == other.ActiveBuffer &&
-               Tabs.SequenceEqual(other.Tabs);
+
+        if (ShellTitle != other.ShellTitle || ActiveBuffer != other.ActiveBuffer)
+            return false;
+
+        var thisTabs = Tabs.IsDefault ? ImmutableArray<TabItemInfo>.Empty : Tabs;
+        var otherTabs = other.Tabs.IsDefault ? ImmutableArray<TabItemInfo>.Empty : other.Tabs;
+        if (thisTabs.Length != otherTabs.Length) return false;
+        for (int i = 0; i < thisTabs.Length; i++)
+        {
+            if (thisTabs[i] != otherTabs[i]) return false;
+        }
+
+        return true;
     }
 
     public override int GetHashCode()
@@ -36,7 +45,15 @@ public sealed record TerminalContext : IEquatable<TerminalContext>
         var hash = new HashCode();
         hash.Add(ShellTitle);
         hash.Add(ActiveBuffer);
-        foreach (var t in Tabs) hash.Add(t);
+
+        if (!Tabs.IsDefault)
+        {
+            for (int i = 0; i < Tabs.Length; i++)
+            {
+                hash.Add(Tabs[i]);
+            }
+        }
+
         return hash.ToHashCode();
     }
 }

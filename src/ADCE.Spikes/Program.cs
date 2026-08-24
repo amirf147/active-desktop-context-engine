@@ -11,6 +11,7 @@ using System.Text.Json;
 using ADCE.Core.Enums;
 using ADCE.Core.Models;
 using ADCE.Core.Serialization;
+using ADCE.Extraction.Engine;
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
 using FlaUI.UIA3;
@@ -41,13 +42,21 @@ public class Program
     public record TargetWindow(IntPtr Hwnd, string Title, string ClassName, uint Pid);
     public record TabInfo(int Index, string Title, bool IsActive);
 
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         bool runBenchmark = args.Any(a => a.Equals("--flaui-benchmark", StringComparison.OrdinalIgnoreCase) ||
                                           a.Equals("--benchmark", StringComparison.OrdinalIgnoreCase) ||
                                           a.Equals("--spike1", StringComparison.OrdinalIgnoreCase));
 
-        if (runBenchmark)
+        bool runGrab = args.Any(a => a.Equals("--grab", StringComparison.OrdinalIgnoreCase) ||
+                                     a.Equals("--extract", StringComparison.OrdinalIgnoreCase) ||
+                                     a.Equals("-g", StringComparison.OrdinalIgnoreCase));
+
+        if (runGrab)
+        {
+            await RunStandaloneGrabberAsync();
+        }
+        else if (runBenchmark)
         {
             RunFlaUiBenchmark();
         }
@@ -117,18 +126,18 @@ public class Program
                 GitBranch = "main",
                 EditBuffer = "CONTEXT.md",
                 Breadcrumbs = ["docs", "CONTEXT.md"],
-                OpenEditorTabs = new List<TabItemInfo>
-                {
+                OpenEditorTabs =
+                [
                     new() { Index = 1, Title = "CONTEXT.md", IsActive = true, IsDirty = false },
                     new() { Index = 2, Title = "ADCE_CORE_DEEP_DIVE.md", IsActive = false, IsDirty = true },
                     new() { Index = 3, Title = "README.md", IsActive = false, IsDirty = false }
-                }
+                ]
             }
         };
 
         Console.WriteLine($" -> Snapshot Created: HWND 0x{originalSnapshot.Window.Hwnd:X8} ({originalSnapshot.Window.Title})");
         Console.WriteLine($" -> Workspace Envelope: Desktop #{originalSnapshot.Workspace.DesktopIndex} ('{originalSnapshot.Workspace.VirtualDesktopName}')");
-        Console.WriteLine($" -> IDE Context: {originalSnapshot.IdeContext.OpenEditorTabs.Count} open tabs, active tab: '{originalSnapshot.IdeContext.OpenEditorTabs[0].Title}'\n");
+        Console.WriteLine($" -> IDE Context: {originalSnapshot.IdeContext.OpenEditorTabs.Length} open tabs, active tab: '{originalSnapshot.IdeContext.OpenEditorTabs[0].Title}'\n");
 
         // 2. Non-Destructive Update with `with` Keyword
         Console.ForegroundColor = ConsoleColor.Yellow;
@@ -201,13 +210,13 @@ public class Program
                 ActiveSidebarView = "Explorer (Ctrl+Shift+E)",
                 GitBranch = "main",
                 EditBuffer = "CONTEXT.md",
-                Breadcrumbs = new List<string> { "docs", "CONTEXT.md" },
-                OpenEditorTabs = new List<TabItemInfo>
-                {
+                Breadcrumbs = ["docs", "CONTEXT.md"],
+                OpenEditorTabs =
+                [
                     new() { Index = 1, Title = "CONTEXT.md", IsActive = true, IsDirty = false },
                     new() { Index = 2, Title = "ADCE_CORE_DEEP_DIVE.md", IsActive = false, IsDirty = true },
                     new() { Index = 3, Title = "README.md", IsActive = false, IsDirty = false }
-                }
+                ]
             }
         };
 
@@ -483,5 +492,93 @@ public class Program
         var sorted = values.OrderBy(v => v).ToList();
         int idx = (int)Math.Ceiling(0.95 * sorted.Count) - 1;
         return sorted[Math.Clamp(idx, 0, sorted.Count - 1)];
+    }
+
+    private static async Task RunStandaloneGrabberAsync()
+    {
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine("==========================================================================");
+        Console.WriteLine("  ADCE Milestone 2: Standalone Context Grabber Live Extraction Spike     ");
+        Console.WriteLine("==========================================================================");
+        Console.ResetColor();
+
+        using var engine = new UiaExtractionEngine();
+        var sw = Stopwatch.StartNew();
+        var snapshot = await engine.ExtractForegroundSnapshotAsync();
+        sw.Stop();
+
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine($"[GRAB SUCCESS] Context snapshot captured in {snapshot.ExtractionDurationMs:F2} ms (Total pipe: {sw.Elapsed.TotalMilliseconds:F2} ms)\n");
+        Console.ResetColor();
+
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("--------------------------------------------------------------------------");
+        Console.WriteLine(" [ENVELOPE BREAKDOWN]");
+        Console.WriteLine("--------------------------------------------------------------------------");
+        Console.ResetColor();
+
+        Console.WriteLine($" Window HWND    : 0x{snapshot.Window.Hwnd:X8} (PID: {snapshot.Window.Pid})");
+        Console.WriteLine($" Window Title   : '{snapshot.Window.Title}'");
+        Console.WriteLine($" Process / Class: {snapshot.Window.ProcessName} / '{snapshot.Window.ClassName}'");
+        Console.WriteLine($" App Archetype  : {snapshot.Window.Archetype}");
+        Console.WriteLine($" Focus Target   : [{snapshot.Focus.SemanticZone}] '{snapshot.Focus.ElementName}' ({snapshot.Focus.ControlType})");
+
+        if (snapshot.IdeContext != null)
+        {
+            Console.WriteLine($"\n [IDE CONTEXT]");
+            Console.WriteLine($"  Active File   : {snapshot.IdeContext.ActiveFilePath}");
+            Console.WriteLine($"  Sidebar View  : {snapshot.IdeContext.ActiveSidebarView}");
+            Console.WriteLine($"  Open Tabs ({snapshot.IdeContext.OpenEditorTabs.Length}):");
+            foreach (var t in snapshot.IdeContext.OpenEditorTabs)
+            {
+                string active = t.IsActive ? "**[ACTIVE]**" : "        ";
+                Console.WriteLine($"   - {active} {t.Title}");
+            }
+        }
+        else if (snapshot.BrowserContext != null)
+        {
+            Console.WriteLine($"\n [BROWSER CONTEXT]");
+            Console.WriteLine($"  Container     : {snapshot.BrowserContext.ContainerType}");
+            Console.WriteLine($"  Active Tab    : {snapshot.BrowserContext.ActiveTab}");
+            Console.WriteLine($"  Sanitized URL : {snapshot.BrowserContext.UrlAddress}");
+            Console.WriteLine($"  Open Tabs ({snapshot.BrowserContext.Tabs.Length}):");
+            foreach (var t in snapshot.BrowserContext.Tabs)
+            {
+                string active = t.IsActive ? "**[ACTIVE]**" : "        ";
+                Console.WriteLine($"   - {active} {t.Title}");
+            }
+        }
+        else if (snapshot.ExplorerContext != null)
+        {
+            Console.WriteLine($"\n [EXPLORER CONTEXT]");
+            Console.WriteLine($"  Current Path  : {snapshot.ExplorerContext.CurrentPath}");
+            Console.WriteLine($"  Breadcrumbs   : {string.Join(" > ", snapshot.ExplorerContext.Breadcrumbs)}");
+            Console.WriteLine($"  Selected Items: {string.Join(", ", snapshot.ExplorerContext.SelectedItems)}");
+        }
+        else if (snapshot.TerminalContext != null)
+        {
+            Console.WriteLine($"\n [TERMINAL CONTEXT]");
+            Console.WriteLine($"  Shell Title   : {snapshot.TerminalContext.ShellTitle}");
+            Console.WriteLine($"  Open Tabs ({snapshot.TerminalContext.Tabs.Length}):");
+            foreach (var t in snapshot.TerminalContext.Tabs)
+            {
+                Console.WriteLine($"   - {t.Title}");
+            }
+        }
+
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("\n--------------------------------------------------------------------------");
+        Console.WriteLine(" [MCP JSON PAYLOAD]");
+        Console.WriteLine("--------------------------------------------------------------------------");
+        Console.ResetColor();
+
+        var displayOptions = new JsonSerializerOptions(AdceJsonSerializerOptions.Default)
+        {
+            WriteIndented = true
+        };
+        string json = JsonSerializer.Serialize(snapshot, displayOptions);
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.WriteLine(json);
+        Console.ResetColor();
     }
 }

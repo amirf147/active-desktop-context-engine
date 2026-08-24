@@ -2,14 +2,13 @@
 // Copyright (c) 2024-2026 Amir Farhadi
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 
 namespace ADCE.Core.Models;
 
 /// <summary>
 /// Represents contextual state extracted from an IDE or code editor (e.g. VS Code, Antigravity, Visual Studio).
-/// Implements deep value-based equality across tab and breadcrumb collections.
+/// Implements deep value-based equality across tab and breadcrumb collections with zero heap allocations.
 /// </summary>
 public sealed record IdeContext : IEquatable<IdeContext>
 {
@@ -20,7 +19,7 @@ public sealed record IdeContext : IEquatable<IdeContext>
     public string? ActiveSidebarView { get; init; }
 
     /// <summary>List of open editor tabs in the active editor group.</summary>
-    public IReadOnlyList<TabItemInfo> OpenEditorTabs { get; init; } = [];
+    public ImmutableArray<TabItemInfo> OpenEditorTabs { get; init; } = ImmutableArray<TabItemInfo>.Empty;
 
     /// <summary>Active document name or short edit buffer identifier.</summary>
     public string? EditBuffer { get; init; }
@@ -29,18 +28,38 @@ public sealed record IdeContext : IEquatable<IdeContext>
     public string? GitBranch { get; init; }
 
     /// <summary>Hierarchical path components from the Monaco breadcrumbs bar.</summary>
-    public IReadOnlyList<string> Breadcrumbs { get; init; } = [];
+    public ImmutableArray<string> Breadcrumbs { get; init; } = ImmutableArray<string>.Empty;
 
     public bool Equals(IdeContext? other)
     {
         if (other is null) return false;
         if (ReferenceEquals(this, other)) return true;
-        return ActiveFilePath == other.ActiveFilePath &&
-               ActiveSidebarView == other.ActiveSidebarView &&
-               EditBuffer == other.EditBuffer &&
-               GitBranch == other.GitBranch &&
-               OpenEditorTabs.SequenceEqual(other.OpenEditorTabs) &&
-               Breadcrumbs.SequenceEqual(other.Breadcrumbs);
+
+        if (ActiveFilePath != other.ActiveFilePath ||
+            ActiveSidebarView != other.ActiveSidebarView ||
+            EditBuffer != other.EditBuffer ||
+            GitBranch != other.GitBranch)
+        {
+            return false;
+        }
+
+        var thisTabs = OpenEditorTabs.IsDefault ? ImmutableArray<TabItemInfo>.Empty : OpenEditorTabs;
+        var otherTabs = other.OpenEditorTabs.IsDefault ? ImmutableArray<TabItemInfo>.Empty : other.OpenEditorTabs;
+        if (thisTabs.Length != otherTabs.Length) return false;
+        for (int i = 0; i < thisTabs.Length; i++)
+        {
+            if (thisTabs[i] != otherTabs[i]) return false;
+        }
+
+        var thisBreadcrumbs = Breadcrumbs.IsDefault ? ImmutableArray<string>.Empty : Breadcrumbs;
+        var otherBreadcrumbs = other.Breadcrumbs.IsDefault ? ImmutableArray<string>.Empty : other.Breadcrumbs;
+        if (thisBreadcrumbs.Length != otherBreadcrumbs.Length) return false;
+        for (int i = 0; i < thisBreadcrumbs.Length; i++)
+        {
+            if (thisBreadcrumbs[i] != otherBreadcrumbs[i]) return false;
+        }
+
+        return true;
     }
 
     public override int GetHashCode()
@@ -50,8 +69,23 @@ public sealed record IdeContext : IEquatable<IdeContext>
         hash.Add(ActiveSidebarView);
         hash.Add(EditBuffer);
         hash.Add(GitBranch);
-        foreach (var tab in OpenEditorTabs) hash.Add(tab);
-        foreach (var b in Breadcrumbs) hash.Add(b);
+
+        if (!OpenEditorTabs.IsDefault)
+        {
+            for (int i = 0; i < OpenEditorTabs.Length; i++)
+            {
+                hash.Add(OpenEditorTabs[i]);
+            }
+        }
+
+        if (!Breadcrumbs.IsDefault)
+        {
+            for (int i = 0; i < Breadcrumbs.Length; i++)
+            {
+                hash.Add(Breadcrumbs[i]);
+            }
+        }
+
         return hash.ToHashCode();
     }
 }

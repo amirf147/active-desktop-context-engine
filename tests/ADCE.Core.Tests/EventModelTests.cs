@@ -82,4 +82,19 @@ public class EventModelTests
         var evt = new HeartbeatEvent();
         Assert.Equal(DesktopEventType.Heartbeat, evt.EventType);
     }
+
+    [Fact]
+    public void DesktopEventToken_PropertiesAndEquality()
+    {
+        var tokenA = new DesktopEventToken(0x0003, 0x00DB083E, 123456);
+        var tokenB = new DesktopEventToken(0x0003, 0x00DB083E, 123456);
+        var tokenEmpty = DesktopEventToken.Empty;
+
+        Assert.True(tokenA.IsValid);
+        Assert.False(tokenEmpty.IsValid);
+        Assert.Equal(tokenA, tokenB);
+        Assert.Equal((ushort)0x0003, tokenA.EventType);
+        Assert.Equal((nint)0x00DB083E, tokenA.Hwnd);
+        Assert.Equal(123456u, tokenA.TimestampMs);
+    }
 }

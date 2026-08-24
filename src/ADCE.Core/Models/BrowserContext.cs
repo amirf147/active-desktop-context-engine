@@ -2,14 +2,13 @@
 // Copyright (c) 2024-2026 Amir Farhadi
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 
 namespace ADCE.Core.Models;
 
 /// <summary>
 /// Represents contextual state extracted from a web browser (e.g. Waterfox, Chrome, Firefox, Edge).
-/// Implements deep value-based equality across tab collections.
+/// Implements deep value-based equality across tab collections with zero heap allocations.
 /// </summary>
 public sealed record BrowserContext : IEquatable<BrowserContext>
 {
@@ -23,7 +22,7 @@ public sealed record BrowserContext : IEquatable<BrowserContext>
     public string? ActiveTab { get; init; }
 
     /// <summary>List of open tab items extracted from the browser tabstrip.</summary>
-    public IReadOnlyList<TabItemInfo> Tabs { get; init; } = [];
+    public ImmutableArray<TabItemInfo> Tabs { get; init; } = ImmutableArray<TabItemInfo>.Empty;
 
     /// <summary>URL or search text extracted from the browser address bar (if captured).</summary>
     public string? UrlAddress { get; init; }
@@ -32,11 +31,24 @@ public sealed record BrowserContext : IEquatable<BrowserContext>
     {
         if (other is null) return false;
         if (ReferenceEquals(this, other)) return true;
-        return ContainerType == other.ContainerType &&
-               TotalCount == other.TotalCount &&
-               ActiveTab == other.ActiveTab &&
-               UrlAddress == other.UrlAddress &&
-               Tabs.SequenceEqual(other.Tabs);
+
+        if (ContainerType != other.ContainerType ||
+            TotalCount != other.TotalCount ||
+            ActiveTab != other.ActiveTab ||
+            UrlAddress != other.UrlAddress)
+        {
+            return false;
+        }
+
+        var thisTabs = Tabs.IsDefault ? ImmutableArray<TabItemInfo>.Empty : Tabs;
+        var otherTabs = other.Tabs.IsDefault ? ImmutableArray<TabItemInfo>.Empty : other.Tabs;
+        if (thisTabs.Length != otherTabs.Length) return false;
+        for (int i = 0; i < thisTabs.Length; i++)
+        {
+            if (thisTabs[i] != otherTabs[i]) return false;
+        }
+
+        return true;
     }
 
     public override int GetHashCode()
@@ -46,7 +58,15 @@ public sealed record BrowserContext : IEquatable<BrowserContext>
         hash.Add(TotalCount);
         hash.Add(ActiveTab);
         hash.Add(UrlAddress);
-        foreach (var tab in Tabs) hash.Add(tab);
+
+        if (!Tabs.IsDefault)
+        {
+            for (int i = 0; i < Tabs.Length; i++)
+            {
+                hash.Add(Tabs[i]);
+            }
+        }
+
         return hash.ToHashCode();
     }
 }

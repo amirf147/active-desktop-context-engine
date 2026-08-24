@@ -68,7 +68,7 @@ public class JsonSerializationTests
         Assert.NotNull(snapshot.IdeContext);
         Assert.Equal("docs/CONTEXT.md", snapshot.IdeContext.ActiveFilePath);
         Assert.Equal("Explorer (Ctrl+Shift+E)", snapshot.IdeContext.ActiveSidebarView);
-        Assert.Equal(3, snapshot.IdeContext.OpenEditorTabs.Count);
+        Assert.Equal(3, snapshot.IdeContext.OpenEditorTabs.Length);
         Assert.True(snapshot.IdeContext.OpenEditorTabs[0].IsActive);
         Assert.False(snapshot.IdeContext.OpenEditorTabs[1].IsActive);
 
@@ -161,11 +161,11 @@ public class JsonSerializationTests
                 TotalCount = 2,
                 ActiveTab = "ADCE Spec",
                 UrlAddress = "https://example.com/adce",
-                Tabs = new List<TabItemInfo>
-                {
+                Tabs =
+                [
                     new() { Index = 1, Title = "ADCE Spec", IsActive = true, IsPinned = false },
                     new() { Index = 2, Title = "GitHub PR", IsActive = false, IsPinned = true }
-                }
+                ]
             }
         };
 
@@ -178,7 +178,7 @@ public class JsonSerializationTests
         Assert.Equal("TreeStyleTab", deserialized.BrowserContext.ContainerType);
         Assert.Equal(2, deserialized.BrowserContext.TotalCount);
         Assert.Equal("ADCE Spec", deserialized.BrowserContext.ActiveTab);
-        Assert.Equal(2, deserialized.BrowserContext.Tabs.Count);
+        Assert.Equal(2, deserialized.BrowserContext.Tabs.Length);
         Assert.True(deserialized.BrowserContext.Tabs[0].IsActive);
         Assert.True(deserialized.BrowserContext.Tabs[1].IsPinned);
     }

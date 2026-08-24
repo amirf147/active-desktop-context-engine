@@ -48,10 +48,10 @@ public class DesktopContextSnapshotTests
             {
                 ActiveFilePath = "docs/CONTEXT.md",
                 ActiveSidebarView = "Explorer",
-                OpenEditorTabs = new List<TabItemInfo>
-                {
+                OpenEditorTabs =
+                [
                     new() { Index = 1, Title = "CONTEXT.md", IsActive = true }
-                }
+                ]
             }
         };
 
@@ -86,10 +86,10 @@ public class DesktopContextSnapshotTests
             {
                 ActiveFilePath = "docs/CONTEXT.md",
                 ActiveSidebarView = "Explorer",
-                OpenEditorTabs = new List<TabItemInfo>
-                {
+                OpenEditorTabs =
+                [
                     new() { Index = 1, Title = "CONTEXT.md", IsActive = true }
-                }
+                ]
             }
         };
 
@@ -152,5 +152,25 @@ public class DesktopContextSnapshotTests
 
         var empty = BoundingRectangle.Empty;
         Assert.True(empty.IsEmpty);
+    }
+
+    [Fact]
+    public void DefaultImmutableArray_Equality_DoesNotThrow()
+    {
+        // Verified Gate 2 fix: uninitialized default ImmutableArray must not throw NullReferenceException in Equals()
+        var contextDefaultA = new IdeContext();
+        var contextDefaultB = new IdeContext();
+        var contextEmpty = new IdeContext
+        {
+            OpenEditorTabs = [],
+            Breadcrumbs = []
+        };
+
+        Assert.Equal(contextDefaultA, contextDefaultB);
+        Assert.Equal(contextDefaultA, contextEmpty);
+
+        var browserDefaultA = new BrowserContext();
+        var browserEmpty = new BrowserContext { Tabs = [] };
+        Assert.Equal(browserDefaultA, browserEmpty);
     }
 }

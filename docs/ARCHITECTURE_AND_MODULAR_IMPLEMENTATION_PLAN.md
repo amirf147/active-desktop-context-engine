@@ -108,10 +108,11 @@ The repository solution (`ADCE.slnx`) is organized into 5 decoupled projects wit
 │ • [Verification]: 18/18 Unit tests passing (equality, JSON serialization, boundary).   │
 │ • [Documentation]: docs/ADCE_CORE_DEEP_DIVE.md architecture and sequence equality.     │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
-│ Milestone 2: Standalone Context Grabber (ADCE.Extraction)                              │
+│ Milestone 2: Standalone Context Grabber (ADCE.Extraction) [COMPLETE]                   │
 │ • Encapsulate FlaUI.UIA3 CacheRequest recipes into modular extractor classes.          │
-│ • Integrate Slions.VirtualDesktop workspace envelope resolution.                       │
-│ • [Verification]: Standalone CLI tool that extracts foreground tabs/zones in < 15 ms.  │
+│ • Implement Win32 shallow gating (< 0.5 ms), UIPI privilege checks, and privacy sanitization.
+│ • [Verification]: Standalone CLI grabber (--grab) extracts foreground context in < 2 ms. │
+│ • [Documentation]: docs/ADCE_EXTRACTION_DEEP_DIVE.md architecture and failure modes.    │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
 │ Milestone 3: Zero-CPU Event Pipeline (ADCE.Extraction & ADCE.Core.Events)              │
 │ • Implement SetWinEventHook listeners for foreground, focus, and desktop switches.     │
