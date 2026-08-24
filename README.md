@@ -56,6 +56,7 @@ Synthesized from our research across the **Roman Baeriswyl (`Roemer` / FlaUI)** 
 This repository functions as an **evolving public research ledger** and implementation hub, tracking low-level COM experiments, UI Automation latency benchmarks, and architectural design decisions.
 
 ### Primary References & Specifications:
+* 🏗️ **[Architecture & Modular Implementation Plan](docs/ARCHITECTURE_AND_MODULAR_IMPLEMENTATION_PLAN.md)**: 5-project solution architecture, decoupled work packages, and phased execution milestones.
 * 📘 **[Educational Refresher & Architecture Guide](docs/EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md)**: Plain-English walkthrough of UI Automation, Win32 systems programming, FlaUI caching, and the Dual-Plane architecture.
 * 📑 **[UI Automation Structures Reference (SSOT)](docs/UI_AUTOMATION_STRUCTURES_REFERENCE.md)**: Definitive structural map of UIA node hierarchies, class names, and target zones for Antigravity IDE, Waterfox, and File Explorer.
 * 📋 **[Requirements & Dynamic Discovery Specification](docs/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md)**: 5 Desktop Framework Archetypes, dynamic heuristic discovery pipeline, database tradeoffs, and performance SLAs.
