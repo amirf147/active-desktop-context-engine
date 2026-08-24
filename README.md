@@ -57,6 +57,7 @@ This repository functions as an **evolving public research ledger** and implemen
 
 ### Primary References & Specifications:
 * 🏗️ **[Architecture & Modular Implementation Plan](docs/ARCHITECTURE_AND_MODULAR_IMPLEMENTATION_PLAN.md)**: 5-project solution architecture, decoupled work packages, and phased execution milestones.
+* 🧠 **[ADCE.Core Deep-Dive & Architecture Reference](docs/ADCE_CORE_DEEP_DIVE.md)**: Plain-English architectural breakdown, end-to-end dataflow sequence diagrams, file-by-file failure mode analysis, and sequence equality mechanics.
 * 📘 **[Educational Refresher & Architecture Guide](docs/EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md)**: Plain-English walkthrough of UI Automation, Win32 systems programming, FlaUI caching, and the Dual-Plane architecture.
 * 📑 **[UI Automation Structures Reference (SSOT)](docs/UI_AUTOMATION_STRUCTURES_REFERENCE.md)**: Definitive structural map of UIA node hierarchies, class names, and target zones for Antigravity IDE, Waterfox, and File Explorer.
 * 📋 **[Requirements & Dynamic Discovery Specification](docs/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md)**: 5 Desktop Framework Archetypes, dynamic heuristic discovery pipeline, database tradeoffs, and performance SLAs.
@@ -81,7 +82,7 @@ Following our **4-Gate Epistemic Protocol**:
 | **Phase 2: Adversarial Evaluation & Micro-Spikes** | Gate 2 & Gate 3 empirical tests validating container targeting and Win32 gating. | `[x]` Complete | • [Micro-Spike 1 Telemetry (FlaUI UIA3)](docs/benchmarks/001_micro_spike_1_flaui_telemetry.md) (10.17 ms)<br/>• [Micro-Spike 2 Telemetry (Win32 Shallow)](docs/benchmarks/002_micro_spike_2_python_shallow_telemetry.md) (0.66 ms) |
 | **Phase 3: Ecosystem Audit & Wheel Reinvention** | Deep-dive audits of leading open-source Windows/COM/UIA tooling catalogs. | `[x]` Complete | • [Simon Mourier Ecosystem Suite](docs/external_research/README.md)<br/>• [Roman Baeriswyl (Roemer / FlaUI) Deep Dive](docs/external_research/FlaUI_And_Roemer_Ecosystem.md)<br/>• [Synthesis & Wheel Reinvention Audit](docs/external_research/SYNTHESIS_AND_WHEEL_REINVENTION_AUDIT.md) |
 | **Phase 4: Architectural Specifications & SSOT** | Formalize ground-truth target zones, heuristic discovery archetypes, and MCP schemas. | `[x]` Complete | • [UI Automation SSOT Reference](docs/UI_AUTOMATION_STRUCTURES_REFERENCE.md)<br/>• [Dynamic Discovery & Requirements Spec](docs/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md)<br/>• [MCP JSON Schema Specification](docs/MCP_SCHEMA_SPEC.md) |
-| **Phase 5: Production Daemon Implementation** | Build standalone background daemon with system tray UI, SQLite WAL persistence, and MCP server. | `[ ]` **In Progress** | • Scaffold `ADCE.Daemon` (.NET 10)<br/>• Dedicated MTA `Channel<DesktopEvent>` Worker<br/>• SQLite time-series storage & MCP JSON-RPC Server |
+| **Phase 5: Production Daemon Implementation** | Build modular multi-project solution (`ADCE.slnx`), event pipeline, storage, and MCP server. | `[ ]` **In Progress** | • **Milestone 1:** `ADCE.Core` domain models, events, serialization & unit tests (`[x]` Complete)<br/>• **Milestone 2:** `ADCE.Extraction` standalone grabber (`[ ]` Next)<br/>• **Milestone 3–6:** Event channels, SQLite store, MCP server, System tray daemon |
 | **Phase 6: Voice & AI Client Integration** | Connect Caster Dragonfly grammars and local AI assistants to the live MCP endpoint. | `[ ]` Planned | • Caster MCP client bindings<br/>• Live active window context streaming to Antigravity/Claude |
 
 ---
@@ -99,11 +100,14 @@ Following our **4-Gate Epistemic Protocol**:
 ## 6. Building & Running Spikes
 
 ```powershell
-# Build the solution
-dotnet build src/ADCE.Spikes
+# Build entire solution and run unit test suite
+dotnet test ADCE.slnx
 
-# Execute live multi-zone diagnostic extractor against running browsers & IDEs
+# Run Milestone 1 core domain models & JSON serialization demonstration
 dotnet run --project src/ADCE.Spikes
+
+# Run live multi-zone FlaUI UIA3 benchmark against active browsers & IDEs
+dotnet run --project src/ADCE.Spikes -- --flaui-benchmark
 ```
 
 ---

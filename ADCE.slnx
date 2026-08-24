@@ -1,5 +1,9 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/ADCE.Core/ADCE.Core.csproj" />
     <Project Path="src/ADCE.Spikes/ADCE.Spikes.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ADCE.Core.Tests/ADCE.Core.Tests.csproj" />
   </Folder>
 </Solution>

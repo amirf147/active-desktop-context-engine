@@ -11,7 +11,7 @@ Copyright (c) 2024-2026 Amir Farhadi
 
 > **Target Audience:** Contributors, AI pair-programmers, and researchers
 > **Purpose:** Plain-English educational breakdown of Windows UI Automation, Win32 systems programming, and the ADCE Dual-Plane architecture
-> **Parent Context:** [`docs/CONTEXT.md`](CONTEXT.md)
+> **Parent Context:** [`docs/CONTEXT.md`](CONTEXT.md) | [`docs/ADCE_CORE_DEEP_DIVE.md`](ADCE_CORE_DEEP_DIVE.md)
 > **External Research:** [`docs/external_research/README.md`](external_research/README.md)
 
 ---

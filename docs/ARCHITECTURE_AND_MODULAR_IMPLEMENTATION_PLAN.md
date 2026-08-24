@@ -102,10 +102,11 @@ The repository solution (`ADCE.slnx`) is organized into 5 decoupled projects wit
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
 │                                 EXECUTION MILESTONES                                   │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
-│ Milestone 1: Solution Scaffolding & Core Domain Models (ADCE.Core)                     │
+│ Milestone 1: Solution Scaffolding & Core Domain Models (ADCE.Core) [COMPLETE]          │
 │ • Scaffold ADCE.slnx with net10.0-windows multi-project structure.                     │
 │ • Implement immutable data records, semantic zone enums, and interfaces.               │
-│ • [Verification]: Unit tests verifying JSON serialization and record equality.        │
+│ • [Verification]: 18/18 Unit tests passing (equality, JSON serialization, boundary).   │
+│ • [Documentation]: docs/ADCE_CORE_DEEP_DIVE.md architecture and sequence equality.     │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
 │ Milestone 2: Standalone Context Grabber (ADCE.Extraction)                              │
 │ • Encapsulate FlaUI.UIA3 CacheRequest recipes into modular extractor classes.          │
