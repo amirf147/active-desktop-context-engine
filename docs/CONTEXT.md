@@ -3,8 +3,8 @@
 
 # ADCE Domain Context & Reference Specification
 
-> **Target System:** Active Desktop Context Engine (ADCE)  
-> **Source Lineage:** Evolved from research in [caster-user-directory-and-notes](https://github.com/amirf147/caster-user-directory-and-notes/tree/master/docs/accessibility_mcp)  
+> **Target System:** Active Desktop Context Engine (ADCE)
+> **Source Lineage:** Evolved from research in [caster-user-directory-and-notes](https://github.com/amirf147/caster-user-directory-and-notes/tree/master/docs/accessibility_mcp)
 > **Runtime:** .NET 10 (x64) + `FlaUI.UIA3 5.0.0`
 
 ---
@@ -63,18 +63,18 @@ The **Active Desktop Context Engine (ADCE)** is a high-performance, lightweight 
 ---
 
 ## 3. Core Architectural Principles
- 
-1. **Dual-Plane Discovery (Fast Win32 Gating):**  
+
+1. **Dual-Plane Discovery (Fast Win32 Gating):**
    Filter candidate windows in `<1ms` via native Win32 `EnumWindows` and `GetWindowLongPtr` before engaging the heavy UI Automation plane.
-2. **Zero Browser DOM Crawling (Strict Pruning):**  
+2. **Zero Browser DOM Crawling (Strict Pruning):**
    Never recursively search descendant trees of `MozillaWindowClass` or `Chrome_WidgetWin_1`. Target specific container classes directly (`tabs-container`, `tabs normal`, `monaco-breadcrumbs`).
-3. **MTA Thread Scheduler Isolation:**  
+3. **MTA Thread Scheduler Isolation:**
    Execute all `FlaUI.UIA3` instance creation and COM queries on an isolated Multi-Threaded Apartment (`ApartmentState.MTA`) worker to eliminate cross-process COM reentrancy deadlocks.
-4. **Decoupled WinEvent Dispatching:**  
+4. **Decoupled WinEvent Dispatching:**
    `SetWinEventHook` callbacks only push lightweight tokens into a `Channel<DesktopEvent>` and return instantly. UIA queries execute with 50–75 ms trailing-edge debouncing.
-5. **Historical State Persistence:**  
+5. **Historical State Persistence:**
    Persist state snapshots and focus transitions to an embedded high-performance database (SQLite / DuckDB) to enable historical queries ("what was open 15 minutes ago?").
-6. **Universal Consumption via MCP:**  
+6. **Universal Consumption via MCP:**
    Expose both live current state and historical queries over standard Model Context Protocol resources and tools.
 
 ## 4. MCP Context Envelope & Progressive Disclosure

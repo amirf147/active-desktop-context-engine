@@ -14,7 +14,7 @@ Copyright (c) 2024-2026 Amir Farhadi
 ## 1. Architectural Architecture & Mechanics
 
 ### 1.1 Object-Oriented Win32 Window Abstraction (`Win32Window.cs`)
-`HwndExplorer` wraps raw native window handles (`HWND`) in a fluent, lazy-evaluated C# model [`Win32Window`](file:///C:/Users/Amir/Documents/repos/HwndExplorer/HwndExplorer/Utilities/Win32Window.cs):
+`HwndExplorer` wraps raw native window handles (`HWND`) in a fluent, lazy-evaluated C# model [`Win32Window`](https://github.com/smourier/HwndExplorer/blob/main/HwndExplorer/Utilities/Win32Window.cs):
 
 ```csharp
 public class Win32Window : IEquatable<Win32Window>
@@ -24,11 +24,11 @@ public class Win32Window : IEquatable<Win32Window>
     public static Win32Window? Foreground => FromHandle(WindowsUtilities.GetForegroundWindow());
     public static Win32Window? Focus => FromHandle(WindowsUtilities.GetFocus());
     public static Win32Window? Active => FromHandle(WindowsUtilities.GetActiveWindow());
-    
-    public static IEnumerable<Win32Window> TopLevelWindows => 
+
+    public static IEnumerable<Win32Window> TopLevelWindows =>
         WindowsUtilities.EnumerateTopLevelWindows().Select(FromHandle).Where(w => w is not null)!;
-        
-    public static IEnumerable<Win32Window> FromProcess(int processId) => 
+
+    public static IEnumerable<Win32Window> FromProcess(int processId) =>
         WindowsUtilities.EnumerateProcessWindows(processId).Select(FromHandle).Where(p => p is not null)!;
 }
 ```

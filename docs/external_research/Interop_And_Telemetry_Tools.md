@@ -6,10 +6,10 @@ Copyright (c) 2024-2026 Amir Farhadi
 # Codebase Deep Dive: Interop, Telemetry & Input Tools
 
 This document analyzes Simon Mourier's specialized Windows systems tooling:
-1. [`smourier/Win32InteropBuilder`](file:///C:/Users/Amir/Documents/repos/Win32InteropBuilder)
-2. [`smourier/TraceSpy`](file:///C:/Users/Amir/Documents/repos/TraceSpy)
-3. [`smourier/RawInputReader`](file:///C:/Users/Amir/Documents/repos/RawInputReader)
-4. [`smourier/DirectNAot`](file:///C:/Users/Amir/Documents/repos/DirectNAot)
+1. [`smourier/Win32InteropBuilder`](https://github.com/smourier/Win32InteropBuilder)
+2. [`smourier/TraceSpy`](https://github.com/smourier/TraceSpy)
+3. [`smourier/RawInputReader`](https://github.com/smourier/RawInputReader)
+4. [`smourier/DirectNAot`](https://github.com/smourier/DirectNAot)
 
 ---
 

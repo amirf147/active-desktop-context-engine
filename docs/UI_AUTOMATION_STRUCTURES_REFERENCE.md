@@ -7,9 +7,9 @@
 
 # Single Source of Truth: UI Automation Tree Structures & Target Zones Reference (017)
 
-> **Document Status:** Active / Master Architecture Reference  
-> **Target Systems:** Active Desktop Context Engine (ADCE) & Caster Accessibility Engine  
-> **Engines Tested:** C# .NET 10 (`FlaUI.UIA3 5.0.0`) & Python 3.10 (`uiautomation` / `ctypes`)  
+> **Document Status:** Active / Master Architecture Reference
+> **Target Systems:** Active Desktop Context Engine (ADCE) & Caster Accessibility Engine
+> **Engines Tested:** C# .NET 10 (`FlaUI.UIA3 5.0.0`) & Python 3.10 (`uiautomation` / `ctypes`)
 > **Related Documents:** [010: Traversal Telemetry](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/010_telemetry_benchmarks_and_live_findings.md) | [014: C# Daemon Handover](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/014_csharp_daemon_handover_and_skill_spec.md) | [015: Epistemic Recalibration](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/015_recalibration_and_adversarial_architecture_review.md) | [016: Micro-Spike 2 Telemetry](benchmarks/002_micro_spike_2_python_shallow_telemetry.md)
 
 ---
@@ -151,8 +151,8 @@ Modern Firefox-family browsers isolate browser chrome from web page content. Whe
 
 #### 4. The Browser DOM Trap (Pruning Rule)
 > [!CAUTION]
-> **Never Traverse Web Page Viewports:**  
-> The web page content viewport is represented as a top-level `ControlType.Document` sibling of `nav-bar` and `sidebar-box`. Descending into this `Document` crawls all 6,800+ HTML DOM elements across cross-process COM LPC, triggering **5,800 ms** freezes.  
+> **Never Traverse Web Page Viewports:**
+> The web page content viewport is represented as a top-level `ControlType.Document` sibling of `nav-bar` and `sidebar-box`. Descending into this `Document` crawls all 6,800+ HTML DOM elements across cross-process COM LPC, triggering **5,800 ms** freezes.
 > **Rule:** Prune any `ControlType.Document` that is NOT named `"Tree Style Tab"` or inside `sidebar-box`.
 
 ---

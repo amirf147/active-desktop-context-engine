@@ -6,11 +6,11 @@ Copyright (c) 2024-2026 Amir Farhadi
 # Codebase Deep Dive: Registration-Free COM & NativeAOT Suite
 
 This document analyzes the collection of COM server architectures authored by Simon Mourier:
-1. [`smourier/RegfreeNetComServer`](file:///C:/Users/Amir/Documents/repos/RegfreeNetComServer)
-2. [`smourier/RefreeNetCom`](file:///C:/Users/Amir/Documents/repos/RefreeNetCom)
-3. [`smourier/OutOfProcessCOMServer`](file:///C:/Users/Amir/Documents/repos/OutOfProcessCOMServer)
-4. [`smourier/ActiveN`](file:///C:/Users/Amir/Documents/repos/ActiveN)
-5. [`smourier/AotNetComHost`](file:///C:/Users/Amir/Documents/repos/AotNetComHost)
+1. [`smourier/RegfreeNetComServer`](https://github.com/smourier/RegfreeNetComServer)
+2. [`smourier/RefreeNetCom`](https://github.com/smourier/RefreeNetCom)
+3. [`smourier/OutOfProcessCOMServer`](https://github.com/smourier/OutOfProcessCOMServer)
+4. [`smourier/ActiveN`](https://github.com/smourier/ActiveN)
+5. [`smourier/AotNetComHost`](https://github.com/smourier/AotNetComHost)
 
 ---
 

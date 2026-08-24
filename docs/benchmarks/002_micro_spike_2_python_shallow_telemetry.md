@@ -7,8 +7,8 @@
 
 # Micro-Spike 2: Win32 Shallow Python Telemetry & Comparative Analysis (016)
 
-> **Document Status:** Active / Gate 3 Empirical Benchmark Report  
-> **Target System:** Active Desktop Context Engine (ADCE) & Gate 3 Empirical Micro-Spikes  
+> **Document Status:** Active / Gate 3 Empirical Benchmark Report
+> **Target System:** Active Desktop Context Engine (ADCE) & Gate 3 Empirical Micro-Spikes
 > **Related Documents:** [010: Traversal Telemetry](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/010_telemetry_benchmarks_and_live_findings.md) | [011: FlaUI Evaluation](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/011_flaui_evaluation_and_dual_plane_architecture.md) | [014: C# Daemon Handover](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/014_csharp_daemon_handover_and_skill_spec.md) | [015: Epistemic Recalibration](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/015_recalibration_and_adversarial_architecture_review.md)
 
 ---
@@ -44,7 +44,7 @@ In accordance with the **4-Gate Epistemic Gating Protocol** established in [015:
 
 ## 2. Micro-Spike 2 Telemetry Breakdown (Python 3.10)
 
-Script: [`scripts/spike_win32_shallow_python.py`](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/scripts/spike_win32_shallow_python.py)  
+Script: [`scripts/spike_win32_shallow_python.py`](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/scripts/spike_win32_shallow_python.py)
 Execution: `py -3.10 scripts/spike_win32_shallow_python.py` (100 sample runs against live desktop session)
 
 ### A. Phase Latencies (100 Iterations)

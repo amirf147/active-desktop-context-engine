@@ -23,7 +23,7 @@
 
 ```text
 ==========================================================================
-  ADCE Micro-Spike 1: FlaUI 5 / .NET 10 UIA3 Real-World Telemetry         
+  ADCE Micro-Spike 1: FlaUI 5 / .NET 10 UIA3 Real-World Telemetry
 ==========================================================================
 Runtime   : .NET 10.0.8 (x64)
 Timestamp : 2026-08-24T02:35:34.120Z

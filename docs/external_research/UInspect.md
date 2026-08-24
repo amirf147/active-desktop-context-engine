@@ -14,7 +14,7 @@ Copyright (c) 2024-2026 Amir Farhadi
 ## 1. Architectural Architecture & Mechanics
 
 ### 1.1 Dedicated MTA Single-Thread Task Scheduler
-A critical architectural insight from `UInspect` is how it handles the COM threading model of Windows UI Automation. 
+A critical architectural insight from `UInspect` is how it handles the COM threading model of Windows UI Automation.
 
 In `AutomationUtilities.cs`:
 ```csharp
@@ -41,9 +41,9 @@ public event EventHandler<StructureChangedEventArgs> StructureChanged
         {
             var handler = new AutomationStructureChangedEventHandler(this, value);
             AutomationUtilities.Automation.AddStructureChangedEventHandler(
-                Element, 
-                TreeScope.TreeScope_Subtree, 
-                null, 
+                Element,
+                TreeScope.TreeScope_Subtree,
+                null,
                 handler);
             _structureChangedHandlers[value] = handler;
         });
@@ -52,7 +52,7 @@ public event EventHandler<StructureChangedEventArgs> StructureChanged
     {
         if (_structureChangedHandlers.TryRemove(value, out var handler))
         {
-            AutomationUtilities.RunAutomationTask(() => 
+            AutomationUtilities.RunAutomationTask(() =>
                 AutomationUtilities.Automation.RemoveStructureChangedEventHandler(Element, handler));
         }
     }

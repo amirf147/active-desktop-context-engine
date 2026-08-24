@@ -5,15 +5,15 @@ Copyright (c) 2024-2026 Amir Farhadi
 
 # ADCE Model Context Protocol (MCP) Schema Specification
 
-> **Status:** Draft / Evolving Specification  
-> **Protocol Standard:** [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) JSON-RPC 2.0  
+> **Status:** Draft / Evolving Specification
+> **Protocol Standard:** [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) JSON-RPC 2.0
 > **Parent Context:** [`docs/CONTEXT.md`](CONTEXT.md)
 
 ---
 
 ## 1. Design Rationale & Core Envelope Philosophy
 
-The ADCE MCP schema is designed to provide AI agents, LLM tool callers, and voice recognition grammars with high-density, token-efficient semantic desktop context. 
+The ADCE MCP schema is designed to provide AI agents, LLM tool callers, and voice recognition grammars with high-density, token-efficient semantic desktop context.
 
 Rather than sending raw visual screenshots or thousands of unpruned UI Automation nodes, the schema exposes a structured snapshot partitioned into four decoupled context zones:
 1. **Workspace Envelope:** Virtual desktop identity and multi-monitor spatial context.

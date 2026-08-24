@@ -12,7 +12,7 @@ description: Generates a copy-paste ready commit message for Caster User Directo
 3. **Body Formatting**:
    - 1-2 sentence paragraph explaining *why* the change was needed.
    - Bulleted list of specific changes.
-4. **Exclusions**: 
+4. **Exclusions**:
    - No diff metadata, line numbers, or section headers (e.g., "Summary:"). Just empty lines between title, body, and list.
 
 # Execution

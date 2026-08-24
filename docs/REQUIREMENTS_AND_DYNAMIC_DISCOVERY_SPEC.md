@@ -7,9 +7,9 @@
 
 # Epistemic Gaps, Dynamic App Discovery & Engine Requirements Specification (018)
 
-> **Document Status:** Active / Epistemic Review & Product Requirements Specification  
-> **Target System:** Active Desktop Context Engine (ADCE)  
-> **Repository Boundary:** Final research handover document bridging `caster` and `active-desktop-context-engine`  
+> **Document Status:** Active / Epistemic Review & Product Requirements Specification
+> **Target System:** Active Desktop Context Engine (ADCE)
+> **Repository Boundary:** Final research handover document bridging `caster` and `active-desktop-context-engine`
 > **Related Documents:** [015: Epistemic Recalibration](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/015_recalibration_and_adversarial_architecture_review.md) | [016: Micro-Spike 2 Telemetry](benchmarks/002_micro_spike_2_python_shallow_telemetry.md) | [017: UI Automation SSOT](UI_AUTOMATION_STRUCTURES_REFERENCE.md)
 
 ---
@@ -19,8 +19,8 @@
 In accordance with our **4-Gate Epistemic Protocol**, before proceeding with full implementation of the C# `ADCE.Daemon`, we must apply a rigorous epistemic brake:
 
 > [!WARNING]
-> **The Hardcoded Selector Trap:**  
-> In Document `017`, we successfully mapped specific container selectors for Antigravity IDE (`tabs-container`), Waterfox (`tabs normal`), and Windows 11 File Explorer (`TabView`).  
+> **The Hardcoded Selector Trap:**
+> In Document `017`, we successfully mapped specific container selectors for Antigravity IDE (`tabs-container`), Waterfox (`tabs normal`), and Windows 11 File Explorer (`TabView`).
 > **The Epistemic Risk:** If `ADCE.Daemon` relies strictly on hardcoded class names and automation IDs, the engine is brittle. It will break when applications update their UI frameworks, and it will be completely blind to 95% of other software (Notion, Slack, Obsidian, JetBrains IDEs, Visual Studio, LibreOffice, CAD, terminal multiplexers).
 
 ### Core Knowledge Gaps Identified:
@@ -58,7 +58,7 @@ Rather than hardcoding string selectors for every application in existence, ADCE
 ```mermaid
 graph TD
     Root["Active Top-Level HWND"] --> Classify["Archetype Classifier (Win32 Class & Process)"]
-    
+
     Classify --> A1["Archetype 1: Chromium / Electron<br/>(VS Code, Antigravity, Slack, Teams)"]
     Classify --> A2["Archetype 2: Gecko<br/>(Waterfox, Firefox, Thunderbird)"]
     Classify --> A3["Archetype 3: WinUI 3 / XAML<br/>(Win11 Explorer, Windows Terminal)"]
