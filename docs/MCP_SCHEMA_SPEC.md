@@ -143,7 +143,7 @@ Rather than sending raw visual screenshots or thousands of unpruned UI Automatio
     "class_name": "Chrome_WidgetWin_1"
   },
   "ide_context": {
-    "active_file_path": "C:\\Users\\Amir\\Documents\\repos\\active-desktop-context-engine\\docs\\CONTEXT.md",
+    "active_file_path": "docs/CONTEXT.md",
     "active_sidebar_view": "Explorer (Ctrl+Shift+E)",
     "open_editor_tabs": [
       { "title": "CONTEXT.md", "is_active": true },

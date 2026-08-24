@@ -96,7 +96,7 @@ Electron / Monaco IDEs structure the user interface into distinct workbench part
 
 #### 3. Active File Disk Breadcrumbs
 * **Target Container:** `ControlType: List` with `ClassName: "monaco-breadcrumbs"` (Depth 7).
-* **Path Reconstruction:** Children are `ControlType.ListItem` nodes with `ClassName: "... monaco-breadcrumb-item"`. Joining their names with `\` reconstructs the full workspace-relative or absolute file path (e.g. `C:\Projects\FlaUI\src\FlaUI.Core\CacheRequest.cs`).
+* **Path Reconstruction:** Children are `ControlType.ListItem` nodes with `ClassName: "... monaco-breadcrumb-item"`. Joining their names with `/` reconstructs the full workspace-relative file path (e.g. `src/FlaUI.Core/CacheRequest.cs`).
 
 #### 4. Monaco Text Editor & Edit Context
 * **Target Container:** `ControlType.Edit` with `ClassName: "native-edit-context"` (Depth 8–9).

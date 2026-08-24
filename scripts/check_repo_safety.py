@@ -2,9 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2024-2026 Amir Farhadi
 """
-Repository Safety, Secret & Absolute Path Hygiene Checker for ADCE
+Repository Safety, Secret & Path Hygiene Checker for ADCE
 """
 
+import getpass
 import os
 import re
 import sys
@@ -21,9 +22,11 @@ IGNORED_DIRS = {
     "node_modules",
     ".ruff_cache",
     ".idea",
+    "__pycache__",
+    ".pytest_cache",
 }
 
-# Ignore file extensions / files
+# Ignore file extensions / binary files
 IGNORED_EXTENSIONS = {
     ".dll",
     ".exe",
@@ -33,24 +36,43 @@ IGNORED_EXTENSIONS = {
     ".jpeg",
     ".ico",
     ".svg",
+    ".pyc",
+    ".pyo",
 }
 
-# Regex patterns for safety violations
+# Generic regex patterns for path hygiene (handles unescaped, JSON-escaped, and raw backslashes/slashes)
 WINDOWS_ABS_PATH_RE = re.compile(
-    r"[A-Za-z]:[\\/](Users|Documents|Program Files|AppData|Windows|Temp|repos)[\\/]",
+    r"[A-Za-z]:(?:\\{1,4}|/)+(?:Users|Documents|Program Files|AppData|Windows|Temp|repos|Projects|Desktop)(?:\\{1,4}|/)+",
+    re.IGNORECASE,
+)
+USER_HOME_PATH_RE = re.compile(
+    r"(?:[A-Za-z]:(?:\\{1,4}|/)+|/|\\{1,4})(?:Users|home|Documents and Settings)(?:\\{1,4}|/)+[A-Za-z0-9_.-]+(?:\\{1,4}|/)+",
     re.IGNORECASE,
 )
 UNIX_ABS_PATH_RE = re.compile(r"^/(Users|home|root|opt|var|etc)[/]", re.IGNORECASE)
-LOCALAPPDATA_RE = re.compile(r"%LOCALAPPDATA%", re.IGNORECASE)
+ENV_VAR_PATH_RE = re.compile(r"%(?:LOCALAPPDATA|APPDATA|USERPROFILE|TEMP|TMP)%", re.IGNORECASE)
 FILE_URI_RE = re.compile(r"file:///", re.IGNORECASE)
 
-# Secret token patterns
+# Dynamic runtime detection for active local environment username (without hardcoding any personal name in source)
+try:
+    CURRENT_USER = getpass.getuser()
+    if CURRENT_USER and len(CURRENT_USER) > 1 and CURRENT_USER.lower() not in {"root", "runner", "github", "administrator", "system"}:
+        ACTIVE_USER_PATH_RE = re.compile(
+            rf"(?:\\{{1,4}}|/)+{re.escape(CURRENT_USER)}(?:\\{{1,4}}|/)+",
+            re.IGNORECASE,
+        )
+    else:
+        ACTIVE_USER_PATH_RE = None
+except Exception:
+    ACTIVE_USER_PATH_RE = None
+
+# Secret & credential token patterns
 SECRET_PATTERNS = [
     (re.compile(r"-----BEGIN (?:RSA|OPENSSH|EC|DSA|PGP)?\s?PRIVATE KEY-----"), "Private Key Header"),
     (re.compile(r"\b(?:sk|pk)_(?:live|test)_[0-9a-zA-Z]{24,}\b"), "API Key Token"),
     (re.compile(r"\bghp_[0-9a-zA-Z]{36}\b"), "GitHub Personal Access Token"),
     (re.compile(r"\beyJ[a-zA-Z0-9_\-]{20,}\.[a-zA-Z0-9_\-]{20,}\.[a-zA-Z0-9_\-]{20,}\b"), "JWT Token"),
-    (re.compile(r"\bamirf147@gmail\.com\b", re.IGNORECASE), "Personal Email Address in Content"),
+    (re.compile(r"\b[A-Za-z0-9._%+-]+@(?!(?:example\.com|users\.noreply\.github\.com|domain\.com)\b)[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b", re.IGNORECASE), "Plain Email Address in Content"),
 ]
 
 # Required headers for source files
@@ -78,8 +100,12 @@ def check_file(file_path: str, rel_path: str) -> list[str]:
             # Check for hardcoded machine paths
             if WINDOWS_ABS_PATH_RE.search(line):
                 violations.append(f"{rel_path}:{line_no}: Hardcoded Windows absolute path: {line.strip()[:100]}")
-            if LOCALAPPDATA_RE.search(line):
-                violations.append(f"{rel_path}:{line_no}: Local machine path variable (%LOCALAPPDATA%): {line.strip()[:100]}")
+            if USER_HOME_PATH_RE.search(line):
+                violations.append(f"{rel_path}:{line_no}: User profile directory path: {line.strip()[:100]}")
+            if ACTIVE_USER_PATH_RE and ACTIVE_USER_PATH_RE.search(line):
+                violations.append(f"{rel_path}:{line_no}: Active OS user path component: {line.strip()[:100]}")
+            if ENV_VAR_PATH_RE.search(line):
+                violations.append(f"{rel_path}:{line_no}: Local machine environment variable: {line.strip()[:100]}")
             if FILE_URI_RE.search(line):
                 violations.append(f"{rel_path}:{line_no}: Local file URI (file:///): {line.strip()[:100]}")
 

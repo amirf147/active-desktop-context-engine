@@ -32,3 +32,10 @@ bld/
 *.local.json
 settings/
 data/
+
+# Python cache & bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
