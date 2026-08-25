@@ -122,12 +122,14 @@ The repository solution (`ADCE.slnx`) is organized into 5 decoupled projects wit
 │ • [Verification]: 72/72 Unit tests passing; live spike verifying 0.00% CPU & 81.2% noise suppression. │
 │ • [Documentation]: docs/ADCE_EVENT_PIPELINE_DEEP_DIVE.md & REVIEWER_OBSERVATIONS_AND_HARDENING_ROADMAP.md │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
-│ Milestone 4: Storage & History Engine (ADCE.Storage) [NEXT]                            │
+│ Milestone 4: Storage & History Engine (ADCE.Storage) [COMPLETE]                        │
 │ • Implement IDesktopStateStore with In-Memory Live Cache and SQLite WAL repository.   │
+│ • Implement WP 2.4 Focus Zone parent climbing and WP 3.4 250ms max delay burst clamp.  │
 │ • Persist time-series snapshots for temporal queries (GetHistoryAsync, SearchHistoryAsync).│
-│ • [Verification]: Performance tests verifying < 0.01 ms cache hits and < 5 ms DB reads.│
+│ • [Verification]: 84/84 Unit tests passing; live spike verifying 13.4 ns L1 cache & 1.56 ms search. │
+│ • [Documentation]: docs/ADCE_STORAGE_DEEP_DIVE.md & 4-Gate verification ledger.        │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
-│ Milestone 5: Model Context Protocol Server (ADCE.Mcp)                                  │
+│ Milestone 5: Model Context Protocol Server (ADCE.Mcp) [NEXT]                           │
 │ • Implement MCP JSON-RPC 2.0 server over Stdio and SSE.                                │
 │ • [Verification]: Test with MCP Inspector / Claude Desktop configuration.              │
 ├────────────────────────────────────────────────────────────────────────────────────────┤

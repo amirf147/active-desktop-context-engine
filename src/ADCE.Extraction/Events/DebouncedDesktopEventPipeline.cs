@@ -23,6 +23,7 @@ public sealed class DebouncedDesktopEventPipeline : IDisposable
     private readonly IExtractionEngine _extractor;
     private readonly Channel<DesktopContextSnapshot> _outputChannel;
     private readonly TimeSpan _debounceWindow;
+    private readonly TimeSpan _maxDelayWindow;
 
     private readonly CancellationTokenSource _cts = new();
     private Task? _processingTask;
@@ -43,11 +44,13 @@ public sealed class DebouncedDesktopEventPipeline : IDisposable
         ChannelReader<DesktopEventToken> inputReader,
         IExtractionEngine extractor,
         TimeSpan? debounceWindow = null,
+        TimeSpan? maxDelayWindow = null,
         int outputChannelCapacity = 32)
     {
         _inputReader = inputReader ?? throw new ArgumentNullException(nameof(inputReader));
         _extractor = extractor ?? throw new ArgumentNullException(nameof(extractor));
         _debounceWindow = debounceWindow ?? TimeSpan.FromMilliseconds(50);
+        _maxDelayWindow = maxDelayWindow ?? TimeSpan.FromMilliseconds(250);
 
         _outputChannel = Channel.CreateBounded<DesktopContextSnapshot>(new BoundedChannelOptions(outputChannelCapacity)
         {
@@ -104,12 +107,13 @@ public sealed class DebouncedDesktopEventPipeline : IDisposable
 
     private async Task ProcessingLoopAsync(CancellationToken cancellationToken)
     {
+        long burstStartTimestamp = 0;
+        DesktopEventToken latestToken = DesktopEventToken.Empty;
+
         try
         {
             while (await _inputReader.WaitToReadAsync(cancellationToken))
             {
-                DesktopEventToken latestToken = DesktopEventToken.Empty;
-
                 // 1. Drain all currently available tokens immediately without waiting
                 while (_inputReader.TryRead(out var token))
                 {
@@ -117,6 +121,11 @@ public sealed class DebouncedDesktopEventPipeline : IDisposable
                     if (token.IsValid)
                     {
                         latestToken = token;
+                        long now = Stopwatch.GetTimestamp();
+                        if (burstStartTimestamp == 0)
+                        {
+                            burstStartTimestamp = now;
+                        }
                     }
                 }
 
@@ -125,7 +134,17 @@ public sealed class DebouncedDesktopEventPipeline : IDisposable
                     continue;
                 }
 
-                // 2. Trailing-edge debounce delay: absorb subsequent event bursts (typing, cursor jitter)
+                // 2. WP 3.4: Check if burst max delay clamp is exceeded (e.g. continuous typing storm >= 250ms)
+                if (burstStartTimestamp != 0 && Stopwatch.GetElapsedTime(burstStartTimestamp) >= _maxDelayWindow)
+                {
+                    Interlocked.Increment(ref _debouncedExtractionsTriggered);
+                    _ = DispatchExtractionAsync(latestToken, cancellationToken);
+                    burstStartTimestamp = 0;
+                    latestToken = DesktopEventToken.Empty;
+                    continue;
+                }
+
+                // 3. Trailing-edge debounce delay: absorb subsequent event bursts (typing, cursor jitter)
                 if (_debounceWindow > TimeSpan.Zero)
                 {
                     await Task.Delay(_debounceWindow, cancellationToken);
@@ -137,18 +156,23 @@ public sealed class DebouncedDesktopEventPipeline : IDisposable
                         if (additionalToken.IsValid)
                         {
                             latestToken = additionalToken;
+                            long now = Stopwatch.GetTimestamp();
+                            if (burstStartTimestamp == 0)
+                            {
+                                burstStartTimestamp = now;
+                            }
                         }
                     }
                 }
 
-                if (!latestToken.IsValid)
+                if (latestToken.IsValid)
                 {
-                    continue;
+                    // 4. Dispatch extraction with monotonic epoch supersession guard
+                    Interlocked.Increment(ref _debouncedExtractionsTriggered);
+                    _ = DispatchExtractionAsync(latestToken, cancellationToken);
+                    burstStartTimestamp = 0;
+                    latestToken = DesktopEventToken.Empty;
                 }
-
-                // 3. Dispatch extraction with monotonic epoch supersession guard
-                Interlocked.Increment(ref _debouncedExtractionsTriggered);
-                _ = DispatchExtractionAsync(latestToken, cancellationToken);
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)

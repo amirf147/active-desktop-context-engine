@@ -152,6 +152,13 @@ internal static partial class NativeMethods
     [DllImport("user32.dll")]
     public static extern nint GetForegroundWindow();
 
+    public const uint GA_PARENT = 1;
+    public const uint GA_ROOT = 2;
+    public const uint GA_ROOTOWNER = 3;
+
+    [DllImport("user32.dll", ExactSpelling = true)]
+    public static extern nint GetAncestor(nint hwnd, uint gaFlags);
+
     [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW", SetLastError = true)]
     public static extern nint GetWindowLongPtr64(nint hWnd, int nIndex);
 

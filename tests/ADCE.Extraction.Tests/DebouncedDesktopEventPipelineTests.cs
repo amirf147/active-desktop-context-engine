@@ -217,6 +217,42 @@ public class DebouncedDesktopEventPipelineTests
     }
 
     [Fact]
+    public async Task ContinuousTypingFlood_TriggersMaxDelayClamp_WithoutStarving()
+    {
+        var inputChannel = Channel.CreateUnbounded<DesktopEventToken>();
+        var mockEngine = new MockExtractionEngine();
+
+        // 50ms debounce window, 150ms max delay clamp
+        using var pipeline = new DebouncedDesktopEventPipeline(
+            inputChannel.Reader,
+            mockEngine,
+            debounceWindow: TimeSpan.FromMilliseconds(50),
+            maxDelayWindow: TimeSpan.FromMilliseconds(150));
+
+        pipeline.Start();
+
+        // Simulate continuous typing: send an event every 20ms for 400ms (20 events)
+        for (int i = 1; i <= 20; i++)
+        {
+            inputChannel.Writer.TryWrite(new DesktopEventToken(
+                (ushort)DesktopEventType.FocusChanged,
+                new nint(0x2000 + i), // Different HWND each time to avoid value deduplication
+                (uint)(i * 10)));
+
+            await Task.Delay(20);
+        }
+
+        await Task.Delay(100);
+        await pipeline.StopAsync();
+
+        // Under 400ms of continuous events with 150ms max clamp, at least 2 clamped/settled extractions must have triggered
+        Assert.True(pipeline.DebouncedExtractionsTriggered >= 2,
+            $"Expected at least 2 extractions during 400ms burst, but got {pipeline.DebouncedExtractionsTriggered}");
+        Assert.True(pipeline.ExtractionsCommitted >= 2,
+            $"Expected at least 2 committed extractions, but got {pipeline.ExtractionsCommitted}");
+    }
+
+    [Fact]
     public async Task Pipeline_StopAsync_CompletesCleanly()
     {
         var inputChannel = Channel.CreateUnbounded<DesktopEventToken>();

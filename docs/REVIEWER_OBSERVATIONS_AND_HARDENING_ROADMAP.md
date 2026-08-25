@@ -16,12 +16,13 @@ Following the completion and live telemetry validation of **Milestone 3 (Zero-CP
 
 These items do not block Milestone 3 completion (which passed all telemetry and unit tests), but represent essential real-world systems hardening to be incorporated into subsequent milestones.
 
-| # | Critical Observation | Severity | Target Milestone / Work Package | Core Solution |
-| :- | :--- | :--- | :--- | :--- |
-| **1** | **`DesktopSemanticZone` Defaulting to `[Unknown]`** | Medium | **Milestone 2 Polish / WP 2.4** | 2-level parent-chain climbing and container class name matching |
-| **2** | **Debounce Starvation During Sustained Typing** | Medium | **Milestone 3 Polish / WP 3.4** | Trailing-edge timer with forced maximum delay clamp (250ms) |
-| **3** | **Chromium/Electron Latency Reality (41–75 ms)** | Low (Doc) | **System Architecture & SLA Spec** | Document realistic SLAs (< 25ms Native/Gecko, < 80ms Electron) |
-| **4** | **Per-Monitor V2 DPI Virtualization Traps** | High | **Milestone 5 / WP 5.1 (Host Daemon)** | Embed `app.manifest` enabling `<dpiAwareness>PerMonitorV2</dpiAwareness>` |
+| # | Critical Observation | Severity | Target Milestone / Work Package | Core Solution | Status |
+| :- | :--- | :--- | :--- | :--- | :--- |
+| **1** | **`DesktopSemanticZone` Defaulting to `[Unknown]`** | Medium | **Milestone 2 Polish / WP 2.4** | 2-level parent-chain climbing and container class name matching | `[x]` **Complete (Milestone 4)** |
+| **2** | **Debounce Starvation During Sustained Typing** | Medium | **Milestone 3 Polish / WP 3.4** | Trailing-edge timer with forced maximum delay clamp (250ms) | `[x]` **Complete (Milestone 4)** |
+| **3** | **Chromium/Electron Latency Reality (41–75 ms)** | Low (Doc) | **System Architecture & SLA Spec** | Document realistic SLAs (< 25ms Native/Gecko, < 80ms Electron) | `[x]` **Documented** |
+| **4** | **Per-Monitor V2 DPI Virtualization Traps** | High | **Milestone 5–6 / WP 5.1 (Host Daemon)** | Embed `app.manifest` enabling `<dpiAwareness>PerMonitorV2</dpiAwareness>` | `[ ]` Scheduled |
+| **5** | **Dynamic Discovery vs. Hardcoded Zone Rules** | Low (Arch) | **Milestone 5–6 (MCP / Self-Labeling AI)** | 3-Tier Model: Control Types + Framework Archetypes + AI Context Classifier | `[x]` **Documented in SSOT** |
 
 ---
 

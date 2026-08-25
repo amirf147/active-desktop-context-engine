@@ -39,5 +39,8 @@ public enum DesktopSemanticZone
     StatusBar = 9,
 
     /// <summary>Command palette or quick open switcher (Ctrl+Shift+P / Ctrl+P).</summary>
-    CommandPalette = 10
+    CommandPalette = 10,
+
+    /// <summary>AI chat assistant panel or interactive prompt input.</summary>
+    ChatAssistant = 11
 }
