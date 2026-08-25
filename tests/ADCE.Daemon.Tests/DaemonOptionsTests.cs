@@ -24,6 +24,17 @@ public sealed class DaemonOptionsTests
         Assert.False(options.ShowHelp);
         Assert.False(options.ShowVersion);
         Assert.False(options.ShowStatus);
+        Assert.False(options.ShowHud);
+    }
+
+    [Fact]
+    public void Parse_HudFlags_EnablesHud()
+    {
+        var opt1 = DaemonOptions.Parse(new[] { "--hud" });
+        var opt2 = DaemonOptions.Parse(new[] { "-H" });
+
+        Assert.True(opt1.ShowHud);
+        Assert.True(opt2.ShowHud);
     }
 
     [Fact]

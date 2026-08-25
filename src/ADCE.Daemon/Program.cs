@@ -129,6 +129,9 @@ public static class Program
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
+            // Install WindowsFormsSynchronizationContext on the STA thread before any async yield
+            SynchronizationContext.SetSynchronizationContext(new WindowsFormsSynchronizationContext());
+
             await host.StartAsync(cts.Token);
 
             using var trayContext = new TrayApplicationContext(host, options);

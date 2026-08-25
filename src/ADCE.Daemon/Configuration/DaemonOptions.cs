@@ -67,6 +67,11 @@ public sealed class DaemonOptions
     public bool ShowStatus { get; init; }
 
     /// <summary>
+    /// Gets whether to show the non-activating floating HUD overlay.
+    /// </summary>
+    public bool ShowHud { get; init; }
+
+    /// <summary>
     /// Resolves the effective SQLite database file path.
     /// </summary>
     public string ResolveEffectiveDatabasePath()
@@ -102,15 +107,16 @@ public sealed class DaemonOptions
         bool showHelp = false;
         bool showVersion = false;
         bool showStatus = false;
+        bool showHud = false;
 
         for (int i = 0; i < args.Length; i++)
         {
             var arg = args[i];
 
             if (arg.Equals("--help", StringComparison.OrdinalIgnoreCase) ||
-                arg.Equals("-h", StringComparison.OrdinalIgnoreCase) ||
-                arg.Equals("-?", StringComparison.OrdinalIgnoreCase) ||
-                arg.Equals("/?", StringComparison.OrdinalIgnoreCase))
+                arg == "-h" ||
+                arg == "-?" ||
+                arg == "/?")
             {
                 showHelp = true;
             }
@@ -123,6 +129,11 @@ public sealed class DaemonOptions
                      arg.Equals("-s", StringComparison.OrdinalIgnoreCase))
             {
                 showStatus = true;
+            }
+            else if (arg.Equals("--hud", StringComparison.OrdinalIgnoreCase) ||
+                     arg == "-H")
+            {
+                showHud = true;
             }
             else if (arg.Equals("--headless", StringComparison.OrdinalIgnoreCase) ||
                      arg.Equals("--no-tray", StringComparison.OrdinalIgnoreCase) ||
@@ -185,7 +196,8 @@ public sealed class DaemonOptions
             MaxBurstMs = maxBurstMs,
             ShowHelp = showHelp,
             ShowVersion = showVersion,
-            ShowStatus = showStatus
+            ShowStatus = showStatus,
+            ShowHud = showHud
         };
     }
 
@@ -202,6 +214,7 @@ public sealed class DaemonOptions
           -h, --help               Show command line help and exit
           -v, --version            Show version information and exit
           -s, --status             Query live daemon status and exit
+          -H, --hud                Launch with non-activating floating HUD overlay
           -n, --headless, --no-tray Run daemon in background console mode without tray icon
           --stdio                  Host MCP server over standard I/O (Stdio child process)
           --sse                    Enable MCP server over HTTP/SSE (enabled by default)
@@ -213,6 +226,7 @@ public sealed class DaemonOptions
 
         Examples:
           ADCE.Daemon.exe                   # Launch with System Tray icon and SSE server on port 8424
+          ADCE.Daemon.exe --hud             # Launch with System Tray and live non-activating floating HUD
           ADCE.Daemon.exe --stdio           # Launch as MCP server child process over Stdio
           ADCE.Daemon.exe -p 9000           # Launch with SSE server on custom port 9000
           ADCE.Daemon.exe --no-tray         # Launch as headless background console daemon

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using ADCE.Core.Events;
 using ADCE.Core.Interfaces;
 using ADCE.Core.Models;
+using ADCE.Extraction.Win32;
 
 namespace ADCE.Extraction.Events;
 
@@ -194,12 +195,13 @@ public sealed class DebouncedDesktopEventPipeline : IDisposable
         {
             var snapshot = await _extractor.ExtractSnapshotAsync(token.Hwnd, cancellationToken);
 
-            // Filter OS kernel subsystem arbitration and destroyed transient windows
+            // Filter OS kernel subsystem arbitration, destroyed transient windows, and transient shell surfaces (Taskbar, tray flyouts, tooltips)
             if (snapshot.Window.Hwnd == nint.Zero ||
                 snapshot.Window.Title.Equals("Invalid Window Handle", StringComparison.OrdinalIgnoreCase) ||
                 snapshot.Window.ProcessName.Equals("csrss", StringComparison.OrdinalIgnoreCase) ||
                 snapshot.Window.ProcessName.Equals("dwm", StringComparison.OrdinalIgnoreCase) ||
-                snapshot.Window.ClassName.Equals("OLEChannelWnd", StringComparison.OrdinalIgnoreCase))
+                snapshot.Window.ClassName.Equals("OLEChannelWnd", StringComparison.OrdinalIgnoreCase) ||
+                Win32Gating.IsTransientShellWindow(snapshot.Window.ClassName, snapshot.Window.ProcessName))
             {
                 Interlocked.Increment(ref _noiseEventsDropped);
                 return;

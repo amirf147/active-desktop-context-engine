@@ -63,6 +63,7 @@ The **Active Desktop Context Engine (ADCE)** is a high-performance, lightweight 
 * **Milestone 4 Engineering Postmortem & Systems Analysis:** [`docs/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_4.md`](LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_4.md)
 * **Milestone 4.5 Engineering Postmortem & Claim Verification Ledger:** [`docs/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_4_5.md`](LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_4_5.md)
 * **Milestone 6 Engineering Postmortem & Systems Verification Ledger:** [`docs/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_6.md`](LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_6.md)
+* **Milestones 5 & 6 Empirical Findings & Systems Diagnostic Report:** [`docs/reports/MILESTONE_5_6_EMPIRICAL_FINDINGS_AND_DIAGNOSTICS_REPORT.md`](reports/MILESTONE_5_6_EMPIRICAL_FINDINGS_AND_DIAGNOSTICS_REPORT.md)
 * **Ground-Truth Claim Verification Evidence Ledger:** [`docs/reports/LATEST_CLAIM_VERIFICATION.md`](reports/LATEST_CLAIM_VERIFICATION.md)
 * **ADCE Focus & Zone Detection Explained:** [`docs/ADCE_FOCUS_AND_ZONE_DETECTION_EXPLAINED.md`](ADCE_FOCUS_AND_ZONE_DETECTION_EXPLAINED.md)
 * **Empirical Test Harness & Claim Verification Spec:** [`docs/EMPIRICAL_TEST_HARNESS_AND_CLAIM_VERIFICATION_SPEC.md`](EMPIRICAL_TEST_HARNESS_AND_CLAIM_VERIFICATION_SPEC.md)

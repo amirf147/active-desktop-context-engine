@@ -24,7 +24,8 @@ public sealed class WinEventHookProvider : IEventHookProvider
 
     private Thread? _hookThread;
     private uint _hookThreadId;
-    private nint _hookHandle;
+    private nint _foregroundHookHandle;
+    private nint _focusHookHandle;
     private int _isRunning;
     private bool _disposed;
 
@@ -102,9 +103,20 @@ public sealed class WinEventHookProvider : IEventHookProvider
             // 1. Force Win32 message queue creation on this thread before signaling caller
             NativeMethods.PeekMessageW(out _, nint.Zero, 0, 0, NativeMethods.PM_NOREMOVE);
 
-            // 2. Install Out-of-Context WinEvent Hook for Foreground (0x0003) to Focus (0x8005)
-            _hookHandle = NativeMethods.SetWinEventHook(
+            // 2. Install targeted Out-of-Context WinEvent Hooks:
+            // Hook 1: Foreground transitions only (0x0003)
+            _foregroundHookHandle = NativeMethods.SetWinEventHook(
                 NativeMethods.EVENT_SYSTEM_FOREGROUND,
+                NativeMethods.EVENT_SYSTEM_FOREGROUND,
+                nint.Zero,
+                _winEventProc,
+                0,
+                0,
+                NativeMethods.WINEVENT_OUTOFCONTEXT | NativeMethods.WINEVENT_SKIPOWNPROCESS);
+
+            // Hook 2: Focus transitions only (0x8005)
+            _focusHookHandle = NativeMethods.SetWinEventHook(
+                NativeMethods.EVENT_OBJECT_FOCUS,
                 NativeMethods.EVENT_OBJECT_FOCUS,
                 nint.Zero,
                 _winEventProc,
@@ -115,7 +127,7 @@ public sealed class WinEventHookProvider : IEventHookProvider
             // 3. Signal initialization barrier so Start() can unblock safely
             _initBarrier.Set();
 
-            if (_hookHandle == nint.Zero)
+            if (_foregroundHookHandle == nint.Zero && _focusHookHandle == nint.Zero)
             {
                 return;
             }
@@ -129,11 +141,18 @@ public sealed class WinEventHookProvider : IEventHookProvider
         }
         finally
         {
-            if (_hookHandle != nint.Zero)
+            if (_foregroundHookHandle != nint.Zero)
             {
-                NativeMethods.UnhookWinEvent(_hookHandle);
-                _hookHandle = nint.Zero;
+                NativeMethods.UnhookWinEvent(_foregroundHookHandle);
+                _foregroundHookHandle = nint.Zero;
             }
+
+            if (_focusHookHandle != nint.Zero)
+            {
+                NativeMethods.UnhookWinEvent(_focusHookHandle);
+                _focusHookHandle = nint.Zero;
+            }
+
             _initBarrier.Set(); // Guard against hangs if exception occurred before set
         }
     }
@@ -148,6 +167,12 @@ public sealed class WinEventHookProvider : IEventHookProvider
         uint dwmsEventTime)
     {
         // Trap 2: WinEvent Noise Filtering
+        // Only accept explicit Foreground (0x0003) and Focus (0x8005) events
+        if (eventType != NativeMethods.EVENT_SYSTEM_FOREGROUND && eventType != NativeMethods.EVENT_OBJECT_FOCUS)
+        {
+            return;
+        }
+
         // Drop non-window and child events to eliminate cursor/caret/scroll jitter
         if (idObject != NativeMethods.OBJID_CLIENT && idObject != NativeMethods.OBJID_WINDOW)
         {

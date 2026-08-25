@@ -31,11 +31,13 @@ public sealed class TrayApplicationContext : ApplicationContext
     private ToolStripMenuItem _headerMenuItem = null!;
     private ToolStripMenuItem _activeContextMenuItem = null!;
     private ToolStripMenuItem _copyJsonMenuItem = null!;
+    private ToolStripMenuItem _toggleHudMenuItem = null!;
     private ToolStripMenuItem _pauseResumeMenuItem = null!;
     private ToolStripMenuItem _mcpEndpointsMenuItem = null!;
     private ToolStripMenuItem _storageStatsMenuItem = null!;
 
     private Icon? _currentIcon;
+    private FloatingHudForm? _hudForm;
     private bool _isDisposed;
 
     /// <summary>
@@ -74,6 +76,12 @@ public sealed class TrayApplicationContext : ApplicationContext
         {
             UpdateContextDisplay(initialSnapshot);
         }
+
+        // Auto-launch floating HUD if specified in options
+        if (_options.ShowHud)
+        {
+            ToggleFloatingHud();
+        }
     }
 
     private void BuildContextMenu()
@@ -90,6 +98,8 @@ public sealed class TrayApplicationContext : ApplicationContext
         };
 
         _copyJsonMenuItem = new ToolStripMenuItem("📋 Copy Active Context (JSON)", null, (s, e) => CopyCurrentContextToClipboard());
+
+        _toggleHudMenuItem = new ToolStripMenuItem("🖥️ Toggle Live HUD", null, (s, e) => ToggleFloatingHud());
 
         _pauseResumeMenuItem = new ToolStripMenuItem("⏸ Pause Monitoring", null, (s, e) => TogglePauseResume());
 
@@ -108,6 +118,7 @@ public sealed class TrayApplicationContext : ApplicationContext
             _headerMenuItem,
             _activeContextMenuItem,
             _copyJsonMenuItem,
+            _toggleHudMenuItem,
             new ToolStripSeparator(),
             _pauseResumeMenuItem,
             _mcpEndpointsMenuItem,
@@ -251,8 +262,15 @@ public sealed class TrayApplicationContext : ApplicationContext
         if (snapshot != null)
         {
             string json = JsonSerializer.Serialize(snapshot, AdceJsonSerializerOptions.Default);
-            Clipboard.SetText(json);
-            _notifyIcon.ShowBalloonTip(1500, "ADCE Context", "Active snapshot JSON copied to clipboard", ToolTipIcon.Info);
+            bool success = StaClipboardHelper.SetText(json);
+            if (success)
+            {
+                _notifyIcon.ShowBalloonTip(1500, "ADCE Context", "Active snapshot JSON copied to clipboard", ToolTipIcon.Info);
+            }
+            else
+            {
+                _notifyIcon.ShowBalloonTip(1500, "ADCE Context", "Failed to access clipboard (locked by another process)", ToolTipIcon.Warning);
+            }
         }
         else
         {
@@ -260,9 +278,30 @@ public sealed class TrayApplicationContext : ApplicationContext
         }
     }
 
+    private void ToggleFloatingHud()
+    {
+        if (_hudForm == null || _hudForm.IsDisposed)
+        {
+            _hudForm = new FloatingHudForm(_host);
+            _hudForm.Show();
+            _toggleHudMenuItem.Checked = true;
+        }
+        else if (_hudForm.Visible)
+        {
+            _hudForm.Hide();
+            _toggleHudMenuItem.Checked = false;
+        }
+        else
+        {
+            _hudForm.Show();
+            _toggleHudMenuItem.Checked = true;
+        }
+    }
+
     private async Task ExitApplicationAsync()
     {
         _notifyIcon.Visible = false;
+        _hudForm?.Dispose();
         await _host.StopAsync();
         ExitThread();
     }
@@ -277,6 +316,7 @@ public sealed class TrayApplicationContext : ApplicationContext
                 _host.SnapshotChanged -= OnSnapshotChanged;
                 _host.StateChanged -= OnStateChanged;
 
+                _hudForm?.Dispose();
                 _notifyIcon.Visible = false;
                 _notifyIcon.Dispose();
                 _contextMenu.Dispose();

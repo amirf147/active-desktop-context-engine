@@ -253,6 +253,83 @@ public class DebouncedDesktopEventPipelineTests
     }
 
     [Fact]
+    public async Task TransientShellWindows_AreFilteredAsNoise()
+    {
+        var inputChannel = Channel.CreateUnbounded<DesktopEventToken>();
+
+        // Engine that returns Shell_TrayWnd
+        var shellEngine = new MockExtractionEngineCustom(hwnd => new DesktopContextSnapshot
+        {
+            Timestamp = DateTimeOffset.UtcNow,
+            Workspace = new WorkspaceEnvelope
+            {
+                VirtualDesktopId = Guid.Empty,
+                DesktopIndex = 0,
+                VirtualDesktopName = "Test",
+                MonitorIndex = 0,
+                MonitorBounds = new BoundingRectangle(0, 0, 1920, 1080)
+            },
+            Window = new WindowEnvelope
+            {
+                Hwnd = hwnd,
+                Title = "",
+                ProcessName = "explorer",
+                Pid = 999,
+                ClassName = "Shell_TrayWnd",
+                Archetype = DesktopAppArchetype.Unknown,
+                Bounds = new BoundingRectangle(0, 1040, 1920, 40),
+                IsMinimized = false,
+                IsMaximized = false
+            },
+            Focus = new FocusedControlInfo
+            {
+                ControlType = "Pane",
+                ElementName = "",
+                AutomationId = "",
+                ClassName = "Shell_TrayWnd",
+                BoundingBox = new BoundingRectangle(0, 1040, 1920, 40),
+                SemanticZone = DesktopSemanticZone.Unknown
+            },
+            ExtractionDurationMs = 1.0
+        });
+
+        using var pipeline = new DebouncedDesktopEventPipeline(
+            inputChannel.Reader,
+            shellEngine,
+            debounceWindow: TimeSpan.FromMilliseconds(10));
+
+        pipeline.Start();
+
+        inputChannel.Writer.TryWrite(new DesktopEventToken((ushort)DesktopEventType.FocusChanged, new nint(0x777), 10));
+        await Task.Delay(30);
+
+        await pipeline.StopAsync();
+
+        Assert.Equal(0, pipeline.ExtractionsCommitted);
+        Assert.Equal(1, pipeline.NoiseEventsDropped);
+    }
+
+    private sealed class MockExtractionEngineCustom : IExtractionEngine
+    {
+        private readonly Func<nint, DesktopContextSnapshot> _factory;
+
+        public MockExtractionEngineCustom(Func<nint, DesktopContextSnapshot> factory)
+        {
+            _factory = factory;
+        }
+
+        public ValueTask<DesktopContextSnapshot> ExtractSnapshotAsync(nint hwnd, CancellationToken cancellationToken = default)
+        {
+            return ValueTask.FromResult(_factory(hwnd));
+        }
+
+        public ValueTask<DesktopContextSnapshot> ExtractForegroundSnapshotAsync(CancellationToken cancellationToken = default)
+        {
+            return ExtractSnapshotAsync(new nint(0x100), cancellationToken);
+        }
+    }
+
+    [Fact]
     public async Task Pipeline_StopAsync_CompletesCleanly()
     {
         var inputChannel = Channel.CreateUnbounded<DesktopEventToken>();

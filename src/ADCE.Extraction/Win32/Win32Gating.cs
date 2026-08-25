@@ -185,4 +185,31 @@ public static class Win32Gating
             NativeMethods.CloseHandle(hToken);
         }
     }
+
+    /// <summary>
+    /// Identifies whether a window is a transient Windows OS shell surface (Taskbars, tray overflow flyouts, tooltips, XAML islands).
+    /// Used to prevent hovering over taskbars from displacing active application context.
+    /// </summary>
+    public static bool IsTransientShellWindow(string className, string processName)
+    {
+        if (string.IsNullOrWhiteSpace(className))
+            return false;
+
+        // Tooltips
+        if (className.Equals("tooltips_class32", StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        // Windows Shell Taskbars & Tray flyouts
+        if (className.Equals("Shell_TrayWnd", StringComparison.OrdinalIgnoreCase) ||
+            className.Equals("Shell_SecondaryTrayWnd", StringComparison.OrdinalIgnoreCase) ||
+            className.Equals("TopLevelWindowForOverflowXamlIsland", StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        // Windows System XAML CoreWindow Flyouts hosted by explorer
+        if (className.Equals("Windows.UI.Core.CoreWindow", StringComparison.OrdinalIgnoreCase) &&
+            processName.Equals("explorer", StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
+    }
 }
