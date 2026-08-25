@@ -330,6 +330,82 @@ public class DebouncedDesktopEventPipelineTests
     }
 
     [Fact]
+    public async Task IntraAppSelectionChanged_TriggersExtractionAndUpdatesSnapshot()
+    {
+        var inputChannel = Channel.CreateUnbounded<DesktopEventToken>();
+        int extractCount = 0;
+
+        var tabEngine = new MockExtractionEngineCustom(hwnd =>
+        {
+            int current = Interlocked.Increment(ref extractCount);
+            return new DesktopContextSnapshot
+            {
+                Timestamp = DateTimeOffset.UtcNow,
+                Workspace = new WorkspaceEnvelope
+                {
+                    VirtualDesktopId = Guid.Empty,
+                    DesktopIndex = 0,
+                    VirtualDesktopName = "Workspace 1",
+                    MonitorIndex = 0,
+                    MonitorBounds = new BoundingRectangle(0, 0, 1920, 1080)
+                },
+                Window = new WindowEnvelope
+                {
+                    Hwnd = hwnd,
+                    Title = $"Browser - Tab {current}",
+                    ProcessName = "waterfox",
+                    Pid = 4321,
+                    ClassName = "MozillaWindowClass",
+                    Archetype = DesktopAppArchetype.Gecko,
+                    Bounds = new BoundingRectangle(0, 0, 1280, 800),
+                    IsMinimized = false,
+                    IsMaximized = false
+                },
+                Focus = new FocusedControlInfo
+                {
+                    ControlType = "TabItem",
+                    ElementName = $"Tab {current}",
+                    AutomationId = $"tab-{current}",
+                    ClassName = "tabbrowser-tab",
+                    BoundingBox = new BoundingRectangle(10, 10, 100, 30),
+                    SemanticZone = DesktopSemanticZone.DocumentContent
+                },
+                BrowserContext = new BrowserContext
+                {
+                    ActiveTab = $"Tab {current}",
+                    TotalCount = 1,
+                    Tabs = System.Collections.Immutable.ImmutableArray<TabItemInfo>.Empty,
+                    ContainerType = "NativeTabstrip"
+                },
+                ExtractionDurationMs = 1.2
+            };
+        });
+
+        using var pipeline = new DebouncedDesktopEventPipeline(
+            inputChannel.Reader,
+            tabEngine,
+            debounceWindow: TimeSpan.FromMilliseconds(10));
+
+        pipeline.Start();
+
+        // Simulate Tab 1 selection
+        inputChannel.Writer.TryWrite(new DesktopEventToken((ushort)DesktopEventType.SelectionChanged, new nint(0x888), 10));
+        await Task.Delay(40);
+
+        Assert.True(pipeline.SnapshotReader.TryRead(out var snap1));
+        Assert.Equal("Browser - Tab 1", snap1?.Window.Title);
+
+        // Simulate Tab 2 selection on same HWND (intra-app tab switch)
+        inputChannel.Writer.TryWrite(new DesktopEventToken((ushort)DesktopEventType.SelectionChanged, new nint(0x888), 60));
+        await Task.Delay(40);
+
+        Assert.True(pipeline.SnapshotReader.TryRead(out var snap2));
+        Assert.Equal("Browser - Tab 2", snap2?.Window.Title);
+
+        await pipeline.StopAsync();
+    }
+
+    [Fact]
     public async Task Pipeline_StopAsync_CompletesCleanly()
     {
         var inputChannel = Channel.CreateUnbounded<DesktopEventToken>();

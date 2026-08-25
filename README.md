@@ -22,7 +22,19 @@ Instead of relying on resource-heavy screenshot OCR, periodic screen polling, or
 
 ---
 
-## 2. Architecture: The Dual-Engine Model
+## 2. Live Telemetry & DevTools HUD Demos
+
+| System Tray & Non-Activating Live HUD | Antigravity IDE (Monaco Editor & Zones) |
+| :---: | :---: |
+| ![ADCE System Tray & HUD Demo](docs/media/adce_tray_and_hud_demo.gif) | ![ADCE Antigravity IDE Telemetry](docs/media/adce_antigravity_ide_telemetry.gif) |
+
+| Waterfox Browser (Gecko Tabs & Links) | SQLite Time-Series Transition Timeline |
+| :---: | :---: |
+| ![ADCE Waterfox Browser Telemetry](docs/media/adce_waterfox_browser_telemetry.gif) | <pre>============================================================<br/>#   &#124; TIME (UTC)   &#124; PROCESS        &#124; SEMANTIC ZONE<br/>------------------------------------------------------------<br/>323 &#124; 13:34:19.604 &#124; Antigravity ID &#124; [ChatAssistant]<br/>324 &#124; 13:36:26.553 &#124; Antigravity ID &#124; [EditorCodeBuffer]<br/>329 &#124; 13:36:31.583 &#124; waterfox       &#124; [DocumentContent]<br/>336 &#124; 13:36:38.140 &#124; Antigravity ID &#124; [GitCommitBox]<br/>============================================================</pre> |
+
+---
+
+## 3. Architecture: The Dual-Engine Model
 
 Synthesized from our research across the **Roman Baeriswyl (`Roemer` / FlaUI)** and **Simon Mourier (`smourier`)** ecosystems:
 
@@ -51,7 +63,7 @@ Synthesized from our research across the **Roman Baeriswyl (`Roemer` / FlaUI)** 
 
 ---
 
-## 3. Public Research Ledger & Architecture Hub
+## 4. Public Research Ledger & Architecture Hub
 
 This repository functions as an **evolving public research ledger** and implementation hub, tracking low-level COM experiments, UI Automation latency benchmarks, and architectural design decisions.
 
@@ -81,7 +93,7 @@ Foundational accessibility research documents (001–018) live in the [caster-us
 
 ---
 
-## 4. Engineering Roadmap & Phase Status
+## 5. Engineering Roadmap & Phase Status
 
 Following our **4-Gate Epistemic Protocol**:
 
@@ -91,26 +103,49 @@ Following our **4-Gate Epistemic Protocol**:
 | **Phase 2: Adversarial Evaluation & Micro-Spikes** | Gate 2 & Gate 3 empirical tests validating container targeting and Win32 gating. | `[x]` Complete | • [Micro-Spike 1 Telemetry (FlaUI UIA3)](docs/benchmarks/001_micro_spike_1_flaui_telemetry.md) (10.17 ms)<br/>• [Micro-Spike 2 Telemetry (Win32 Shallow)](docs/benchmarks/002_micro_spike_2_python_shallow_telemetry.md) (0.66 ms) |
 | **Phase 3: Ecosystem Audit & Wheel Reinvention** | Deep-dive audits of leading open-source Windows/COM/UIA tooling catalogs. | `[x]` Complete | • [Simon Mourier Ecosystem Suite](docs/external_research/README.md)<br/>• [Roman Baeriswyl (Roemer / FlaUI) Deep Dive](docs/external_research/FlaUI_And_Roemer_Ecosystem.md)<br/>• [Synthesis & Wheel Reinvention Audit](docs/external_research/SYNTHESIS_AND_WHEEL_REINVENTION_AUDIT.md) |
 | **Phase 4: Architectural Specifications & SSOT** | Formalize ground-truth target zones, heuristic discovery archetypes, and MCP schemas. | `[x]` Complete | • [UI Automation SSOT Reference](docs/UI_AUTOMATION_STRUCTURES_REFERENCE.md)<br/>• [Dynamic Discovery & Requirements Spec](docs/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md)<br/>• [MCP JSON Schema Specification](docs/MCP_SCHEMA_SPEC.md) |
-| **Phase 5: Production Daemon Implementation** | Build modular multi-project solution (`ADCE.slnx`), event pipeline, storage, and MCP server. | `[ ]` **In Progress** | • **Milestone 1:** `ADCE.Core` domain models, events, serialization & unit tests (`[x]` Complete)<br/>• **Milestone 2:** `ADCE.Extraction` standalone context grabber (`[x]` Complete)<br/>• **Milestone 3:** Zero-CPU event pipeline (`SetWinEventHook` + channel debouncer) (`[x]` Complete)<br/>• **Milestone 4:** SQLite WAL store & in-memory live cache (`[x]` Complete)<br/>• **Milestone 4.5:** Ground-Truth Stimulus Test Harness & Claim Verification Gate (`[ ]` Active)<br/>• **Milestone 5–6:** MCP endpoint and System tray daemon |
+| **Phase 5: Production Daemon Implementation** | Build modular multi-project solution (`ADCE.slnx`), event pipeline, storage, and MCP server. | `[x]` Complete | • **Milestone 1:** `ADCE.Core` domain models, events, serialization & unit tests (`[x]` Complete)<br/>• **Milestone 2:** `ADCE.Extraction` standalone context grabber (`[x]` Complete)<br/>• **Milestone 3:** Zero-CPU event pipeline (`SetWinEventHook` + channel debouncer) (`[x]` Complete)<br/>• **Milestone 4:** SQLite WAL store & in-memory live cache (`[x]` Complete)<br/>• **Milestone 4.5:** Ground-Truth Stimulus Test Harness (`[x]` Complete)<br/>• **Milestone 5:** High-Performance MCP Server (Stdio & SSE/HTTP) (`[x]` Complete)<br/>• **Milestone 6:** Windows System Tray Daemon & Live DevTools HUD (`[x]` Complete) |
 | **Phase 6: Voice & AI Client Integration** | Connect Caster Dragonfly grammars and local AI assistants to the live MCP endpoint. | `[ ]` Planned | • Caster MCP client bindings<br/>• Live active window context streaming to Antigravity/Claude |
 
 ---
 
-## 5. Technology Stack
+## 6. Technology Stack
 
 * **Language & Framework:** C# 14 / .NET 10 (LTS) (`net10.0-windows`)
 * **UI Automation Engine:** [FlaUI.UIA3](https://github.com/FlaUI/FlaUI) (v5.0.0+) over native `UIAutomationCore.dll`
 * **Concurrency:** Native Win32 `WinEvent` hooks decoupled via `System.Threading.Channels` into MTA background workers
-* **Persistence:** Embedded SQLite (WAL mode) / DuckDB for time-series state history
-* **Protocol:** Model Context Protocol (MCP) C# SDK (SSE / HTTP / Stdio Minimal API)
+* **Persistence:** Embedded SQLite (WAL mode) with single-writer asynchronous queue & L1 atomic cache
+* **Protocol:** Model Context Protocol (MCP) JSON-RPC 2.0 (Stdio / SSE / HTTP Minimal API)
+* **DevTools HUD:** WinForms Non-Activating overlay (`WS_EX_NOACTIVATE | WS_EX_TOPMOST`)
 
 ---
 
-## 6. Building & Running Spikes
+## 7. Building & Running
 
+### Running the System Tray Daemon & Live HUD
 ```powershell
-# Build entire solution and run automated unit test suite (84 tests)
+# Launch System Tray Daemon with live non-activating floating HUD overlay
+dotnet run --project src/ADCE.Daemon -- --hud
+
+# Launch System Tray Daemon with MCP server on HTTP/SSE port 8424
+dotnet run --project src/ADCE.Daemon
+
+# Launch as headless MCP server over Stdio (for IDE/Agent integration)
+dotnet run --project src/ADCE.Daemon -- --stdio
+```
+
+### Inspecting SQLite Time-Series History
+```powershell
+# Visualize recent context transitions and application time distribution
+dotnet run --project src/ADCE.Spikes -- --timeline 20
+```
+
+### Running Test Suite & Spikes
+```powershell
+# Run full automated unit test suite across all 5 projects (136 tests)
 dotnet test
+
+# Run Milestone 6 Daemon & End-to-End integration verification spike
+dotnet run --project src/ADCE.Spikes -- --spike6
 
 # Run Milestone 4 SQLite WAL store & L1 in-memory live cache verification spike
 dotnet run --project src/ADCE.Spikes -- --storage
@@ -120,16 +155,10 @@ dotnet run --project src/ADCE.Spikes -- --events -d 15
 
 # Run Milestone 2 live standalone context grabber against active foreground window
 dotnet run --project src/ADCE.Spikes -- --grab
-
-# Run Milestone 1 core domain models & JSON serialization demonstration
-dotnet run --project src/ADCE.Spikes
-
-# Run live multi-zone FlaUI UIA3 benchmark against active browsers & IDEs
-dotnet run --project src/ADCE.Spikes -- --flaui-benchmark
 ```
 
 ---
 
-## 7. License
+## 8. License
 
 Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for details.

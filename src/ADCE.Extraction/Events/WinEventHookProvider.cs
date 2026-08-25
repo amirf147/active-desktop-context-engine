@@ -26,6 +26,8 @@ public sealed class WinEventHookProvider : IEventHookProvider
     private uint _hookThreadId;
     private nint _foregroundHookHandle;
     private nint _focusHookHandle;
+    private nint _selectionHookHandle;
+    private nint _nameChangeHookHandle;
     private int _isRunning;
     private bool _disposed;
 
@@ -124,10 +126,31 @@ public sealed class WinEventHookProvider : IEventHookProvider
                 0,
                 NativeMethods.WINEVENT_OUTOFCONTEXT | NativeMethods.WINEVENT_SKIPOWNPROCESS);
 
+            // Hook 3: Selection transitions only (0x8006 - e.g. browser/IDE tab switches)
+            _selectionHookHandle = NativeMethods.SetWinEventHook(
+                NativeMethods.EVENT_OBJECT_SELECTION,
+                NativeMethods.EVENT_OBJECT_SELECTION,
+                nint.Zero,
+                _winEventProc,
+                0,
+                0,
+                NativeMethods.WINEVENT_OUTOFCONTEXT | NativeMethods.WINEVENT_SKIPOWNPROCESS);
+
+            // Hook 4: Name change transitions only (0x800C - e.g. dynamic document title/URL changes)
+            _nameChangeHookHandle = NativeMethods.SetWinEventHook(
+                NativeMethods.EVENT_OBJECT_NAMECHANGE,
+                NativeMethods.EVENT_OBJECT_NAMECHANGE,
+                nint.Zero,
+                _winEventProc,
+                0,
+                0,
+                NativeMethods.WINEVENT_OUTOFCONTEXT | NativeMethods.WINEVENT_SKIPOWNPROCESS);
+
             // 3. Signal initialization barrier so Start() can unblock safely
             _initBarrier.Set();
 
-            if (_foregroundHookHandle == nint.Zero && _focusHookHandle == nint.Zero)
+            if (_foregroundHookHandle == nint.Zero && _focusHookHandle == nint.Zero &&
+                _selectionHookHandle == nint.Zero && _nameChangeHookHandle == nint.Zero)
             {
                 return;
             }
@@ -153,6 +176,18 @@ public sealed class WinEventHookProvider : IEventHookProvider
                 _focusHookHandle = nint.Zero;
             }
 
+            if (_selectionHookHandle != nint.Zero)
+            {
+                NativeMethods.UnhookWinEvent(_selectionHookHandle);
+                _selectionHookHandle = nint.Zero;
+            }
+
+            if (_nameChangeHookHandle != nint.Zero)
+            {
+                NativeMethods.UnhookWinEvent(_nameChangeHookHandle);
+                _nameChangeHookHandle = nint.Zero;
+            }
+
             _initBarrier.Set(); // Guard against hangs if exception occurred before set
         }
     }
@@ -167,19 +202,27 @@ public sealed class WinEventHookProvider : IEventHookProvider
         uint dwmsEventTime)
     {
         // Trap 2: WinEvent Noise Filtering
-        // Only accept explicit Foreground (0x0003) and Focus (0x8005) events
-        if (eventType != NativeMethods.EVENT_SYSTEM_FOREGROUND && eventType != NativeMethods.EVENT_OBJECT_FOCUS)
+        // Only accept explicit Foreground (0x0003), Focus (0x8005), Selection (0x8006), and NameChange (0x800C) events
+        if (eventType != NativeMethods.EVENT_SYSTEM_FOREGROUND &&
+            eventType != NativeMethods.EVENT_OBJECT_FOCUS &&
+            eventType != NativeMethods.EVENT_OBJECT_SELECTION &&
+            eventType != NativeMethods.EVENT_OBJECT_NAMECHANGE)
         {
             return;
         }
 
-        // Drop non-window and child events to eliminate cursor/caret/scroll jitter
+        // Guard 1: Drop background EVENT_OBJECT_NAMECHANGE storms unless originating from active foreground window
+        if (eventType == NativeMethods.EVENT_OBJECT_NAMECHANGE)
+        {
+            var foregroundHwnd = NativeMethods.GetForegroundWindow();
+            if (hwnd != foregroundHwnd && NativeMethods.GetAncestor(hwnd, NativeMethods.GA_ROOTOWNER) != foregroundHwnd)
+            {
+                return; // Ignore background name change storms
+            }
+        }
+
+        // Accept OBJID_WINDOW (0) and OBJID_CLIENT (-4)
         if (idObject != NativeMethods.OBJID_CLIENT && idObject != NativeMethods.OBJID_WINDOW)
-        {
-            return;
-        }
-
-        if (idChild != NativeMethods.CHILDID_SELF && idChild != 0)
         {
             return;
         }
@@ -187,6 +230,14 @@ public sealed class WinEventHookProvider : IEventHookProvider
         if (hwnd == nint.Zero)
         {
             return;
+        }
+
+        // Guard 3: Root HWND Normalization for OBJID_CLIENT & child sub-surface events
+        // Normalizes child rendering HWNDs (e.g. Electron/Gecko sub-windows) to top-level window handle
+        nint rootHwnd = NativeMethods.GetAncestor(hwnd, NativeMethods.GA_ROOTOWNER);
+        if (rootHwnd != nint.Zero && NativeMethods.IsWindow(rootHwnd))
+        {
+            hwnd = rootHwnd;
         }
 
         // Trap 3 & 5: End-to-End zero-allocation struct enqueueing into bounded DropOldest channel

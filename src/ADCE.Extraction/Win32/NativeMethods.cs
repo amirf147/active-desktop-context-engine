@@ -21,6 +21,9 @@ internal static partial class NativeMethods
     public const uint EVENT_SYSTEM_MINIMIZESTART = 0x0016;
     public const uint EVENT_SYSTEM_MINIMIZEEND = 0x0017;
     public const uint EVENT_OBJECT_FOCUS = 0x8005;
+    public const uint EVENT_OBJECT_SELECTION = 0x8006;
+    public const uint EVENT_OBJECT_NAMECHANGE = 0x800C;
+    public const uint EVENT_OBJECT_VALUECHANGE = 0x800E;
 
     public const uint WINEVENT_OUTOFCONTEXT = 0x0000;
     public const uint WINEVENT_SKIPOWNPROCESS = 0x0002;

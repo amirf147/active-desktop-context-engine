@@ -24,5 +24,11 @@ public enum DesktopEventType
     StructureChanged = 4,
 
     /// <summary>Periodic heartbeat token for liveness verification.</summary>
-    Heartbeat = 5
+    Heartbeat = 5,
+
+    /// <summary>UI selection changed within a list or tab container (EVENT_OBJECT_SELECTION).</summary>
+    SelectionChanged = 6,
+
+    /// <summary>The name or title of an active UI element or window changed (EVENT_OBJECT_NAMECHANGE).</summary>
+    NameChanged = 7
 }
