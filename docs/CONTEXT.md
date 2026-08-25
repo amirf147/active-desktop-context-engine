@@ -60,6 +60,7 @@ The **Active Desktop Context Engine (ADCE)** is a high-performance, lightweight 
 * **Milestone 2 Engineering Postmortem & Analysis:** [`docs/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_2.md`](LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_2.md)
 * **Milestone 4 Engineering Postmortem & Systems Analysis:** [`docs/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_4.md`](LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_4.md)
 * **ADCE Focus & Zone Detection Explained:** [`docs/ADCE_FOCUS_AND_ZONE_DETECTION_EXPLAINED.md`](ADCE_FOCUS_AND_ZONE_DETECTION_EXPLAINED.md)
+* **Empirical Test Harness & Claim Verification Spec:** [`docs/EMPIRICAL_TEST_HARNESS_AND_CLAIM_VERIFICATION_SPEC.md`](EMPIRICAL_TEST_HARNESS_AND_CLAIM_VERIFICATION_SPEC.md)
 * **UI Automation Hierarchy SSOT:** [`docs/UI_AUTOMATION_STRUCTURES_REFERENCE.md`](UI_AUTOMATION_STRUCTURES_REFERENCE.md)
 * **Requirements & Dynamic Discovery Spec:** [`docs/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md`](REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md)
 * **MCP Schema & Tool Specification:** [`docs/MCP_SCHEMA_SPEC.md`](MCP_SCHEMA_SPEC.md)

@@ -23,6 +23,7 @@ These items do not block Milestone 3 completion (which passed all telemetry and 
 | **3** | **Chromium/Electron Latency Reality (41–75 ms)** | Low (Doc) | **System Architecture & SLA Spec** | Document realistic SLAs (< 25ms Native/Gecko, < 80ms Electron) | `[x]` **Documented** |
 | **4** | **Per-Monitor V2 DPI Virtualization Traps** | High | **Milestone 5–6 / WP 5.1 (Host Daemon)** | Embed `app.manifest` enabling `<dpiAwareness>PerMonitorV2</dpiAwareness>` | `[ ]` Scheduled |
 | **5** | **Dynamic Discovery vs. Hardcoded Zone Rules** | Low (Arch) | **Milestone 5–6 (MCP / Self-Labeling AI)** | 3-Tier Model: Control Types + Framework Archetypes + AI Context Classifier | `[x]` **Documented in SSOT** |
+| **6** | **Browser Tab Sidebar vs. IDE Explorer Ambiguity** | Medium | **Milestone 5 Polish / WP 2.5** | Scope `SidebarExplorer` to IDE/Shell archetypes; classify browser sidebars as `TabBar` / `DocumentContent` | `[ ]` Scheduled |
 
 ---
 
@@ -119,12 +120,29 @@ On multi-monitor setups with mixed scaling factors (e.g., 4K Laptop at 150% DPI 
 
 ---
 
-## 5. Work Package Mapping & Scheduling
+## 5. Item 6: Browser Tab Sidebar vs. IDE Explorer Disambiguation
+
+### The Physical Failure Mode
+In web browsers like Waterfox or Firefox (`DesktopAppArchetype.Gecko`) with vertical tab extensions (such as **Tree Style Tab**):
+* Extensions run inside the browser's native sidebar framework (`#sidebar-box` or `class="sidebar"`).
+* Clicking a tab inside Tree Style Tab sets focus on a `Document` control whose parent chain includes the browser sidebar container.
+* Unscoped matching of `"sidebar"` in `ResolveSemanticZone` or `ResolveSemanticZoneFromAncestors` caused Tree Style Tab to be tagged as `DesktopSemanticZone.SidebarExplorer` (an IDE/Shell file explorer zone).
+
+### Architectural Solution & Work Package
+* **Target:** **Work Package 2.5 (`ADCE.Extraction` Archetype Scoping Polish)**
+* **Implementation Plan:**
+  1. Scope `DesktopSemanticZone.SidebarExplorer` strictly to IDEs (`DesktopAppArchetype.ChromiumElectron` with `workbench.view.explorer`) and Windows Explorer (`DesktopAppArchetype.WinUI3Xaml` / `ClassicWin32` with `CabinetWClass`).
+  2. For web browsers (`DesktopAppArchetype.Gecko`, `DesktopAppArchetype.ChromiumElectron` browser windows), route sidebar tab navigation to `DesktopSemanticZone.TabBar` and viewport content to `DesktopSemanticZone.DocumentContent`.
+
+---
+
+## 6. Work Package Mapping & Scheduling
 
 ```mermaid
 graph TD
     subgraph WP2["Work Package 2 (Extraction Engine)"]
         WP2_4["WP 2.4: Focus Zone Classifier Hardening (Item 1: Parent-Chain Climbing)"]
+        WP2_5["WP 2.5: Archetype-Scoped Zone Scoping (Item 6: Browser Tab Sidebar vs IDE)"]
     end
 
     subgraph WP3["Work Package 3 (Event Pipeline)"]
@@ -132,7 +150,7 @@ graph TD
     end
 
     subgraph WP4["Work Package 4 (Storage & History)"]
-        WP4_1["WP 4.1: SQLite WAL & Live Cache (Next Up)"]
+        WP4_1["WP 4.1: SQLite WAL & Live Cache (Complete)"]
     end
 
     subgraph WP5["Work Package 5 (Host Daemon & MCP)"]
@@ -143,6 +161,7 @@ graph TD
     WP4_1 --> WP5_1
     WP2_4 -.-> WP4_1
     WP3_4 -.-> WP4_1
+    WP2_5 -.-> WP5_1
 ```
 
-All 4 items are formally scheduled and documented in the repository's permanent technical architecture ledger.
+All 6 items are formally scheduled and documented in the repository's permanent technical architecture ledger.

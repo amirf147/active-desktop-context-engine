@@ -43,7 +43,8 @@ Look at the 12 windows captured in your baseline `--grab all` test:
 │   ┌────────────────────────────────────────────────────────┐                           │
 │   │ Is Parent class "monaco-editor" or "editor-container"? │ ──> [EditorCodeBuffer]    │
 │   │ Is Parent class "terminal-wrapper" or "xterm"?         │ ──> [IntegratedTerminal]  │
-│   │ Is Parent ID "workbench.view.explorer" or "sidebar"?   │ ──> [SidebarExplorer]     │
+│   │ Is Parent ID "workbench.view.explorer" (IDE)?          │ ──> [SidebarExplorer]     │
+│   │ Is Parent in Browser Sidebar (Tree Style Tab)?         │ ──> [TabBar]              │
 │   │ Is Parent ID "urlbar-input" or "address-bar"?          │ ──> [AddressBar]          │
 │   │ Is Control Type "Document" in a Web Browser?           │ ──> [DocumentContent]     │
 │   └────────────────────────────────────────────────────────┘                           │
@@ -52,7 +53,7 @@ Look at the 12 windows captured in your baseline `--grab all` test:
 ```
 
 ### The Three Protections:
-1. **Parent-Chain Climbing (WP 2.4):** When you click inside Monaco or Terminal, ADCE climbs 1–2 steps up to the container to detect whether you are in code, terminal, or sidebar.
+1. **Parent-Chain Climbing & Archetype Scoping (WP 2.4 / 2.5):** When you click inside Monaco or Terminal, ADCE climbs 1–2 steps up to the container to detect whether you are in code, terminal, or sidebar, while scoping IDE explorers vs browser vertical tab sidebars (like Tree Style Tab).
 2. **Process Boundary Guard:** ADCE verifies that the focused element actually belongs to the active window's Process ID. This stops Waterfox's text box from "bleeding" onto PowerShell or Explorer.
 3. **Root Window Normalization:** When you click on sub-panels in Antigravity (chat, history, file list), ADCE automatically resolves the top-level window handle so child clicks are never discarded as noise.
 
