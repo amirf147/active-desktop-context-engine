@@ -118,12 +118,14 @@ The repository solution (`ADCE.slnx`) is organized into 5 decoupled projects wit
 │ • Implement SetWinEventHook listeners with dedicated STA message pump and barrier sync.│
 │ • Zero-allocation Channel<DesktopEventToken> with noise filtering and 50ms debouncing. │
 │ • Monotonic epoch supersession guard preventing in-flight snapshot race conditions.    │
-│ • [Verification]: 70/70 Unit tests passing; live spike verifying 0.00% idle CPU.       │
-│ • [Documentation]: docs/ADCE_EVENT_PIPELINE_DEEP_DIVE.md architecture and failure modes.│
+│ • Zero-allocation semantic snapshot deduplication via HasSameSemanticState().          │
+│ • [Verification]: 72/72 Unit tests passing; live spike verifying 0.00% CPU & 81.2% noise suppression. │
+│ • [Documentation]: docs/ADCE_EVENT_PIPELINE_DEEP_DIVE.md & REVIEWER_OBSERVATIONS_AND_HARDENING_ROADMAP.md │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
-│ Milestone 4: Storage & History Engine (ADCE.Storage)                                   │
-│ • Implement In-Memory Live Cache and embedded SQLite WAL repository.                   │
-│ • [Verification]: Performance test verifying < 1.0 ms cache hits and < 5 ms DB reads. │
+│ Milestone 4: Storage & History Engine (ADCE.Storage) [NEXT]                            │
+│ • Implement IDesktopStateStore with In-Memory Live Cache and SQLite WAL repository.   │
+│ • Persist time-series snapshots for temporal queries (GetHistoryAsync, SearchHistoryAsync).│
+│ • [Verification]: Performance tests verifying < 0.01 ms cache hits and < 5 ms DB reads.│
 ├────────────────────────────────────────────────────────────────────────────────────────┤
 │ Milestone 5: Model Context Protocol Server (ADCE.Mcp)                                  │
 │ • Implement MCP JSON-RPC 2.0 server over Stdio and SSE.                                │
