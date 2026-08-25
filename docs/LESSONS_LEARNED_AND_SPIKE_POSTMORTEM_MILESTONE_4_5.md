@@ -97,6 +97,12 @@ When running live claim verifications across active IDE instances, the window ti
 * `ContextPrivacySanitizer.SanitizeText()` was integrated into `EvidenceLedger` and `LiveWin32StimulusDriver` to scrub user home directories and local file URIs before persisting markdown/JSON logs.
 * `scripts/check_repo_safety.py` passed with `0` path or secret violations.
 
+### 3.4 Avoiding Tautological Unit Tests (Driver-Backed CI Verification)
+Unit test methods for claims must never assert local inline dummy variables (`isBound = (pid == 4812)`). `ClaimVerificationTests.cs` was refactored to invoke `MockStimulusDriver` methods directly, ensuring xUnit facts execute and validate real end-to-end `DesktopContextSnapshot` structures in CI.
+
+### 3.5 Unmanaged Win32 Handle Lifecycle (Station & Desktop Binding)
+`OpenWindowStation("WinSta0")` and `OpenDesktop("Default")` return unmanaged kernel object handles. `LiveWin32StimulusDriver` now caches these handles and explicitly releases them via `CloseDesktop` and `CloseWindowStation` in `IDisposable.Dispose()` to prevent handle leaks across repeated runs.
+
 ---
 
 ## 4. Empirical Claim Proofs
@@ -132,5 +138,6 @@ When running live claim verifications across active IDE instances, the window ti
 1. **Deterministic Stimulus Eliminates Guesswork:** Replacing manual click-testing with `IStimulusDriver` provides instant, repeatable proof of engine behavior.
 2. **Dual-Mode Execution Guarantees Portability:** Synthetic headless mocks ensure CI passes on non-Windows/headless runners, while live Win32 drivers allow local verification against running apps.
 3. **Canonical Evidence Logging:** Storing the latest run in [`docs/reports/LATEST_CLAIM_VERIFICATION.md`](reports/LATEST_CLAIM_VERIFICATION.md) creates an immutable record of system performance.
+4. **Driver-Backed Assertions & Unmanaged Handle Hygiene:** Always wire xUnit facts to full mock drivers rather than inline dummy asserts, and ensure all unmanaged Win32 kernel handles (`hWinSta`, `hDesktop`) are released in `Dispose()`.
 
 With the verification harness established and all 6 claims mathematically and physically verified, ADCE is fully prepared for **Milestone 5: Model Context Protocol (MCP) Server**.

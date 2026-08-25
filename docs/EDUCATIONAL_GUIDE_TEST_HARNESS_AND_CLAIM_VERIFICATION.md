@@ -256,7 +256,7 @@ dotnet run --project src/ADCE.Spikes -- --verify-spike
 # 4. Verify a single specific claim (e.g. CLM-004)
 dotnet run --project src/ADCE.Spikes -- --verify CLM-004
 
-# 5. Run standard xUnit automated test suite (94 tests)
+# 5. Run standard xUnit automated test suite (96 tests)
 dotnet test
 ```
 
@@ -267,3 +267,4 @@ dotnet test
 1. **Deterministic Telemetry Beats Guesswork:** Every claim in ADCE is backed by automated code and measurable latency figures.
 2. **First-Principles OS Awareness:** Solving child HWNDs, focus bleeding, and archetype zoning requires understanding how Windows, Electron, and Gecko manage their windows under the hood.
 3. **Continuous Ground-Truth Verification:** By maintaining `docs/reports/LATEST_CLAIM_VERIFICATION.md`, any regression in future milestones (MCP Server, System Tray Daemon) will be immediately caught.
+4. **Driver-Backed Assertions & Unmanaged Handle Hygiene:** Unit tests must invoke full mock driver pipelines rather than asserting local dummy variables, and all unmanaged Win32 kernel handles must be released in `Dispose()`.

@@ -34,9 +34,13 @@ public sealed class LiveWin32StimulusDriver : IStimulusDriver, IDisposable
     [DllImport("user32.dll", SetLastError = true)]
     private static extern bool SetProcessWindowStation(IntPtr hWinSta);
     [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool CloseWindowStation(IntPtr hWinSta);
+    [DllImport("user32.dll", SetLastError = true)]
     private static extern IntPtr OpenDesktop(string lpszDesktop, uint dwFlags, bool fInherit, uint dwDesiredAccess);
     [DllImport("user32.dll", SetLastError = true)]
     private static extern bool SetThreadDesktop(IntPtr hDesktop);
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool CloseDesktop(IntPtr hDesktop);
     [DllImport("user32.dll", SetLastError = true)]
     private static extern bool EnumDesktopWindows(IntPtr hDesktop, EnumWindowsProc lpfn, IntPtr lParam);
     [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
@@ -50,6 +54,8 @@ public sealed class LiveWin32StimulusDriver : IStimulusDriver, IDisposable
     [DllImport("user32.dll")]
     private static extern bool SetForegroundWindow(IntPtr hWnd);
 
+    private readonly IntPtr _hWinSta;
+    private readonly IntPtr _hDesktop;
     private readonly UIA3Automation _automation;
     private readonly UiaExtractionEngine _engine;
     private bool _disposed;
@@ -59,10 +65,10 @@ public sealed class LiveWin32StimulusDriver : IStimulusDriver, IDisposable
 
     public LiveWin32StimulusDriver()
     {
-        var hWinSta = OpenWindowStation("WinSta0", false, 0x37F);
-        if (hWinSta != IntPtr.Zero) SetProcessWindowStation(hWinSta);
-        var hDesktop = OpenDesktop("Default", 0, false, 0x1FF);
-        if (hDesktop != IntPtr.Zero) SetThreadDesktop(hDesktop);
+        _hWinSta = OpenWindowStation("WinSta0", false, 0x37F);
+        if (_hWinSta != IntPtr.Zero) SetProcessWindowStation(_hWinSta);
+        _hDesktop = OpenDesktop("Default", 0, false, 0x1FF);
+        if (_hDesktop != IntPtr.Zero) SetThreadDesktop(_hDesktop);
 
         _automation = new UIA3Automation();
         _engine = new UiaExtractionEngine();
@@ -371,6 +377,8 @@ public sealed class LiveWin32StimulusDriver : IStimulusDriver, IDisposable
         {
             _engine.Dispose();
             _automation.Dispose();
+            if (_hDesktop != IntPtr.Zero) CloseDesktop(_hDesktop);
+            if (_hWinSta != IntPtr.Zero) CloseWindowStation(_hWinSta);
             _disposed = true;
         }
     }

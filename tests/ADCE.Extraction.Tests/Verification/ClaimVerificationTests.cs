@@ -5,6 +5,8 @@ using System;
 using System.Threading.Tasks;
 using ADCE.Core.Enums;
 using ADCE.Extraction.Engine;
+using ADCE.Spikes.Verification.Drivers;
+using ADCE.Spikes.Verification.Models;
 using Xunit;
 
 namespace ADCE.Extraction.Tests.Verification;
@@ -14,33 +16,26 @@ namespace ADCE.Extraction.Tests.Verification;
 /// </summary>
 public class ClaimVerificationTests
 {
+    private readonly MockStimulusDriver _driver = new();
+
     [Fact]
-    public void CLM_001_GlobalFocusBleedPrevention_FocusedPidMustMatchWindowPid()
+    public async Task CLM_001_GlobalFocusBleedPrevention_FocusedPidMustMatchWindowPid()
     {
-        int windowPid = 4812;
-        int externalAppPid = 9999;
-
-        // Simulate focus target belonging to a different process
-        bool isProcessBound = (externalAppPid == windowPid);
-        Assert.False(isProcessBound, "Focus belonging to a different PID must not be bound to the active window.");
-
-        // Simulate focus target belonging to active process
-        int targetPid = 4812;
-        bool isTargetBound = (targetPid == windowPid);
-        Assert.True(isTargetBound, "Focus matching target PID must be accepted.");
+        var result = await _driver.VerifyClm001GlobalFocusBleedAsync();
+        Assert.Equal(ClaimStatus.Passed, result.Status);
+        Assert.NotNull(result.CapturedSnapshot);
+        Assert.Equal(4812, result.CapturedSnapshot.Window.Pid);
+        Assert.Equal(DesktopSemanticZone.Unknown, result.CapturedSnapshot.Focus.SemanticZone);
     }
 
     [Fact]
-    public void CLM_002_ChildHwndNormalization_MapsToTopLevelWindow()
+    public async Task CLM_002_ChildHwndNormalization_MapsToTopLevelWindow()
     {
-        nint topLevelHwnd = (nint)0x00A50020;
-        nint childSubPanelHwnd = (nint)0x00A50088;
-
-        // Normalization logic
-        nint normalizedHwnd = (childSubPanelHwnd != topLevelHwnd) ? topLevelHwnd : childSubPanelHwnd;
-
-        Assert.Equal(topLevelHwnd, normalizedHwnd);
-        Assert.NotEqual((nint)0, normalizedHwnd);
+        var result = await _driver.VerifyClm002ChildHwndNormalizationAsync();
+        Assert.Equal(ClaimStatus.Passed, result.Status);
+        Assert.NotNull(result.CapturedSnapshot);
+        Assert.Equal((nint)0x00A50020, result.CapturedSnapshot.Window.Hwnd);
+        Assert.False(string.IsNullOrWhiteSpace(result.CapturedSnapshot.Window.Title));
     }
 
     [Theory]
@@ -56,6 +51,13 @@ public class ClaimVerificationTests
         Assert.Equal(expectedZone, resolvedZone);
     }
 
+    [Fact]
+    public async Task CLM_003_IdeSemanticZoneResolution_MockDriverPasses()
+    {
+        var result = await _driver.VerifyClm003IdeSemanticZoneResolutionAsync();
+        Assert.Equal(ClaimStatus.Passed, result.Status);
+    }
+
     [Theory]
     [InlineData("ListItem", "Tab Title", "sidebar-box", "tab", DesktopAppArchetype.Gecko, DesktopSemanticZone.TabBar)]
     [InlineData("Document", "Tree Style Tab", "sidebar-box", "webextension-panel", DesktopAppArchetype.Gecko, DesktopSemanticZone.DocumentContent)]
@@ -69,5 +71,12 @@ public class ClaimVerificationTests
         {
             Assert.NotEqual(DesktopSemanticZone.SidebarExplorer, resolvedZone);
         }
+    }
+
+    [Fact]
+    public async Task CLM_004_BrowserSidebarVsIdeExplorer_MockDriverPasses()
+    {
+        var result = await _driver.VerifyClm004BrowserSidebarVsIdeExplorerAsync();
+        Assert.Equal(ClaimStatus.Passed, result.Status);
     }
 }
