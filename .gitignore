@@ -42,3 +42,7 @@ __pycache__/
 
 # Cloned third-party reference repositories
 external/
+
+# Transient empirical test harness reports (canonical summary is docs/reports/LATEST_CLAIM_VERIFICATION.md)
+docs/reports/claim_verification_*.md
+docs/reports/claim_verification_*.json

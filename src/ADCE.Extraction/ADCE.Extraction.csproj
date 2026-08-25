@@ -18,4 +18,9 @@
     <PackageReference Include="FlaUI.UIA3" Version="5.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="ADCE.Extraction.Tests" />
+    <InternalsVisibleTo Include="ADCE.Spikes" />
+  </ItemGroup>
+
 </Project>

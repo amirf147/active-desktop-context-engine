@@ -247,7 +247,7 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
         };
     }
 
-    private static DesktopSemanticZone ResolveSemanticZoneFromAncestors(
+    internal static DesktopSemanticZone ResolveSemanticZoneFromAncestors(
         UIA3Automation automation,
         AutomationElement leaf,
         DesktopAppArchetype archetype,
@@ -319,6 +319,12 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
                     pCls.Contains("view-pane", StringComparison.OrdinalIgnoreCase) ||
                     pAutoId.Contains("workbench.view", StringComparison.OrdinalIgnoreCase))
                 {
+                    // Gecko sidebar (e.g. Tree Style Tab vertical tab container) resolves to TabBar, NOT SidebarExplorer (CLM-004)
+                    if (archetype == DesktopAppArchetype.Gecko)
+                    {
+                        return DesktopSemanticZone.TabBar;
+                    }
+
                     return DesktopSemanticZone.SidebarExplorer;
                 }
 
@@ -337,19 +343,13 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
         return DesktopSemanticZone.Unknown;
     }
 
-    private static DesktopSemanticZone ResolveSemanticZone(
+    internal static DesktopSemanticZone ResolveSemanticZone(
         string controlType,
         string name,
         string autoId,
         string className,
         DesktopAppArchetype archetype)
     {
-        if (className.Contains("monaco-editor", StringComparison.OrdinalIgnoreCase) ||
-            className.Contains("native-edit-context", StringComparison.OrdinalIgnoreCase))
-        {
-            return DesktopSemanticZone.EditorCodeBuffer;
-        }
-
         if (autoId.Contains("urlbar", StringComparison.OrdinalIgnoreCase) ||
             autoId.Contains("Address", StringComparison.OrdinalIgnoreCase) ||
             name.Contains("Address and search bar", StringComparison.OrdinalIgnoreCase))
@@ -382,11 +382,25 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
             return DesktopSemanticZone.IntegratedTerminal;
         }
 
+        if (className.Contains("monaco-editor", StringComparison.OrdinalIgnoreCase) ||
+            className.Contains("native-edit-context", StringComparison.OrdinalIgnoreCase))
+        {
+            return DesktopSemanticZone.EditorCodeBuffer;
+        }
+
         if (autoId.Contains("sidebar", StringComparison.OrdinalIgnoreCase) ||
             autoId.Contains("explorer", StringComparison.OrdinalIgnoreCase) ||
             (archetype == DesktopAppArchetype.ChromiumElectron && name.Contains("Source Control", StringComparison.OrdinalIgnoreCase)) ||
             (archetype == DesktopAppArchetype.WinUI3Xaml && className.Equals("CabinetWClass", StringComparison.OrdinalIgnoreCase)))
         {
+            // Gecko sidebar (e.g. Tree Style Tab vertical tab container) resolves to TabBar or DocumentContent, NOT SidebarExplorer (CLM-004)
+            if (archetype == DesktopAppArchetype.Gecko)
+            {
+                return controlType.Equals("Document", StringComparison.OrdinalIgnoreCase)
+                    ? DesktopSemanticZone.DocumentContent
+                    : DesktopSemanticZone.TabBar;
+            }
+
             return DesktopSemanticZone.SidebarExplorer;
         }
 

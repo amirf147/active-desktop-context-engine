@@ -129,15 +129,14 @@ The repository solution (`ADCE.slnx`) is organized into 5 decoupled projects wit
 │ • [Verification]: 84/84 Unit tests passing; live spike verifying 13.4 ns L1 cache & 1.56 ms search. │
 │ • [Documentation]: docs/ADCE_STORAGE_DEEP_DIVE.md & 4-Gate verification ledger.        │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
-│ Milestone 4.5: Ground-Truth Verification & Stimulus Test Harness (ADCE.Spikes) [CURRENT]│
-│ • Implement automated C# FlaUI stimulus driver in ADCE.Spikes (--verify-all).         │
+│ Milestone 4.5: Ground-Truth Verification & Stimulus Test Harness (ADCE.Spikes) [COMPLETE]│
+│ • Implement automated C# FlaUI stimulus driver in ADCE.Spikes (--verify-all, --verify-mocks).│
 │ • Eliminate manual "click-and-guess" testing with deterministic stimulus-response logs.│
 │ • Execute Claim Verification Matrix (CLM-001 through CLM-006) across all archetypes.   │
-│ • [Verification]: Automated evidence ledgers verifying focus isolation, PID bounds,   │
-│   and browser tab sidebar vs IDE explorer zone classification.                         │
-│ • [Documentation]: docs/EMPIRICAL_TEST_HARNESS_AND_CLAIM_VERIFICATION_SPEC.md.        │
+│ • [Verification]: 94/94 Unit tests passing; live & mock suite verifying 6/6 claims in < 860 ms.│
+│ • [Documentation]: docs/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_4_5.md & LATEST_CLAIM_VERIFICATION.md. │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
-│ Milestone 5: Model Context Protocol Server (ADCE.Mcp) [NEXT]                           │
+│ Milestone 5: Model Context Protocol Server (ADCE.Mcp) [CURRENT]                        │
 │ • Implement MCP JSON-RPC 2.0 server over Stdio and SSE.                                │
 │ • [Verification]: Test with MCP Inspector / Claude Desktop configuration.              │
 ├────────────────────────────────────────────────────────────────────────────────────────┤

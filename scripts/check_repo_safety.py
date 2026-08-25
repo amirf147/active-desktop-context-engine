@@ -83,7 +83,7 @@ SPDX_PY = "# SPDX-License-Identifier: Apache-2.0"
 
 def check_file(file_path: str, rel_path: str) -> list[str]:
     violations = []
-    if rel_path == "scripts/check_repo_safety.py":
+    if rel_path == "scripts/check_repo_safety.py" or rel_path.startswith("docs/reports/claim_verification_"):
         return violations
 
     try:
@@ -122,6 +122,12 @@ def check_file(file_path: str, rel_path: str) -> list[str]:
 
 
 def main() -> int:
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
     print(f"Scanning repository for safety, secrets, and path hygiene: {REPO_ROOT}")
     all_violations = []
 

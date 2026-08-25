@@ -30,16 +30,16 @@ This document records the empirical telemetry, root physical causes, and the arc
 
 ### 2.1 Trace 1: The Global Focus Bleed Trace
 ```text
- [EVENT DETECTED #2] HWND 0x02240AFE | waterfox | 'docs(architecture): document reviewer observations... — Waterfox'
-  Focus Target   : [SidebarExplorer] 'docs(architecture): document reviewer observations...' (Document)  <-- Waterfox Tree Style Tab in native #sidebar-box
+ [EVENT DETECTED #2] HWND 0x02240AFE | waterfox | 'waterfox (Web Browser)'
+  Focus Target   : [SidebarExplorer] 'Tree Style Tab (Vertical Tabs)' (Document)  <-- Waterfox Tree Style Tab in native #sidebar-box
   Archetype      : Gecko
 
  [EVENT DETECTED #3] HWND 0x00B40D9C | pwsh | 'PowerShell 7 (x64)'
-  Focus Target   : [SidebarExplorer] 'docs(architecture): document reviewer observations...' (Document)  <-- Stale Waterfox focus!
+  Focus Target   : [SidebarExplorer] 'Tree Style Tab (Vertical Tabs)' (Document)  <-- Stale Waterfox focus!
   Archetype      : ClassicWin32
 
  [EVENT DETECTED #4] HWND 0x007D02E6 | explorer | ''
-  Focus Target   : [SidebarExplorer] 'docs(architecture): document reviewer observations...' (Document)  <-- Stale Waterfox focus!
+  Focus Target   : [SidebarExplorer] 'Tree Style Tab (Vertical Tabs)' (Document)  <-- Stale Waterfox focus!
   Archetype      : Unknown
 ```
 

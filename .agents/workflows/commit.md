@@ -16,5 +16,6 @@ description: Generates a copy-paste ready commit message for Caster User Directo
    - No diff metadata, line numbers, or section headers (e.g., "Summary:"). Just empty lines between title, body, and list.
 
 # Execution
-- Output the final message in a single code block.
-- Do NOT run `git commit`.
+- Output the final message as raw plain text in a single code block (Subject line, blank line, then bulleted body).
+- Do NOT wrap in `git commit -m "..."` CLI syntax or quote arguments. The output must be directly pasteable into the IDE Source Control commit message box.
+- Do NOT run `git commit` autonomously.

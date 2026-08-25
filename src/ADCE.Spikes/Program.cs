@@ -9,13 +9,18 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Channels;
 using ADCE.Core.Enums;
+using ADCE.Core.Events;
 using ADCE.Core.Models;
 using ADCE.Core.Serialization;
 using ADCE.Extraction.Engine;
 using ADCE.Extraction.Events;
 using ADCE.Extraction.Win32;
 using ADCE.Extraction.Workspaces;
+using ADCE.Spikes.Verification;
+using ADCE.Spikes.Verification.Drivers;
+using ADCE.Spikes.Verification.Models;
 using ADCE.Storage.Cache;
 using ADCE.Storage.Database;
 using ADCE.Storage.Options;
@@ -53,6 +58,20 @@ public class Program
 
     public static async Task Main(string[] args)
     {
+        bool runVerifyAll = args.Any(a => a.Equals("--verify-all", StringComparison.OrdinalIgnoreCase) ||
+                                          (a.Equals("--verify", StringComparison.OrdinalIgnoreCase) && args.Length == 1));
+
+        bool runVerifyMocks = args.Any(a => a.Equals("--verify-mocks", StringComparison.OrdinalIgnoreCase) ||
+                                            a.Equals("--mock-verify", StringComparison.OrdinalIgnoreCase));
+
+        bool runVerifySpike = args.Any(a => a.Equals("--verify-spike", StringComparison.OrdinalIgnoreCase) ||
+                                            a.Equals("--spike4.5", StringComparison.OrdinalIgnoreCase) ||
+                                            a.Equals("--spike45", StringComparison.OrdinalIgnoreCase));
+
+        int verifyIdx = Array.FindIndex(args, a => a.Equals("--verify", StringComparison.OrdinalIgnoreCase) ||
+                                                   a.Equals("-v", StringComparison.OrdinalIgnoreCase));
+        string? singleClaim = (verifyIdx >= 0 && verifyIdx + 1 < args.Length && !args[verifyIdx + 1].StartsWith("-")) ? args[verifyIdx + 1] : null;
+
         bool runBenchmark = args.Any(a => a.Equals("--flaui-benchmark", StringComparison.OrdinalIgnoreCase) ||
                                           a.Equals("--benchmark", StringComparison.OrdinalIgnoreCase) ||
                                           a.Equals("--spike1", StringComparison.OrdinalIgnoreCase));
@@ -72,7 +91,19 @@ public class Program
                                         a.Equals("--spike4", StringComparison.OrdinalIgnoreCase) ||
                                         a.Equals("-s", StringComparison.OrdinalIgnoreCase));
 
-        if (runStorage)
+        if (runVerifySpike)
+        {
+            await RunGate3EmpiricalMicroSpikeAsync();
+        }
+        else if (runVerifyMocks)
+        {
+            await RunClaimVerificationSuiteAsync(liveMode: false, singleClaim);
+        }
+        else if (runVerifyAll || !string.IsNullOrWhiteSpace(singleClaim))
+        {
+            await RunClaimVerificationSuiteAsync(liveMode: true, singleClaim);
+        }
+        else if (runStorage)
         {
             await RunStorageSpikeAsync();
         }
@@ -976,5 +1007,144 @@ public class Program
             } : null,
             ExtractionDurationMs = 1.2
         };
+    }
+
+    private static async Task RunGate3EmpiricalMicroSpikeAsync()
+    {
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine("==========================================================================");
+        Console.WriteLine("  ADCE Milestone 4.5 Gate 3: Empirical Micro-Spike (< 50 lines)           ");
+        Console.WriteLine("==========================================================================");
+        Console.ResetColor();
+
+        var hWinSta = OpenWindowStation("WinSta0", false, 0x37F);
+        if (hWinSta != IntPtr.Zero) SetProcessWindowStation(hWinSta);
+        var hDesktop = OpenDesktop("Default", 0, false, 0x1FF);
+        if (hDesktop != IntPtr.Zero) SetThreadDesktop(hDesktop);
+
+        nint targetHwnd = GetForegroundWindow();
+        if (targetHwnd == nint.Zero)
+        {
+            EnumDesktopWindows(hDesktop != IntPtr.Zero ? hDesktop : IntPtr.Zero, (hWnd, lParam) =>
+            {
+                var sb = new StringBuilder(512);
+                GetWindowText(hWnd, sb, 512);
+                string title = sb.ToString();
+                if (!string.IsNullOrWhiteSpace(title) && !title.Equals("Default IME", StringComparison.OrdinalIgnoreCase) && !title.Equals("MSCTFIME UI", StringComparison.OrdinalIgnoreCase))
+                {
+                    targetHwnd = hWnd;
+                    return false;
+                }
+                return true;
+            }, IntPtr.Zero);
+        }
+
+        Console.WriteLine($"[STIMULUS] Target Window: 0x{targetHwnd.ToInt64():X8}");
+
+        var channel = Channel.CreateUnbounded<DesktopEventToken>();
+        using var engine = new UiaExtractionEngine();
+        using var pipeline = new DebouncedDesktopEventPipeline(channel.Reader, engine, TimeSpan.FromMilliseconds(50));
+        pipeline.Start();
+
+        // Stimulus: inject focus token into pipeline for target window
+        channel.Writer.TryWrite(new DesktopEventToken(0x8005, targetHwnd, 100));
+
+        // Response: await snapshot arriving in output channel without arbitrary sleep
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        try
+        {
+            if (await pipeline.SnapshotReader.WaitToReadAsync(cts.Token) && pipeline.SnapshotReader.TryRead(out var snapshot))
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"[GATE 3 PASS] Stimulus-Response verified in {snapshot.ExtractionDurationMs:F2} ms!");
+                Console.WriteLine($"  HWND 0x{snapshot.Window.Hwnd:X8} | {snapshot.Window.ProcessName} | Zone: [{snapshot.Focus.SemanticZone}] '{snapshot.Focus.ElementName}'");
+                Console.ResetColor();
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("[GATE 3 FAIL] Timeout waiting for pipeline response.");
+                Console.ResetColor();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("[GATE 3 FAIL] Operation timed out.");
+            Console.ResetColor();
+        }
+
+        await pipeline.StopAsync();
+    }
+
+    private static async Task RunClaimVerificationSuiteAsync(bool liveMode, string? singleClaim = null)
+    {
+        var runner = new ClaimVerificationRunner();
+        IStimulusDriver driver;
+
+        if (liveMode)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("==========================================================================");
+            Console.WriteLine("  LIVE INTERACTIVE CLAIM VERIFICATION                                     ");
+            Console.WriteLine("  WARNING: Interactive live test will inspect desktop windows.            ");
+            Console.WriteLine("  Starting in 3 seconds. Please do not move mouse or switch windows...    ");
+            Console.WriteLine("==========================================================================");
+            Console.ResetColor();
+            await Task.Delay(3000);
+
+            driver = new LiveWin32StimulusDriver();
+        }
+        else
+        {
+            driver = new MockStimulusDriver();
+        }
+
+        ClaimVerificationSuiteResult suite;
+        if (!string.IsNullOrWhiteSpace(singleClaim))
+        {
+            string normClaim = singleClaim.Replace("-", "_").ToUpperInvariant();
+            if (Enum.TryParse<ClaimId>(normClaim, out var claimId) ||
+                Enum.TryParse<ClaimId>("CLM_" + normClaim.TrimStart('C', 'L', 'M', '_'), out claimId))
+            {
+                var singleResult = await runner.RunSingleClaimAsync(claimId, driver);
+                suite = new ClaimVerificationSuiteResult
+                {
+                    SuiteName = $"Single Claim Verification: {claimId}",
+                    DriverType = driver.DriverName,
+                    StartTime = DateTimeOffset.UtcNow,
+                    EndTime = DateTimeOffset.UtcNow,
+                    TotalDurationMs = singleResult.ElapsedMs,
+                    Results = [singleResult]
+                };
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"[ERROR] Unrecognized claim identifier: '{singleClaim}'. Valid values: CLM-001 through CLM-006.");
+                Console.ResetColor();
+                return;
+            }
+        }
+        else
+        {
+            suite = await runner.RunSuiteAsync(driver);
+        }
+
+        EvidenceLedger.PrintConsoleSummary(suite);
+
+        // Persist canonical and timestamped reports in docs/reports
+        string reportsDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "docs", "reports"));
+        try
+        {
+            await EvidenceLedger.SaveReportsAsync(suite, reportsDir);
+            Console.WriteLine($"[LEDGER SAVED] Evidence reports updated in docs/reports/ (Canonical: LATEST_CLAIM_VERIFICATION.md)\n");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[LEDGER WARN] Could not write to docs/reports: {ex.Message}\n");
+        }
+
+        if (driver is IDisposable d) d.Dispose();
     }
 }

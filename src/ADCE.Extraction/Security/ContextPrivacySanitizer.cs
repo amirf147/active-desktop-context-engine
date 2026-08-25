@@ -104,4 +104,31 @@ public static class ContextPrivacySanitizer
 
         return buffer;
     }
+
+    /// <summary>
+    /// Strips local filesystem paths, user profile directory roots, and local file protocol URIs from text strings.
+    /// </summary>
+    public static string SanitizeText(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return string.Empty;
+
+        string sanitized = text;
+
+        // Replace user profile roots
+        sanitized = System.Text.RegularExpressions.Regex.Replace(
+            sanitized,
+            @"(?:[A-Za-z]:[\\/]+|/)(?:Users|home|Documents and Settings)[\\/]+[^\\/]+[\\/]+",
+            "~/",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        // Strip local file scheme prefix
+        sanitized = System.Text.RegularExpressions.Regex.Replace(
+            sanitized,
+            @"file:[\\/]{3}",
+            "",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        return sanitized;
+    }
 }

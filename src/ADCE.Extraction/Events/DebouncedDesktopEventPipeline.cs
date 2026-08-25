@@ -24,6 +24,7 @@ public sealed class DebouncedDesktopEventPipeline : IDisposable
     private readonly Channel<DesktopContextSnapshot> _outputChannel;
     private readonly TimeSpan _debounceWindow;
     private readonly TimeSpan _maxDelayWindow;
+    private readonly TimeProvider _timeProvider;
 
     private readonly CancellationTokenSource _cts = new();
     private Task? _processingTask;
@@ -45,12 +46,14 @@ public sealed class DebouncedDesktopEventPipeline : IDisposable
         IExtractionEngine extractor,
         TimeSpan? debounceWindow = null,
         TimeSpan? maxDelayWindow = null,
-        int outputChannelCapacity = 32)
+        int outputChannelCapacity = 32,
+        TimeProvider? timeProvider = null)
     {
         _inputReader = inputReader ?? throw new ArgumentNullException(nameof(inputReader));
         _extractor = extractor ?? throw new ArgumentNullException(nameof(extractor));
         _debounceWindow = debounceWindow ?? TimeSpan.FromMilliseconds(50);
         _maxDelayWindow = maxDelayWindow ?? TimeSpan.FromMilliseconds(250);
+        _timeProvider = timeProvider ?? TimeProvider.System;
 
         _outputChannel = Channel.CreateBounded<DesktopContextSnapshot>(new BoundedChannelOptions(outputChannelCapacity)
         {
@@ -121,7 +124,7 @@ public sealed class DebouncedDesktopEventPipeline : IDisposable
                     if (token.IsValid)
                     {
                         latestToken = token;
-                        long now = Stopwatch.GetTimestamp();
+                        long now = _timeProvider.GetTimestamp();
                         if (burstStartTimestamp == 0)
                         {
                             burstStartTimestamp = now;
@@ -135,7 +138,7 @@ public sealed class DebouncedDesktopEventPipeline : IDisposable
                 }
 
                 // 2. WP 3.4: Check if burst max delay clamp is exceeded (e.g. continuous typing storm >= 250ms)
-                if (burstStartTimestamp != 0 && Stopwatch.GetElapsedTime(burstStartTimestamp) >= _maxDelayWindow)
+                if (burstStartTimestamp != 0 && _timeProvider.GetElapsedTime(burstStartTimestamp) >= _maxDelayWindow)
                 {
                     Interlocked.Increment(ref _debouncedExtractionsTriggered);
                     _ = DispatchExtractionAsync(latestToken, cancellationToken);
@@ -147,7 +150,7 @@ public sealed class DebouncedDesktopEventPipeline : IDisposable
                 // 3. Trailing-edge debounce delay: absorb subsequent event bursts (typing, cursor jitter)
                 if (_debounceWindow > TimeSpan.Zero)
                 {
-                    await Task.Delay(_debounceWindow, cancellationToken);
+                    await Task.Delay(_debounceWindow, _timeProvider, cancellationToken);
 
                     // Drain any additional tokens that arrived during the trailing-edge debounce window
                     while (_inputReader.TryRead(out var additionalToken))
@@ -156,7 +159,7 @@ public sealed class DebouncedDesktopEventPipeline : IDisposable
                         if (additionalToken.IsValid)
                         {
                             latestToken = additionalToken;
-                            long now = Stopwatch.GetTimestamp();
+                            long now = _timeProvider.GetTimestamp();
                             if (burstStartTimestamp == 0)
                             {
                                 burstStartTimestamp = now;
