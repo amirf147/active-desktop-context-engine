@@ -143,9 +143,13 @@ The repository solution (`ADCE.slnx`) is organized into 5 decoupled projects wit
 │ • [Verification]: 112/112 Unit tests passing; live spike verifying all 5 ops in < 90 ms. │
 │ • [Documentation]: docs/ADCE_MCP_DEEP_DIVE.md architecture and protocol specification. │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
-│ Milestone 6: System Tray Background Daemon (ADCE.Daemon) [CURRENT]                     │
-│ • Assemble all libraries into a silent Windows system tray application.                │
-│ • [Verification]: End-to-end background execution with system tray controls.           │
+│ Milestone 6: System Tray Background Daemon (ADCE.Daemon) [COMPLETE]                    │
+│ • Assemble all libraries into a silent Windows system tray host with PerMonitorV2 DPI. │
+│ • Implement TrayApplicationContext, single-instance mutex, and dynamic IconFactory.    │
+│ • Eliminate 4 systems traps (GDI leak, mutex collision, WinExe CLI attach, port align).│
+│ • Expose CLI options (--stdio, --sse, --port, --no-tray, --db-path, --status, --help).  │
+│ • [Verification]: 130/130 Unit tests passing; live spike verifying full daemon E2E.    │
+│ • [Documentation]: docs/ADCE_DAEMON_DEEP_DIVE.md & LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_6.md. │
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 

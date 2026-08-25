@@ -3,26 +3,29 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>ADCE.Spikes</RootNamespace>
+    <LangVersion>preview</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>ADCE.Daemon</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
     <NoWarn>$(NoWarn);WFO0003</NoWarn>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="FlaUI.Core" Version="5.0.0" />
-    <PackageReference Include="FlaUI.UIA3" Version="5.0.0" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ADCE.Core\ADCE.Core.csproj" />
     <ProjectReference Include="..\ADCE.Extraction\ADCE.Extraction.csproj" />
     <ProjectReference Include="..\ADCE.Storage\ADCE.Storage.csproj" />
     <ProjectReference Include="..\ADCE.Mcp\ADCE.Mcp.csproj" />
-    <ProjectReference Include="..\ADCE.Daemon\ADCE.Daemon.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ADCE.Daemon.Tests" />
+    <InternalsVisibleTo Include="ADCE.Spikes" />
   </ItemGroup>
 
 </Project>

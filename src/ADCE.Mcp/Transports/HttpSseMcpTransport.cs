@@ -117,7 +117,7 @@ public sealed class HttpSseMcpTransport : IMcpTransport
                 var context = await _listener.GetContextAsync().ConfigureAwait(false);
                 _ = Task.Run(() => ProcessHttpRequestAsync(context, cancellationToken), cancellationToken);
             }
-            catch (HttpListenerException) when (cancellationToken.IsCancellationRequested || !_listener.IsListening)
+            catch (Exception ex) when (cancellationToken.IsCancellationRequested || !_listener.IsListening || _isDisposed || ex is ObjectDisposedException or HttpListenerException)
             {
                 break;
             }
