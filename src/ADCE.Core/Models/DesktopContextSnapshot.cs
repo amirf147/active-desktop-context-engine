@@ -43,4 +43,22 @@ public sealed record DesktopContextSnapshot
     /// <summary>Duration in milliseconds spent extracting this context snapshot.</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public double ExtractionDurationMs { get; init; }
+
+    /// <summary>
+    /// Checks if two snapshots have identical semantic context (ignoring capture timestamp and extraction latency).
+    /// Used for zero-allocation cache deduplication and twin-wavelet event suppression.
+    /// </summary>
+    public bool HasSameSemanticState(DesktopContextSnapshot? other)
+    {
+        if (other is null) return false;
+        if (ReferenceEquals(this, other)) return true;
+
+        return Workspace == other.Workspace &&
+               Window == other.Window &&
+               Focus == other.Focus &&
+               IdeContext == other.IdeContext &&
+               BrowserContext == other.BrowserContext &&
+               ExplorerContext == other.ExplorerContext &&
+               TerminalContext == other.TerminalContext;
+    }
 }

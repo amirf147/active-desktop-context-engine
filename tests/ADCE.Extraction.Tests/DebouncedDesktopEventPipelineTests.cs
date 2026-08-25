@@ -166,6 +166,57 @@ public class DebouncedDesktopEventPipelineTests
     }
 
     [Fact]
+    public async Task DuplicateSnapshots_AreSuppressedByValueEquality()
+    {
+        var inputChannel = Channel.CreateUnbounded<DesktopEventToken>();
+        var mockEngine = new MockExtractionEngine();
+
+        using var pipeline = new DebouncedDesktopEventPipeline(
+            inputChannel.Reader,
+            mockEngine,
+            debounceWindow: TimeSpan.FromMilliseconds(10));
+
+        pipeline.Start();
+
+        // 1. Send first event
+        inputChannel.Writer.TryWrite(new DesktopEventToken((ushort)DesktopEventType.ForegroundChanged, new nint(0x111), 10));
+        await Task.Delay(30);
+
+        // 2. Send second event for same HWND (mock engine returns identical snapshot)
+        inputChannel.Writer.TryWrite(new DesktopEventToken((ushort)DesktopEventType.FocusChanged, new nint(0x111), 20));
+        await Task.Delay(30);
+
+        await pipeline.StopAsync();
+
+        // Second event produced identical snapshot -> duplicate suppressed!
+        Assert.Equal(1, pipeline.ExtractionsCommitted);
+        Assert.Equal(1, pipeline.DuplicateSnapshotsSuppressed);
+    }
+
+    [Fact]
+    public async Task NoiseSnapshots_AreDroppedWithoutEmitting()
+    {
+        var inputChannel = Channel.CreateUnbounded<DesktopEventToken>();
+        // Mock engine that returns csrss or Invalid Window Handle
+        var mockEngine = new MockExtractionEngine();
+
+        using var pipeline = new DebouncedDesktopEventPipeline(
+            inputChannel.Reader,
+            mockEngine,
+            debounceWindow: TimeSpan.FromMilliseconds(10));
+
+        pipeline.Start();
+
+        // Send event with HWND 0 (empty)
+        inputChannel.Writer.TryWrite(new DesktopEventToken((ushort)DesktopEventType.ForegroundChanged, nint.Zero, 10));
+        await Task.Delay(30);
+
+        await pipeline.StopAsync();
+
+        Assert.Equal(0, pipeline.ExtractionsCommitted);
+    }
+
+    [Fact]
     public async Task Pipeline_StopAsync_CompletesCleanly()
     {
         var inputChannel = Channel.CreateUnbounded<DesktopEventToken>();

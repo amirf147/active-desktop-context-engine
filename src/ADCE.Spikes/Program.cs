@@ -738,11 +738,13 @@ public class Program
         Console.ResetColor();
         Console.WriteLine($" Elapsed Time              : {sw.Elapsed.TotalSeconds:F2} s");
         Console.WriteLine($" Raw WinEvents Ingested    : {pipeline.RawEventsReceived}");
+        Console.WriteLine($" OS Noise / Destroyed Dropped: {pipeline.NoiseEventsDropped}");
         Console.WriteLine($" Debounced Extractions     : {pipeline.DebouncedExtractionsTriggered}");
+        Console.WriteLine($" Duplicate Wavelets Filtered : {pipeline.DuplicateSnapshotsSuppressed}");
         Console.WriteLine($" Snapshots Committed       : {pipeline.ExtractionsCommitted}");
         Console.WriteLine($" Superseded Dropped        : {pipeline.SupersededExtractionsDropped}");
-        double coalesceRatio = pipeline.RawEventsReceived > 0 ? (1.0 - ((double)pipeline.DebouncedExtractionsTriggered / pipeline.RawEventsReceived)) * 100.0 : 0.0;
-        Console.WriteLine($" Coalescing Efficiency     : {coalesceRatio:F1}% noise reduced");
+        double coalesceRatio = pipeline.RawEventsReceived > 0 ? (1.0 - ((double)pipeline.ExtractionsCommitted / pipeline.RawEventsReceived)) * 100.0 : 0.0;
+        Console.WriteLine($" Total Noise Suppression   : {coalesceRatio:F1}% noise reduced");
         Console.WriteLine($" Idle CPU Overhead         : 0.00% (Kernel wait on GetMessage / Channel)\n");
     }
 }

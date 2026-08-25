@@ -60,6 +60,7 @@ This repository functions as an **evolving public research ledger** and implemen
 * ⚔️ **[Gate 2 Hostile Architecture & Systems Review](docs/HOSTILE_ARCHITECTURE_REVIEW.md)**: Adversarial systems review evaluating COM apartment deadlocks, GC allocation churn, UIPI barriers, and lifecycle race conditions.
 * 🧠 **[ADCE.Core Deep-Dive & Architecture Reference](docs/ADCE_CORE_DEEP_DIVE.md)**: Plain-English architectural breakdown, end-to-end dataflow sequence diagrams, file-by-file failure mode analysis, and sequence equality mechanics.
 * 🎯 **[ADCE.Extraction Deep-Dive & Architecture Reference](docs/ADCE_EXTRACTION_DEEP_DIVE.md)**: Plain-English architectural breakdown, Win32 shallow gating, UIPI filtering, single-roundtrip batch caching, and privacy redaction.
+* ⚡ **[ADCE Event Pipeline Deep-Dive & Systems Reference](docs/ADCE_EVENT_PIPELINE_DEEP_DIVE.md)**: Dedicated STA message pump, `ManualResetEventSlim` barrier sync, noise filtering, 50ms trailing-edge debouncer, monotonic epoch supersession, and live multi-window telemetry postmortem.
 * 🔬 **[Milestone 2 Engineering Postmortem & Analysis](docs/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_2.md)**: Dissecting the empty snapshot failure, Win32 desktop sessions, compound class names, and architectural hardening.
 * 📘 **[Educational Refresher & Architecture Guide](docs/EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md)**: Plain-English walkthrough of UI Automation, Win32 systems programming, FlaUI caching, and the Dual-Plane architecture.
 * 📑 **[UI Automation Structures Reference (SSOT)](docs/UI_AUTOMATION_STRUCTURES_REFERENCE.md)**: Definitive structural map of UIA node hierarchies, class names, and target zones for Antigravity IDE, Waterfox, and File Explorer.
@@ -85,7 +86,7 @@ Following our **4-Gate Epistemic Protocol**:
 | **Phase 2: Adversarial Evaluation & Micro-Spikes** | Gate 2 & Gate 3 empirical tests validating container targeting and Win32 gating. | `[x]` Complete | • [Micro-Spike 1 Telemetry (FlaUI UIA3)](docs/benchmarks/001_micro_spike_1_flaui_telemetry.md) (10.17 ms)<br/>• [Micro-Spike 2 Telemetry (Win32 Shallow)](docs/benchmarks/002_micro_spike_2_python_shallow_telemetry.md) (0.66 ms) |
 | **Phase 3: Ecosystem Audit & Wheel Reinvention** | Deep-dive audits of leading open-source Windows/COM/UIA tooling catalogs. | `[x]` Complete | • [Simon Mourier Ecosystem Suite](docs/external_research/README.md)<br/>• [Roman Baeriswyl (Roemer / FlaUI) Deep Dive](docs/external_research/FlaUI_And_Roemer_Ecosystem.md)<br/>• [Synthesis & Wheel Reinvention Audit](docs/external_research/SYNTHESIS_AND_WHEEL_REINVENTION_AUDIT.md) |
 | **Phase 4: Architectural Specifications & SSOT** | Formalize ground-truth target zones, heuristic discovery archetypes, and MCP schemas. | `[x]` Complete | • [UI Automation SSOT Reference](docs/UI_AUTOMATION_STRUCTURES_REFERENCE.md)<br/>• [Dynamic Discovery & Requirements Spec](docs/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md)<br/>• [MCP JSON Schema Specification](docs/MCP_SCHEMA_SPEC.md) |
-| **Phase 5: Production Daemon Implementation** | Build modular multi-project solution (`ADCE.slnx`), event pipeline, storage, and MCP server. | `[ ]` **In Progress** | • **Milestone 1:** `ADCE.Core` domain models, events, serialization & unit tests (`[x]` Complete)<br/>• **Milestone 2:** `ADCE.Extraction` standalone context grabber (`[x]` Complete)<br/>• **Milestone 3:** Zero-CPU event pipeline (`SetWinEventHook` + channel conflation) (`[ ]` Next)<br/>• **Milestone 4–6:** SQLite WAL store, MCP endpoint, and System tray daemon |
+| **Phase 5: Production Daemon Implementation** | Build modular multi-project solution (`ADCE.slnx`), event pipeline, storage, and MCP server. | `[ ]` **In Progress** | • **Milestone 1:** `ADCE.Core` domain models, events, serialization & unit tests (`[x]` Complete)<br/>• **Milestone 2:** `ADCE.Extraction` standalone context grabber (`[x]` Complete)<br/>• **Milestone 3:** Zero-CPU event pipeline (`SetWinEventHook` + channel debouncer) (`[x]` Complete)<br/>• **Milestone 4:** SQLite WAL store & in-memory live cache (`[ ]` Next)<br/>• **Milestone 5–6:** MCP endpoint and System tray daemon |
 | **Phase 6: Voice & AI Client Integration** | Connect Caster Dragonfly grammars and local AI assistants to the live MCP endpoint. | `[ ]` Planned | • Caster MCP client bindings<br/>• Live active window context streaming to Antigravity/Claude |
 
 ---
@@ -103,8 +104,11 @@ Following our **4-Gate Epistemic Protocol**:
 ## 6. Building & Running Spikes
 
 ```powershell
-# Build entire solution and run unit test suite (59 tests)
+# Build entire solution and run automated unit test suite (72 tests)
 dotnet test
+
+# Run Milestone 3 live zero-CPU event pipeline spike (listening for foreground & focus transitions)
+dotnet run --project src/ADCE.Spikes -- --events -d 15
 
 # Run Milestone 2 live standalone context grabber against active foreground window
 dotnet run --project src/ADCE.Spikes -- --grab

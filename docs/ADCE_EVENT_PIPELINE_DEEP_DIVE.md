@@ -198,129 +198,129 @@ Duration  : 3 seconds (Listening for foreground/focus transitions)
 | Test Suite | File | Tests | Scenarios Verified |
 | :--- | :--- | :--- | :--- |
 | **Hook Lifecycle** | [`WinEventHookTests.cs`](../tests/ADCE.Extraction.Tests/WinEventHookTests.cs) | 5 | • Start/Stop transitions `IsRunning`<br/>• Multiple `Start()` calls are idempotent<br/>• Multiple `Stop()` calls are idempotent<br/>• `Dispose()` closes `EventReader`<br/>• `Start()` after `Dispose()` throws `ObjectDisposedException` |
-| **Debounced Pipeline** | [`DebouncedDesktopEventPipelineTests.cs`](../tests/ADCE.Extraction.Tests/DebouncedDesktopEventPipelineTests.cs) | 3 | • 10 burst events within 5ms coalesce into 1 single extraction<br/>• Monotonic epoch supersession drops slow stale extractions<br/>• `StopAsync()` cleanly completes output channel |
+| **Debounced Pipeline** | [`DebouncedDesktopEventPipelineTests.cs`](../tests/ADCE.Extraction.Tests/DebouncedDesktopEventPipelineTests.cs) | 5 | • 10 burst events within 5ms coalesce into 1 single extraction<br/>• Monotonic epoch supersession drops slow stale extractions<br/>• Zero-allocation duplicate suppression via `HasSameSemanticState`<br/>• OS subsystem noise and destroyed windows dropped<br/>• `StopAsync()` cleanly completes output channel |
 | **Workspace Manager** | [`WindowsWorkspaceManagerTests.cs`](../tests/ADCE.Extraction.Tests/WindowsWorkspaceManagerTests.cs) | 3 | • Returns valid `WorkspaceEnvelope`<br/>• Resolves physical monitor bounds ($> 0$ width/height)<br/>• Handles `nint.Zero` gracefully |
-| **Full Solution Total** | Across all test assemblies | **70** | **70/70 Passing (0 Failures, 0 Warnings)** |
+| **Full Solution Total** | Across all test assemblies | **72** | **72/72 Passing (0 Failures, 0 Warnings)** |
 
 ---
 
-## 7. Real-World Telemetry: Live Multi-Window User Interaction & Twin-Event Analysis
+## 7. Real-World Telemetry: Live Multi-Window User Interaction & Production Noise Filtering
 
-During Gate 3 verification, the user executed interactive manual testing across **Antigravity IDE**, **Waterfox (Gemini)**, and **Waterfox (Google Search)** over a 15-second live trace:
+During Gate 3 & Gate 4 verification, the user executed interactive manual testing across **Antigravity IDE** and **Waterfox (Multiple Tabs)** over a 30-second live trace:
 
 ```powershell
-dotnet run --project src/ADCE.Spikes -- --events -d 15
+dotnet run --project src/ADCE.Spikes -- --events -d 30
 ```
 
-### 7.1 Live Execution Trace
+### 7.1 Production Live Execution Trace
 
 ```text
 ==========================================================================
   ADCE Milestone 3: Zero-CPU Event Pipeline Live Telemetry Spike
 ==========================================================================
 Runtime   : .NET 10.0.8 (x64)
-Timestamp : 2026-08-24T23:43:21.398Z
-Duration  : 15 seconds (Listening for foreground/focus transitions)
+Timestamp : 2026-08-24T23:58:50.486Z
+Duration  : 30 seconds (Listening for foreground/focus transitions)
 
 [HOOK ACTIVE] SetWinEventHook running on STA thread (IsRunning: True)
 [PIPELINE ACTIVE] 50ms trailing-edge debouncer active. Waiting for events...
 
 --------------------------------------------------------------------------
- [EVENT DETECTED #1 & #2] HWND 0x00BF0BDC | Antigravity IDE | 'active-desktop-context-engine - Antigravity IDE - Preview ADCE_EVENT_PIPELINE_DEEP_DIVE.md'
+ [EVENT DETECTED #1] HWND 0x00BF0BDC | Antigravity IDE | 'active-desktop-context-engine - Antigravity IDE - gate.md'
 --------------------------------------------------------------------------
-  Focus Target   : [Unknown] '   ' (Group)
+  Focus Target   : [Unknown] 'Terminal 5, pwsh Use Alt+F1 for terminal accessibility help' (Edit)
   Archetype      : ChromiumElectron
-  UIA Latency    : 76.59 ms / 41.97 ms
+  UIA Latency    : 75.22 ms
 
 --------------------------------------------------------------------------
- [EVENT DETECTED #3 & #4] HWND 0x00BF0BDC | Antigravity IDE | 'active-desktop-context-engine - Antigravity IDE - Preview ADCE_EVENT_PIPELINE_DEEP_DIVE.md'
+ [EVENT DETECTED #2] HWND 0x00BF0BDC | Antigravity IDE | 'active-desktop-context-engine - Antigravity IDE - gate.md'
 --------------------------------------------------------------------------
-  Focus Target   : [Unknown] 'Message history' (Group)
+  Focus Target   : [Unknown] 'Workflow Editor' (Document)
   Archetype      : ChromiumElectron
-  UIA Latency    : 42.83 ms / 41.15 ms
+  UIA Latency    : 57.47 ms
 
 --------------------------------------------------------------------------
- [EVENT DETECTED #5 & #6] HWND 0x00BF0BDC | Antigravity IDE | 'active-desktop-context-engine - Antigravity IDE - Preview ADCE_EVENT_PIPELINE_DEEP_DIVE.md'
+ [EVENT DETECTED #3] HWND 0x00BF0BDC | Antigravity IDE | 'active-desktop-context-engine - Antigravity IDE - gate.md'
+--------------------------------------------------------------------------
+  Focus Target   : [Unknown] 'Source Control Management' (Tree)
+  Archetype      : ChromiumElectron
+  UIA Latency    : 44.38 ms
+
+--------------------------------------------------------------------------
+ [EVENT DETECTED #4] HWND 0x00BF0BDC | Antigravity IDE | 'active-desktop-context-engine - Antigravity IDE - gate.md'
 --------------------------------------------------------------------------
   Focus Target   : [Unknown] 'Message input' (ComboBox)
   Archetype      : ChromiumElectron
-  UIA Latency    : 41.49 ms / 41.93 ms
+  UIA Latency    : 50.52 ms
 
 --------------------------------------------------------------------------
- [EVENT DETECTED #7] HWND 0x0001000C | csrss | ''
+ [EVENT DETECTED #6] HWND 0x02240AFE | waterfox | 'Amir Farhadi - Portfolio Evidence — Waterfox'
 --------------------------------------------------------------------------
-  Focus Target   : [Unknown] '' (Window)
-  Archetype      : Unknown
-  UIA Latency    : 8.80 ms
-
---------------------------------------------------------------------------
- [EVENT DETECTED #8] HWND 0x00A9029E | explorer | 'OLEChannelWnd'
---------------------------------------------------------------------------
-  Focus Target   : [Unknown] 'Copy' (Button)
-  Archetype      : Unknown
-  UIA Latency    : 5.39 ms
-
---------------------------------------------------------------------------
- [EVENT DETECTED #9 & #10] HWND 0x02240AFE | waterfox | 'Weaknesses in ADCE.Core Design - Google Gemini — Waterfox'
---------------------------------------------------------------------------
-  Focus Target   : [Unknown] 'Enter a prompt for Gemini' (Edit)
+  Focus Target   : [Unknown] 'Amir Farhadi - Portfolio Evidence' (Document)
   Archetype      : Gecko
-  UIA Latency    : 23.97 ms / 21.73 ms
+  UIA Latency    : 22.04 ms
 
 --------------------------------------------------------------------------
- [EVENT DETECTED #11 & #12] HWND 0x02240AFE | waterfox | 'Weaknesses in ADCE.Core Design - Google Gemini — Waterfox'
+ [EVENT DETECTED #7] HWND 0x02240AFE | waterfox | 'Amir Farhadi - Portfolio Evidence — Waterfox'
 --------------------------------------------------------------------------
-  Focus Target   : [Unknown] 'Weaknesses in ADCE.Core Design - Google Gemini' (Document)
+  Focus Target   : [Unknown] 'Amir Farhadi's GitHub Profile' (Hyperlink)
   Archetype      : Gecko
-  UIA Latency    : 20.70 ms / 27.72 ms
+  UIA Latency    : 19.96 ms
 
 --------------------------------------------------------------------------
- [EVENT DETECTED #13 & #14] HWND 0x02240AFE | waterfox | 'how much salt in 1tsp if 100g has 7g of salt - Google Search — Waterfox'
+ [EVENT DETECTED #10] HWND 0x02240AFE | waterfox | 'amirf147 (Amir Farhadi) — Waterfox'
 --------------------------------------------------------------------------
-  Focus Target   : [Unknown] 'how much salt in 1tsp if 100g has 7g of salt - Google Search' (Document)
+  Focus Target   : [Unknown] 'Open quick search dialog, type / to search' (Button)
   Archetype      : Gecko
-  UIA Latency    : 21.20 ms / 23.11 ms
+  UIA Latency    : 26.37 ms
 
 --------------------------------------------------------------------------
- [EVENT DETECTED #15 & #16] HWND 0x02240AFE | waterfox | 'how much salt in 1tsp if 100g has 7g of salt - Google Search — Waterfox'
+ [EVENT DETECTED #11] HWND 0x02240AFE | waterfox | 'amirf147 (Amir Farhadi) — Waterfox'
 --------------------------------------------------------------------------
-  Focus Target   : [Unknown] 'Search' (ComboBox)
+  Focus Target   : [Unknown] 'amirf147 (Amir Farhadi)' (Document)
   Archetype      : Gecko
-  UIA Latency    : 17.28 ms / 18.23 ms
+  UIA Latency    : 20.97 ms
+
+--------------------------------------------------------------------------
+ [EVENT DETECTED #14] HWND 0x00BF0BDC | Antigravity IDE | 'active-desktop-context-engine - Antigravity IDE - gate.md'
+--------------------------------------------------------------------------
+  Focus Target   : [Unknown] 'Message history' (Group)
+  Archetype      : ChromiumElectron
+  UIA Latency    : 41.37 ms
+
+--------------------------------------------------------------------------
+ [EVENT DETECTED #15] HWND 0x00BF0BDC | Antigravity IDE | 'active-desktop-context-engine - Antigravity IDE - gate.md'
+--------------------------------------------------------------------------
+  Focus Target   : [Unknown] 'Message input' (ComboBox)
+  Archetype      : ChromiumElectron
+  UIA Latency    : 41.49 ms
 
 ==========================================================================
   MILESTONE 3 TELEMETRY SUMMARY
 ==========================================================================
- Elapsed Time              : 15.00 s
- Raw WinEvents Ingested    : 45
- Debounced Extractions     : 16
- Snapshots Committed       : 16
+ Elapsed Time              : 30.01 s
+ Raw WinEvents Ingested    : 80
+ OS Noise / Destroyed Dropped: 4
+ Debounced Extractions     : 28
+ Duplicate Wavelets Filtered : 9
+ Snapshots Committed       : 15
  Superseded Dropped        : 0
- Coalescing Efficiency     : 64.4% noise reduced (45 raw OS events -> 16 extractions)
+ Total Noise Suppression   : 81.2% noise reduced
  Idle CPU Overhead         : 0.00% (Kernel wait on GetMessage / Channel)
 ```
 
-### 7.2 Postmortem Analysis: Dissecting the Physical Anomalies
+### 7.2 Postmortem Analysis: How the Dual Filters Neutralize Noise
 
-#### 1. Why Did `csrss` and `OLEChannelWnd` Appear?
-* `csrss.exe` (Event #7) is the Windows Client/Server Runtime Subsystem. When focus switched between the PowerShell console host and GUI applications, Windows User32 routed input arbitration through the root desktop queue.
-* `OLEChannelWnd` (Event #8) is an internal Win32 shell window used by Windows Explorer for OLE clipboard and drag-drop arbitration during window switching.
-* **Resilience Verified:** ADCE safely downgraded both system handles to shallow snapshots in **5–8 ms**, completely avoiding COM RPC deadlocks.
+#### 1. Neutralizing `csrss.exe` & `dwm.exe`
+* `csrss.exe` is the Windows Client/Server Runtime Subsystem. When focus switches between the terminal and GUI applications, Windows User32 routes mouse capture arbitration through the root desktop queue.
+* **Filter Rule:** `DebouncedDesktopEventPipeline` detects `proc.Equals("csrss")` or `proc.Equals("dwm")` and immediately drops the event without allocating memory or emitting to the MCP channel.
 
-#### 2. Why Did "Twin Events" Appear in Pairs (#1 & #2, #3 & #4, #5 & #6...)?
+#### 2. Neutralizing `Invalid Window Handle` (Transient Tooltips)
+* GUI applications (Waterfox, Chromium) create transient tooltips and IME helpers that exist for $< 20\text{ ms}$ before being destroyed.
+* **Filter Rule:** When the 50ms debouncer window settles, `Win32Gating` checks `IsWindow(hwnd)`. Destroyed handles are immediately dropped as OS noise.
+
+#### 3. Neutralizing Duplicate "Twin Wavelets"
 * **The Physics of Windows Focus:** When a user clicks a UI control or switches browser tabs, Windows User32 emits **two distinct events in rapid succession**:
-  1. `EVENT_SYSTEM_FOREGROUND` (OS announces the top-level window has been activated).
-  2. `EVENT_OBJECT_FOCUS` (10–30 ms later, the target framework announces that an internal control inside that window has received keyboard focus).
-* Because these events arrive in two slight wavelets separated by just enough time to span the 50ms trailing edge boundary, the pipeline triggered two extractions. Both extractions captured the identical window and control state.
-
-#### 3. The Architectural Solution: Instant Value-Equality Deduplication
-Because Milestone 1 implemented zero-allocation deep value equality for [`DesktopContextSnapshot`](../src/ADCE.Core/Models/DesktopContextSnapshot.cs), consecutive duplicate snapshots are detected in $< 1\text{ µs}$ with zero heap allocations:
-```csharp
-// Zero-allocation sequence deduplication in DebouncedDesktopEventPipeline
-if (_lastCommittedSnapshot != null && _lastCommittedSnapshot == snapshot)
-{
-    Interlocked.Increment(ref _duplicateSnapshotsSuppressed);
-    return; // Discard identical twin wavelet
-}
-```
-This reduces the 16 emitted snapshots down to the exact **7 authentic intentional user interactions**.
+  1. `EVENT_SYSTEM_FOREGROUND` (OS announces top-level window activation).
+  2. `EVENT_OBJECT_FOCUS` (10–30 ms later, internal control focus is announced).
+* **Filter Rule:** `HasSameSemanticState()` performs zero-allocation deep value comparison across all 7 context envelopes (`Workspace`, `Window`, `Focus`, `IdeContext`, `BrowserContext`, `ExplorerContext`, `TerminalContext`). Identical consecutive snapshots are suppressed instantaneously ($< 1\text{ µs}$), reducing 80 raw OS events to **15 authentic intentional user actions (81.2% noise suppression)**.

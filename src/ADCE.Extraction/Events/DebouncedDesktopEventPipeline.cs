@@ -29,12 +29,15 @@ public sealed class DebouncedDesktopEventPipeline : IDisposable
     private long _currentEpoch;
     private int _isRunning;
     private bool _disposed;
+    private DesktopContextSnapshot? _lastCommittedSnapshot;
 
     // Metrics & Telemetry
     private long _rawEventsReceived;
     private long _debouncedExtractionsTriggered;
     private long _extractionsCommitted;
     private long _supersededExtractionsDropped;
+    private long _noiseEventsDropped;
+    private long _duplicateSnapshotsSuppressed;
 
     public DebouncedDesktopEventPipeline(
         ChannelReader<DesktopEventToken> inputReader,
@@ -62,6 +65,8 @@ public sealed class DebouncedDesktopEventPipeline : IDisposable
     public long DebouncedExtractionsTriggered => Interlocked.Read(ref _debouncedExtractionsTriggered);
     public long ExtractionsCommitted => Interlocked.Read(ref _extractionsCommitted);
     public long SupersededExtractionsDropped => Interlocked.Read(ref _supersededExtractionsDropped);
+    public long NoiseEventsDropped => Interlocked.Read(ref _noiseEventsDropped);
+    public long DuplicateSnapshotsSuppressed => Interlocked.Read(ref _duplicateSnapshotsSuppressed);
 
     public void Start()
     {
@@ -162,9 +167,28 @@ public sealed class DebouncedDesktopEventPipeline : IDisposable
         {
             var snapshot = await _extractor.ExtractSnapshotAsync(token.Hwnd, cancellationToken);
 
+            // Filter OS kernel subsystem arbitration and destroyed transient windows
+            if (snapshot.Window.Hwnd == nint.Zero ||
+                snapshot.Window.Title.Equals("Invalid Window Handle", StringComparison.OrdinalIgnoreCase) ||
+                snapshot.Window.ProcessName.Equals("csrss", StringComparison.OrdinalIgnoreCase) ||
+                snapshot.Window.ProcessName.Equals("dwm", StringComparison.OrdinalIgnoreCase) ||
+                snapshot.Window.ClassName.Equals("OLEChannelWnd", StringComparison.OrdinalIgnoreCase))
+            {
+                Interlocked.Increment(ref _noiseEventsDropped);
+                return;
+            }
+
             // Commit to output channel ONLY if no newer event arrived while UIA was extracting
             if (Interlocked.Read(ref _currentEpoch) == epoch)
             {
+                // Value-Equality Deduplication: Drop redundant twin-wavelet events (e.g. Foreground + Focus pairs)
+                if (_lastCommittedSnapshot != null && _lastCommittedSnapshot.HasSameSemanticState(snapshot))
+                {
+                    Interlocked.Increment(ref _duplicateSnapshotsSuppressed);
+                    return;
+                }
+
+                _lastCommittedSnapshot = snapshot;
                 _outputChannel.Writer.TryWrite(snapshot);
                 Interlocked.Increment(ref _extractionsCommitted);
             }
