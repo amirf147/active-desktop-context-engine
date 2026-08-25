@@ -136,11 +136,14 @@ The repository solution (`ADCE.slnx`) is organized into 5 decoupled projects wit
 │ • [Verification]: 94/94 Unit tests passing; live & mock suite verifying 6/6 claims in < 860 ms.│
 │ • [Documentation]: docs/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_4_5.md & LATEST_CLAIM_VERIFICATION.md. │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
-│ Milestone 5: Model Context Protocol Server (ADCE.Mcp) [CURRENT]                        │
-│ • Implement MCP JSON-RPC 2.0 server over Stdio and SSE.                                │
-│ • [Verification]: Test with MCP Inspector / Claude Desktop configuration.              │
+│ Milestone 5: Model Context Protocol Server (ADCE.Mcp) [COMPLETE]                       │
+│ • Implement MCP JSON-RPC 2.0 server over Stdio and HTTP/SSE.                           │
+│ • Eliminate 4 stream/spec traps (content vs contents, BOM, polymorphic ID, clean EOF).│
+│ • Expose get_desktop_context, search_desktop_history, desktop://current, desktop://history.│
+│ • [Verification]: 112/112 Unit tests passing; live spike verifying all 5 ops in < 90 ms. │
+│ • [Documentation]: docs/ADCE_MCP_DEEP_DIVE.md architecture and protocol specification. │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
-│ Milestone 6: System Tray Background Daemon (ADCE.Daemon)                               │
+│ Milestone 6: System Tray Background Daemon (ADCE.Daemon) [CURRENT]                     │
 │ • Assemble all libraries into a silent Windows system tray application.                │
 │ • [Verification]: End-to-end background execution with system tray controls.           │
 └────────────────────────────────────────────────────────────────────────────────────────┘

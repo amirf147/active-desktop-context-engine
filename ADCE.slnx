@@ -3,11 +3,13 @@
     <Project Path="src/ADCE.Core/ADCE.Core.csproj" />
     <Project Path="src/ADCE.Extraction/ADCE.Extraction.csproj" />
     <Project Path="src/ADCE.Storage/ADCE.Storage.csproj" />
+    <Project Path="src/ADCE.Mcp/ADCE.Mcp.csproj" />
     <Project Path="src/ADCE.Spikes/ADCE.Spikes.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/ADCE.Core.Tests/ADCE.Core.Tests.csproj" />
     <Project Path="tests/ADCE.Extraction.Tests/ADCE.Extraction.Tests.csproj" />
     <Project Path="tests/ADCE.Storage.Tests/ADCE.Storage.Tests.csproj" />
+    <Project Path="tests/ADCE.Mcp.Tests/ADCE.Mcp.Tests.csproj" />
   </Folder>
 </Solution>
