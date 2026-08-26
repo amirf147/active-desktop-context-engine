@@ -17,6 +17,7 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 IGNORED_DIRS = {
     ".git",
     ".vs",
+    ".vscode",
     "bin",
     "obj",
     "node_modules",
