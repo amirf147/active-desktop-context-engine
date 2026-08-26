@@ -47,30 +47,34 @@ ADCE was designed to bridge low-level Windows accessibility infrastructure with 
 
 ---
 
-## 4. Architecture: The Dual-Engine Model
+## 4. Architecture: Production Layered Model
 
-Synthesized from research across the **Roman Baeriswyl (`Roemer` / FlaUI)** and **Simon Mourier (`smourier`)** ecosystems:
+ADCE is structured as a high-performance, unidirectional 4-tier pipeline designed for minimal resource overhead and zero cross-apartment COM deadlocks:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                                ADCE DUAL-ENGINE ARCHITECTURE                           │
+│                              ADCE PRODUCTION ARCHITECTURE                              │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
-│  INFRASTRUCTURE & HOST PLANE (Leveraging Simon Mourier Patterns)                       │
-│  ├── Win32 Shallow Filter: Fast HWND, process & WS/WS_EX bitmask gating                │
-│  ├── Concurrency Plane: Dedicated MTA SingleThreadTaskScheduler queue (No STA locks)   │
-│  ├── Daemon Host & IPC: RegfreeNetComServer / NativeAOT COM Endpoint                   │
-│  └── Telemetry & Diagnostics: TraceSpy ETW event provider for low-overhead metrics      │
+│  1. OS EVENT HOOK PLANE (Win32 Low-Level Event Hooks)                                  │
+│  ├── SetWinEventHook listeners (EVENT_SYSTEM_FOREGROUND, EVENT_OBJECT_FOCUS)           │
+│  └── Dedicated STA Message Pump Thread with Barrier Synchronization                     │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
-│  EXECUTION & CONTEXT EXTRACTION PLANE (Leveraging Roman Baeriswyl / FlaUI Patterns)    │
-│  ├── UIA Automation Engine: FlaUI.UIA3 (Direct UIAutomationClient vtable interop)      │
-│  ├── Batch Context Extraction: FlaUI.Core CacheRequest DSL for multi-tab batching      │
-│  ├── Strongly-Typed Multi-Zone Parsing: 40+ typed controls (Tab, Edit, Text, Grid)     │
-│  └── Asynchronous Retry Resilience: Retry.WhileNull for lazy Chromium/Monaco buffers   │
+│  2. CONCURRENCY & EXTRACTION PLANE (FlaUI.UIA3 + Win32 Gating)                         │
+│  ├── Win32 Shallow Filter (< 0.5 ms): Fast HWND, process & WS/WS_EX bitmask pre-gating │
+│  ├── Async Channel Debouncer: 50ms trailing-edge window with 250ms burst delay clamp   │
+│  ├── Monotonic Epoch Guard: Supersedes stale in-flight extractions                     │
+│  ├── Scoped CacheRequest Batching: Single-roundtrip FlaUI.UIA3 COM queries (< 15 ms)   │
+│  ├── Ancestor Chain Climber: Resolves leaf controls to typed DesktopSemanticZones      │
+│  └── Privacy Sanitizer: Redacts passwords, secret files, and address bar tokens        │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
-│  PERSISTENCE & MODEL CONTEXT PROTOCOL (MCP) INTERFACE                                  │
-│  ├── In-Memory Semantic Context Graph: Pre-cached live query responses                 │
-│  ├── Embedded Time-Series Store: SQLite WAL for focus and tab history                  │
-│  └── MCP Server Endpoint (Stdio / SSE / HTTP): Universal agent & Caster integration    │
+│  3. PERSISTENCE & STORAGE PLANE (Dual-Tier In-Memory + SQLite WAL)                     │
+│  ├── L1 In-Memory Atomic Cache: Lock-free instant query reads (< 15 ns)                │
+│  └── L2 Time-Series WAL Store: Channel-decoupled asynchronous SQLite persistence       │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│  4. HOST DAEMON & CONSUMER INTERFACES (Tray Daemon & Model Context Protocol)           │
+│  ├── System Tray Background Daemon: PerMonitorV2 DPI aware with dynamic status icon    │
+│  ├── Non-Activating Live DevTools HUD: Floating diagnostic overlay (WS_EX_NOACTIVATE)  │
+│  └── Model Context Protocol (MCP) Server: Universal JSON-RPC 2.0 (Stdio & HTTP/SSE)    │
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -121,22 +125,41 @@ ADCE functions as both a production codebase and an evolving research ledger tra
 
 ---
 
-## 6. Engineering Roadmap & Phase Status
+## 6. Engineering Roadmap & Milestone Status
 
-Following our **4-Gate Epistemic Protocol**:
+Following our **4-Gate Epistemic Protocol**, ADCE engineering is structured across clear progressive phases:
 
-| Phase | Description | Status | Deliverables & Artifacts |
+| Phase / Milestone | Description | Status | Deliverables & Artifacts |
 | :--- | :--- | :--- | :--- |
-| **Phase 1: Physical Observation & Problem Isolation** | Identify DOM traversal traps and latency bottlenecks across real-world apps. | `[x]` Complete | • [Doc 010: DOM Traversal Telemetry](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/010_telemetry_benchmarks_and_live_findings.md)<br/>• Exposed 6,800-node DOM COM stall. |
-| **Phase 2: Adversarial Evaluation & Micro-Spikes** | Gate 2 & Gate 3 empirical tests validating container targeting and Win32 gating. | `[x]` Complete | • [Micro-Spike 1 Telemetry (FlaUI UIA3)](docs/benchmarks/001_micro_spike_1_flaui_telemetry.md)<br/>• [Micro-Spike 2 Telemetry (Win32 Shallow)](docs/benchmarks/002_micro_spike_2_python_shallow_telemetry.md) |
-| **Phase 3: Ecosystem Audit & Wheel Reinvention** | Deep-dive audits of leading open-source Windows/COM/UIA tooling catalogs. | `[x]` Complete | • [Simon Mourier Ecosystem Suite](docs/external_research/README.md)<br/>• [Roman Baeriswyl (Roemer / FlaUI) Deep Dive](docs/external_research/FlaUI_And_Roemer_Ecosystem.md)<br/>• [Synthesis & Wheel Reinvention Audit](docs/external_research/SYNTHESIS_AND_WHEEL_REINVENTION_AUDIT.md) |
-| **Phase 4: Architectural Specifications & SSOT** | Formalize ground-truth target zones, heuristic discovery archetypes, and MCP schemas. | `[x]` Complete | • [UI Automation SSOT Reference](docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md)<br/>• [Dynamic Discovery & Requirements Spec](docs/architecture/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md)<br/>• [MCP JSON Schema Specification](docs/architecture/MCP_SCHEMA_SPEC.md) |
-| **Phase 5: Production Daemon Implementation** | Build modular multi-project solution (`ADCE.slnx`), event pipeline, storage, and MCP server. | `[x]` Complete | • **Milestone 1:** `ADCE.Core` domain models, events, serialization & unit tests (`[x]` Complete)<br/>• **Milestone 2:** `ADCE.Extraction` standalone context grabber (`[x]` Complete)<br/>• **Milestone 3:** Low-overhead event pipeline (`SetWinEventHook` + channel debouncer) (`[x]` Complete)<br/>• **Milestone 4:** SQLite WAL store & in-memory live cache (`[x]` Complete)<br/>• **Milestone 4.5:** Ground-Truth Stimulus Test Harness (`[x]` Complete)<br/>• **Milestone 5:** High-Performance MCP Server (Stdio & SSE/HTTP) (`[x]` Complete)<br/>• **Milestone 6:** Windows System Tray Daemon & Live DevTools HUD (`[x]` Complete) |
-| **Phase 6: Voice, Agent & Advanced Context Primitives** | Connect Caster Dragonfly grammars, local AI assistants, and advanced accessibility primitives to the live MCP endpoint. | `[ ]` Planned | • Caster & Dragonfly voice grammar bindings<br/>• Live context streaming to Antigravity / Claude<br/>• Text selection & caret offset extraction (`TextPattern`)<br/>• Opt-in full document & editor buffer extraction<br/>• Multi-tier configurable privacy depth levels |
+| **Phase 1: Physical Observation** | Identify DOM traversal traps and latency bottlenecks across real-world apps. | `[x]` Complete | • [Doc 010: DOM Traversal Telemetry](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/010_telemetry_benchmarks_and_live_findings.md)<br/>• Exposed 6,800-node DOM COM stall. |
+| **Phase 2: Adversarial Evaluation & Spikes** | Gate 2 & Gate 3 empirical tests validating container targeting and Win32 gating. | `[x]` Complete | • [Micro-Spike 1 Telemetry (FlaUI UIA3)](docs/benchmarks/001_micro_spike_1_flaui_telemetry.md)<br/>• [Micro-Spike 2 Telemetry (Win32 Shallow)](docs/benchmarks/002_micro_spike_2_python_shallow_telemetry.md) |
+| **Phase 3: Ecosystem Audit & Synthesis** | Deep-dive audits of leading open-source Windows/COM/UIA tooling catalogs. | `[x]` Complete | • [Simon Mourier Ecosystem Suite](docs/external_research/README.md)<br/>• [Roman Baeriswyl (Roemer / FlaUI) Deep Dive](docs/external_research/FlaUI_And_Roemer_Ecosystem.md)<br/>• [Synthesis & Wheel Reinvention Audit](docs/external_research/SYNTHESIS_AND_WHEEL_REINVENTION_AUDIT.md) |
+| **Phase 4: Architectural Specs & SSOT** | Formalize ground-truth target zones, heuristic discovery archetypes, and MCP schemas. | `[x]` Complete | • [UI Automation SSOT Reference](docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md)<br/>• [Dynamic Discovery & Requirements Spec](docs/architecture/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md)<br/>• [MCP JSON Schema Specification](docs/architecture/MCP_SCHEMA_SPEC.md) |
+| **Phase 5: Production Daemon Suite** | Build modular multi-project solution (`ADCE.slnx`), event pipeline, storage, and MCP server. | `[x]` Complete | • **Milestone 1:** `ADCE.Core` domain models, events & serialization (`[x]` Complete)<br/>• **Milestone 2:** `ADCE.Extraction` standalone context grabber (`[x]` Complete)<br/>• **Milestone 3:** Low-overhead event pipeline (`SetWinEventHook` + channel debouncer) (`[x]` Complete)<br/>• **Milestone 4:** SQLite WAL store & in-memory live cache (`[x]` Complete)<br/>• **Milestone 4.5:** Ground-Truth Stimulus Test Harness (`[x]` Complete)<br/>• **Milestone 5:** High-Performance MCP Server (Stdio & SSE/HTTP) (`[x]` Complete)<br/>• **Milestone 6:** Windows System Tray Daemon & Live DevTools HUD (`[x]` Complete) |
+| **Phase 6: Self-Healing & Hardening (Milestone 7)** | Externalize app definitions and implement unmapped control logging for AI self-labeling. | `[ ]` Active | • **WP 7.1:** Known Limitations & Technical Gaps specification (`[x]` Complete)<br/>• **WP 7.2:** Declarative App Definitions Engine (`app_definitions.json`) (`[ ]` Scheduled)<br/>• **WP 7.3:** Self-Healing Telemetry Logger for unmapped `[Unknown]` subtrees (`[ ]` Scheduled)<br/>• **WP 7.4:** Epistemic Hierarchy & Documentation Harmonization (`[x]` Complete) |
+| **Phase 7: Advanced Context Primitives (Milestone 8)** | Extract text selections, caret offsets, and on-demand full document buffers. | `[ ]` Scheduled | • **WP 8.1:** Caret position & active text selection extraction (`TextPattern`)<br/>• **WP 8.2:** Opt-in full document & editor buffer extraction (`get_document_text`)<br/>• **WP 8.3:** Multi-tier configurable privacy depth levels |
+| **Phase 8: External Voice & Agent Bindings (Milestone 9)** | Connect Caster Dragonfly grammars and local AI assistants to live MCP streaming endpoints. | `[ ]` Deferred | • **WP 9.1:** Caster / Dragonfly dynamic voice grammar bindings<br/>• **WP 9.2:** Local AI coding assistant dynamic prompt injection loops |
 
 ---
 
-## 7. Technology Stack
+## 7. Known Limitations & Technical Gaps
+
+Transparency regarding physical OS boundaries and framework constraints is a foundational tenet of ADCE:
+
+1. **Custom Canvas & Non-Accessible Toolkits:**
+   Applications built using pure immediate-mode custom graphics engines (e.g. Flutter, raw WebGL/HTML5 canvas, legacy Java AWT, Blender, Figma) do not construct standard Windows UI Automation trees unless explicitly run with accessibility flags enabled by the vendor. For these applications, ADCE accurately captures the top-level window envelope, process identity, and bounding coordinates, but falls back to `DesktopSemanticZone.Unknown` for intra-canvas sub-widgets.
+2. **Chromium AXTree Asynchronous IPC Latency:**
+   Unlike native Win32/WinUI controls whose vtables live in local memory ($\approx 1\text{–}5\text{ ms}$ response), Chromium/Electron applications marshal accessibility nodes on an asynchronous internal thread (`AXTree`). Deep queries across large Electron DOMs incur physical cross-process IPC delays ($\approx 40\text{–}75\text{ ms}$). ADCE compensates for this via 50ms trailing-edge debouncing and scoped container bounding box pruning.
+3. **Virtualized UI Element Trees:**
+   Modern controls utilizing virtualization (e.g. large file lists, virtualized tables, or long chat message streams) only instantiate UIA nodes for elements currently visible in the viewport. ADCE cannot inspect items that have been virtualized out of the active visual subtree without programmatic scrolling.
+4. **Single Global OS Keyboard Focus Pointer:**
+   Windows maintains a single global keyboard focus point at the OS level (`GetFocus` / `GetGUIThreadInfo`). When the user shifts focus between multiple non-foreground windows, background windows reflect their last-known captured state until brought to the foreground.
+5. **UIA3 vs. UIA2 Driver Boundary:**
+   ADCE runs exclusively on `FlaUI.UIA3` over native Windows `UIAutomationCore.dll` (vtable COM). It does not maintain backwards compatibility shims for legacy `UIA2` (`UIAutomationClient.dll` / MSAA wrappers), as UIA2 lacks batch `CacheRequest` support and suffers from high cross-apartment STA marshalling overhead.
+
+---
+
+## 8. Technology Stack
 
 * **Language & Framework:** C# 14 / .NET 10 (LTS) (`net10.0-windows`)
 * **UI Automation Engine:** [FlaUI.UIA3](https://github.com/FlaUI/FlaUI) (v5.0.0+) over native `UIAutomationCore.dll`
@@ -147,7 +170,7 @@ Following our **4-Gate Epistemic Protocol**:
 
 ---
 
-## 8. Building & Running
+## 9. Building & Running
 
 ### Running the System Tray Daemon & Live HUD
 ```powershell
@@ -185,8 +208,17 @@ dotnet run --project src/ADCE.Spikes -- --events -d 15
 dotnet run --project src/ADCE.Spikes -- --grab
 ```
 
+## 10. Acknowledgments & Research Lineage
+
+ADCE's technical architecture is informed by foundational research across the Windows systems and accessibility ecosystems:
+
+* **[FlaUI](https://github.com/FlaUI/FlaUI)** by **Roman Baeriswyl (`Roemer`)** (MIT License): Powers ADCE's high-throughput UIA3 COM vtable automation and `CacheRequest` batch extraction.
+* **Microsoft.Data.Sqlite** (MIT License) & **[SQLitePCLRaw](https://github.com/ericsink/SQLitePCL.raw)** by **Eric Sink** (Apache-2.0): Powers ADCE's embedded time-series state persistence.
+* **[Simon Mourier (`smourier`)](https://github.com/smourier)**: Open-source systems tools (`HwndExplorer`, `UInspect`) audited during exploratory research for low-overhead Win32 filtering techniques.
+* **[Caster Upstream Lineage](https://github.com/amirf147/caster-user-directory-and-notes/tree/master/docs/accessibility_mcp)**: Research documents 001–018 detailing the initial DOM traversal benchmarks and epistemic protocols that originated this engine.
+
 ---
 
-## 9. License
+## 11. License
 
 Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for details.

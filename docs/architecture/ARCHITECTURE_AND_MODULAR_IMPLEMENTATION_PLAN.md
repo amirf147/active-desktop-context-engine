@@ -148,8 +148,29 @@ The repository solution (`ADCE.slnx`) is organized into 5 decoupled projects wit
 │ • Implement TrayApplicationContext, single-instance mutex, and dynamic IconFactory.    │
 │ • Eliminate 4 systems traps (GDI leak, mutex collision, WinExe CLI attach, port align).│
 │ • Expose CLI options (--stdio, --sse, --port, --no-tray, --db-path, --status, --help).  │
-│ • [Verification]: 130/130 Unit tests passing; live spike verifying full daemon E2E.    │
-│ • [Documentation]: docs/ADCE_DAEMON_DEEP_DIVE.md & LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_6.md. │
+│ • [Verification]: 136/136 Unit tests passing; live spike verifying full daemon E2E.    │
+│ • [Documentation]: docs/deep_dives/ADCE_DAEMON_DEEP_DIVE.md & LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_6.md. │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ Milestone 7: Self-Healing Discovery & Known Limitations Hardening [ACTIVE]             │
+│ • Document Master README Known Limitations & Technical Gaps (UIA3 vs UIA2, AXTree IPC).│
+│ • Implement Declarative App Definitions Engine (app_definitions.json hot-reloader).    │
+│ • Implement Self-Healing Telemetry Logger for unmapped [Unknown] control subtrees.     │
+│ • Establish Epistemic Document Hierarchy and Master Work Schedule across documentation.│
+│ • [Verification]: Unit tests for app_definitions schema + telemetry logging validation.│
+│ • [Documentation]: README.md Limitations section & CONTEXT.md SSOT hierarchy index.   │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ Milestone 8: Advanced Context Primitives & Deep Inspection [UPCOMING]                  │
+│ • Extract Caret Position, offsets & Active Text Selection via TextPattern.             │
+│ • Implement on-demand full document extraction MCP tool (get_document_text, 64KB cap). │
+│ • Implement Multi-Tier Configurable Privacy Policy Engine (Metadata / Topology / Deep).│
+│ • [Verification]: Unit tests for TextPattern offsets, privacy bounds, and truncation.  │
+│ • [Documentation]: docs/deep_dives/ADCE_EXTRACTION_DEEP_DIVE.md update & schema spec.  │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ Milestone 9: Voice Grammars & Agentic Prompt Loops (DEFERRED)                          │
+│ • Connect Caster / Dragonfly dynamic voice grammar activation rules over live MCP/IPC. │
+│ • Connect local AI coding assistant real-time prompt streaming (Antigravity/Claude).   │
+│ • [Verification]: E2E voice activation and live agent prompt response verification.    │
+│ • [Documentation]: Integration guide and user tutorial.                                │
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 

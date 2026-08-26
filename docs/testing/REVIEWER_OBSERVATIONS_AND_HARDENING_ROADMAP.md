@@ -21,9 +21,9 @@ These items do not block Milestone 3 completion (which passed all telemetry and 
 | **1** | **`DesktopSemanticZone` Defaulting to `[Unknown]`** | Medium | **Milestone 2 Polish / WP 2.4** | 2-level parent-chain climbing and container class name matching | `[x]` **Complete (Milestone 4)** |
 | **2** | **Debounce Starvation During Sustained Typing** | Medium | **Milestone 3 Polish / WP 3.4** | Trailing-edge timer with forced maximum delay clamp (250ms) | `[x]` **Complete (Milestone 4)** |
 | **3** | **Chromium/Electron Latency Reality (41–75 ms)** | Low (Doc) | **System Architecture & SLA Spec** | Document realistic SLAs (< 25ms Native/Gecko, < 80ms Electron) | `[x]` **Documented** |
-| **4** | **Per-Monitor V2 DPI Virtualization Traps** | High | **Milestone 5–6 / WP 5.1 (Host Daemon)** | Embed `app.manifest` enabling `<dpiAwareness>PerMonitorV2</dpiAwareness>` | `[ ]` Scheduled |
-| **5** | **Dynamic Discovery vs. Hardcoded Zone Rules** | Low (Arch) | **Milestone 5–6 (MCP / Self-Labeling AI)** | 3-Tier Model: Control Types + Framework Archetypes + AI Context Classifier | `[x]` **Documented in SSOT** |
-| **6** | **Browser Tab Sidebar vs. IDE Explorer Ambiguity** | Medium | **Milestone 5 Polish / WP 2.5** | Scope `SidebarExplorer` to IDE/Shell archetypes; classify browser sidebars as `TabBar` / `DocumentContent` | `[ ]` Scheduled |
+| **4** | **Per-Monitor V2 DPI Virtualization Traps** | High | **Milestone 5–6 / WP 5.1 (Host Daemon)** | Embed `app.manifest` enabling `<dpiAwareness>PerMonitorV2</dpiAwareness>` | `[x]` **Complete (Milestone 6)** |
+| **5** | **Dynamic Discovery vs. Hardcoded Zone Rules** | Low (Arch) | **Milestone 7 (Declarative & AI Labeling)** | 3-Tier Model + `app_definitions.json` + `[Unknown]` Telemetry Logger | `[x]` **Scheduled (Milestone 7)** |
+| **6** | **Browser Tab Sidebar vs. IDE Explorer Ambiguity** | Medium | **Milestone 4.5 / WP 2.5** | Scope `SidebarExplorer` to IDE/Shell archetypes; classify browser sidebars as `TabBar` / `DocumentContent` | `[x]` **Complete (Milestone 4.5)** |
 
 ---
 
@@ -170,7 +170,7 @@ All items are formally scheduled and documented in the repository's permanent te
 
 ---
 
-## 7. Advanced Context Primitives & Privacy Tiers (Future Roadmap)
+## 7. Advanced Context Primitives & Privacy Tiers (Milestone 8 Specification)
 
 ### 7.1 Item 7: Caret Position & Active Text Selection Extraction
 * **The Need:** Speech recognition dictation engines (Caster, Dragonfly, Talon) and AI editing agents need to know what text is currently selected or where the user's cursor is positioned within an editor or document buffer.
