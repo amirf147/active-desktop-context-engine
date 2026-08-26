@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <!-- Copyright (c) 2024-2026 Amir Farhadi -->
 
-[ 🏠 ADCE Home ](../README.md) › [ 📚 Documentation Hub ](CONTEXT.md) › [ 🎯 ADCE.Extraction Deep-Dive ](ADCE_EXTRACTION_DEEP_DIVE.md) › **Milestone 2 Postmortem & Edge-Case Engineering Analysis**
+[ 🏠 ADCE Home ](../../README.md) › [ 📚 Documentation Hub ](../CONTEXT.md) › [ 🎯 ADCE.Extraction Deep-Dive ](../deep_dives/ADCE_EXTRACTION_DEEP_DIVE.md) › **Milestone 2 Postmortem & Edge-Case Engineering Analysis**
 
 ---
 
@@ -9,7 +9,7 @@
 
 > **Target Scope:** `ADCE.Extraction` Live Spike & UI Automation Physics
 > **Topic:** Dissecting the "Empty Snapshot" Failure, Win32 Desktop Sessions, Compound Class Name Matching, and Architectural Hardening
-> **Related Docs:** [`docs/ADCE_EXTRACTION_DEEP_DIVE.md`](ADCE_EXTRACTION_DEEP_DIVE.md) | [`docs/UI_AUTOMATION_STRUCTURES_REFERENCE.md`](UI_AUTOMATION_STRUCTURES_REFERENCE.md)
+> **Related Docs:** [`docs/ADCE_EXTRACTION_DEEP_DIVE.md`](../deep_dives/ADCE_EXTRACTION_DEEP_DIVE.md) | [`docs/UI_AUTOMATION_STRUCTURES_REFERENCE.md`](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md)
 
 ---
 
@@ -90,7 +90,7 @@ By adding this to `Program.cs` and adding candidate window enumeration when `Get
 ### Failure Domain 2: UIA `ByClassName` Exact String Matching Traps
 
 #### What Failed?
-In our initial implementation of [`MonacoIdeExtractor.cs`](../src/ADCE.Extraction/Extractors/MonacoIdeExtractor.cs), we searched for the tab container using:
+In our initial implementation of [`MonacoIdeExtractor.cs`](../../src/ADCE.Extraction/Extractors/MonacoIdeExtractor.cs), we searched for the tab container using:
 ```csharp
 // FAILS on compound CSS/UIA class names
 var tabContainer = windowElement.FindFirstDescendant(cf.ByClassName("tabs-container"));
@@ -122,14 +122,14 @@ if (tabElements.Length == 0)
 }
 ```
 
-This pattern was replicated in [`GeckoBrowserExtractor.cs`](../src/ADCE.Extraction/Extractors/GeckoBrowserExtractor.cs) for Waterfox/Firefox tabstrips (`tabs normal` vs. `tabbrowser-tabs`).
+This pattern was replicated in [`GeckoBrowserExtractor.cs`](../../src/ADCE.Extraction/Extractors/GeckoBrowserExtractor.cs) for Waterfox/Firefox tabstrips (`tabs normal` vs. `tabbrowser-tabs`).
 
 ---
 
 ### Failure Domain 3: Process Name Exact Equality vs. Executable Basenames
 
 #### What Failed?
-In [`UiaExtractionEngine.cs`](../src/ADCE.Extraction/Engine/UiaExtractionEngine.cs), we routed archetypes with:
+In [`UiaExtractionEngine.cs`](../../src/ADCE.Extraction/Engine/UiaExtractionEngine.cs), we routed archetypes with:
 ```csharp
 // FAILS: processName in Windows is "Antigravity IDE"
 if (processName.Equals("Antigravity", StringComparison.OrdinalIgnoreCase))

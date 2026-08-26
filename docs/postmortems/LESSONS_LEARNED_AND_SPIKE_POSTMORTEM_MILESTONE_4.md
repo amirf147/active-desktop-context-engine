@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <!-- Copyright (c) 2024-2026 Amir Farhadi -->
 
-[ 🏠 ADCE Home ](../README.md) › [ 📚 Documentation Hub ](CONTEXT.md) › **Milestone 4 Engineering Postmortem & Systems Analysis**
+[ 🏠 ADCE Home ](../../README.md) › [ 📚 Documentation Hub ](../CONTEXT.md) › **Milestone 4 Engineering Postmortem & Systems Analysis**
 
 ---
 
@@ -10,7 +10,7 @@
 > **Target Systems:** `ADCE.Extraction`, `ADCE.Storage`, `ADCE.Spikes` (.NET 10 / C# 14)
 > **Date:** August 2026
 > **Physical Verification Focus:** Multi-Window Focus Transitions, Child HWNDs in Electron, Global UIA Focus Bleeding, and Archetype-Scoped Classification.
-> **Parent Documents:** [`docs/ADCE_STORAGE_DEEP_DIVE.md`](ADCE_STORAGE_DEEP_DIVE.md) | [`docs/REVIEWER_OBSERVATIONS_AND_HARDENING_ROADMAP.md`](REVIEWER_OBSERVATIONS_AND_HARDENING_ROADMAP.md)
+> **Parent Documents:** [`docs/ADCE_STORAGE_DEEP_DIVE.md`](../deep_dives/ADCE_STORAGE_DEEP_DIVE.md) | [`docs/REVIEWER_OBSERVATIONS_AND_HARDENING_ROADMAP.md`](../testing/REVIEWER_OBSERVATIONS_AND_HARDENING_ROADMAP.md)
 
 ---
 

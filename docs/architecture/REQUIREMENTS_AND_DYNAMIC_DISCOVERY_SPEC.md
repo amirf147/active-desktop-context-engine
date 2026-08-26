@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <!-- Copyright (c) 2024-2026 Amir Farhadi -->
 
-[ 🏠 ADCE Home ](../README.md) › [ 📚 Documentation Hub ](CONTEXT.md) › **Epistemic Gaps, Dynamic App Discovery & Engine Requirements**
+[ 🏠 ADCE Home ](../../README.md) › [ 📚 Documentation Hub ](../CONTEXT.md) › **Epistemic Gaps, Dynamic App Discovery & Engine Requirements**
 
 ---
 
@@ -10,7 +10,7 @@
 > **Document Status:** Active / Epistemic Review & Product Requirements Specification
 > **Target System:** Active Desktop Context Engine (ADCE)
 > **Repository Boundary:** Final research handover document bridging `caster` and `active-desktop-context-engine`
-> **Related Documents:** [015: Epistemic Recalibration](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/015_recalibration_and_adversarial_architecture_review.md) | [016: Micro-Spike 2 Telemetry](benchmarks/002_micro_spike_2_python_shallow_telemetry.md) | [017: UI Automation SSOT](UI_AUTOMATION_STRUCTURES_REFERENCE.md)
+> **Related Documents:** [015: Epistemic Recalibration](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/015_recalibration_and_adversarial_architecture_review.md) | [016: Micro-Spike 2 Telemetry](../benchmarks/002_micro_spike_2_python_shallow_telemetry.md) | [017: UI Automation SSOT](UI_AUTOMATION_STRUCTURES_REFERENCE.md)
 
 ---
 
@@ -123,5 +123,5 @@ To enable temporal context (*"What did I edit 20 minutes ago?"*), ADCE requires 
 
 With research phases (Docs `001`–`018`) and Gate 3 empirical micro-spikes completed in Caster, the active engineering focus officially transfers to the dedicated standalone repository:
 
-* 🚀 **Active Engineering Repository:** [active-desktop-context-engine](../README.md)
+* 🚀 **Active Engineering Repository:** [active-desktop-context-engine](../../README.md)
 * **Caster Repository Role:** Serves as the upstream research archive and production consumer of the ADCE MCP server.

@@ -100,7 +100,7 @@ Windows Virtual Desktop COM interfaces (`IVirtualDesktopManagerInternal`, `IVirt
 
 2. **Unified Role Taxonomy:**
    - Touchpoint defines a clean, cross-platform `Role` enum (e.g. `Role.BUTTON`, `Role.TAB_LIST`, `Role.TAB`, `Role.TEXT_FIELD`).
-   - **ADCE Adoption:** We adopt a similar clean role mapping in [`docs/MCP_SCHEMA_SPEC.md`](../MCP_SCHEMA_SPEC.md) so LLMs receive standardized control classifications rather than raw Win32 integer IDs.
+   - **ADCE Adoption:** We adopt a similar clean role mapping in [`docs/MCP_SCHEMA_SPEC.md`](../architecture/MCP_SCHEMA_SPEC.md) so LLMs receive standardized control classifications rather than raw Win32 integer IDs.
 
 3. **Tool Design & Filtering:**
    - Touchpoint provides `elements(scope="window", app="Code")` and `find("Save")`.

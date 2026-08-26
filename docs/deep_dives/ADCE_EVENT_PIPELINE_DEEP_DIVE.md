@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <!-- Copyright (c) 2024-2026 Amir Farhadi -->
 
-[ 🏠 ADCE Home ](../README.md) › [ 📚 Documentation Hub ](CONTEXT.md) › **ADCE Event Pipeline Deep-Dive & Architecture Reference**
+[ 🏠 ADCE Home ](../../README.md) › [ 📚 Documentation Hub ](../CONTEXT.md) › **ADCE Event Pipeline Deep-Dive & Architecture Reference**
 
 ---
 
@@ -9,7 +9,7 @@
 
 > **Target Component:** `ADCE.Extraction.Events` & `ADCE.Core.Events` (.NET 10 / C# 14)
 > **Core Purpose:** Capture OS foreground transitions (`EVENT_SYSTEM_FOREGROUND`), keyboard/UI focus transitions (`EVENT_OBJECT_FOCUS`), and virtual desktop switches with 0.00% idle CPU and $< 15\text{ ms}$ response, piping them through a high-performance debouncing channel pipeline into the extraction engine.
-> **Parent Context:** [`docs/CONTEXT.md`](CONTEXT.md) | [`docs/ADCE_EXTRACTION_DEEP_DIVE.md`](ADCE_EXTRACTION_DEEP_DIVE.md) | [`docs/HOSTILE_ARCHITECTURE_REVIEW.md`](HOSTILE_ARCHITECTURE_REVIEW.md)
+> **Parent Context:** [`docs/CONTEXT.md`](../CONTEXT.md) | [`docs/ADCE_EXTRACTION_DEEP_DIVE.md`](ADCE_EXTRACTION_DEEP_DIVE.md) | [`docs/HOSTILE_ARCHITECTURE_REVIEW.md`](../architecture/HOSTILE_ARCHITECTURE_REVIEW.md)
 
 ---
 
@@ -197,9 +197,9 @@ Duration  : 3 seconds (Listening for foreground/focus transitions)
 
 | Test Suite | File | Tests | Scenarios Verified |
 | :--- | :--- | :--- | :--- |
-| **Hook Lifecycle** | [`WinEventHookTests.cs`](../tests/ADCE.Extraction.Tests/WinEventHookTests.cs) | 5 | • Start/Stop transitions `IsRunning`<br/>• Multiple `Start()` calls are idempotent<br/>• Multiple `Stop()` calls are idempotent<br/>• `Dispose()` closes `EventReader`<br/>• `Start()` after `Dispose()` throws `ObjectDisposedException` |
-| **Debounced Pipeline** | [`DebouncedDesktopEventPipelineTests.cs`](../tests/ADCE.Extraction.Tests/DebouncedDesktopEventPipelineTests.cs) | 5 | • 10 burst events within 5ms coalesce into 1 single extraction<br/>• Monotonic epoch supersession drops slow stale extractions<br/>• Zero-allocation duplicate suppression via `HasSameSemanticState`<br/>• OS subsystem noise and destroyed windows dropped<br/>• `StopAsync()` cleanly completes output channel |
-| **Workspace Manager** | [`WindowsWorkspaceManagerTests.cs`](../tests/ADCE.Extraction.Tests/WindowsWorkspaceManagerTests.cs) | 3 | • Returns valid `WorkspaceEnvelope`<br/>• Resolves physical monitor bounds ($> 0$ width/height)<br/>• Handles `nint.Zero` gracefully |
+| **Hook Lifecycle** | [`WinEventHookTests.cs`](../../tests/ADCE.Extraction.Tests/WinEventHookTests.cs) | 5 | • Start/Stop transitions `IsRunning`<br/>• Multiple `Start()` calls are idempotent<br/>• Multiple `Stop()` calls are idempotent<br/>• `Dispose()` closes `EventReader`<br/>• `Start()` after `Dispose()` throws `ObjectDisposedException` |
+| **Debounced Pipeline** | [`DebouncedDesktopEventPipelineTests.cs`](../../tests/ADCE.Extraction.Tests/DebouncedDesktopEventPipelineTests.cs) | 5 | • 10 burst events within 5ms coalesce into 1 single extraction<br/>• Monotonic epoch supersession drops slow stale extractions<br/>• Zero-allocation duplicate suppression via `HasSameSemanticState`<br/>• OS subsystem noise and destroyed windows dropped<br/>• `StopAsync()` cleanly completes output channel |
+| **Workspace Manager** | [`WindowsWorkspaceManagerTests.cs`](../../tests/ADCE.Extraction.Tests/WindowsWorkspaceManagerTests.cs) | 3 | • Returns valid `WorkspaceEnvelope`<br/>• Resolves physical monitor bounds ($> 0$ width/height)<br/>• Handles `nint.Zero` gracefully |
 | **Full Solution Total** | Across all test assemblies | **72** | **72/72 Passing (0 Failures, 0 Warnings)** |
 
 ---

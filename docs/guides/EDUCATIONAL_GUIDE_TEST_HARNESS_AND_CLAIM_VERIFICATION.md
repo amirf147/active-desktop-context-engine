@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 Copyright (c) 2024-2026 Amir Farhadi
 -->
 
-[ 🏠 ADCE Home ](../README.md) › [ 📚 Documentation Hub ](CONTEXT.md) › **Educational Guide: Test Harness & Claim Verification**
+[ 🏠 ADCE Home ](../../README.md) › [ 📚 Documentation Hub ](../CONTEXT.md) › **Educational Guide: Test Harness & Claim Verification**
 
 ---
 
@@ -11,8 +11,8 @@ Copyright (c) 2024-2026 Amir Farhadi
 
 > **Target Audience:** Developers, systems engineers, and AI pair programmers
 > **Purpose:** Plain-English, comprehensive breakdown of how ADCE programmatically stimulates, observes, and mathematically verifies Windows OS UI interactions without manual human testing.
-> **Parent Context:** [`docs/CONTEXT.md`](CONTEXT.md) | [`docs/EMPIRICAL_TEST_HARNESS_AND_CLAIM_VERIFICATION_SPEC.md`](EMPIRICAL_TEST_HARNESS_AND_CLAIM_VERIFICATION_SPEC.md)
-> **Verification Evidence Ledger:** [`docs/reports/LATEST_CLAIM_VERIFICATION.md`](reports/LATEST_CLAIM_VERIFICATION.md)
+> **Parent Context:** [`docs/CONTEXT.md`](../CONTEXT.md) | [`docs/EMPIRICAL_TEST_HARNESS_AND_CLAIM_VERIFICATION_SPEC.md`](../testing/EMPIRICAL_TEST_HARNESS_AND_CLAIM_VERIFICATION_SPEC.md)
+> **Verification Evidence Ledger:** [`docs/reports/LATEST_CLAIM_VERIFICATION.md`](../reports/LATEST_CLAIM_VERIFICATION.md)
 
 ---
 
@@ -190,7 +190,7 @@ How does the AI assistant know whether the user is:
 
 ## 3. Dual-Mode Execution: Live Driver vs. Synthetic Mock Driver
 
-The harness implements a clean interface: [`IStimulusDriver`](../src/ADCE.Spikes/Verification/IStimulusDriver.cs).
+The harness implements a clean interface: [`IStimulusDriver`](../../src/ADCE.Spikes/Verification/IStimulusDriver.cs).
 
 ```mermaid
 classDiagram

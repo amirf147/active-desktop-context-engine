@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <!-- Copyright (c) 2024-2026 Amir Farhadi -->
 
-[ 🏠 ADCE Home ](../README.md) › [ 📚 Documentation Hub ](CONTEXT.md) › **UI Automation Tree Structures & Target Zones Reference (SSOT)**
+[ 🏠 ADCE Home ](../../README.md) › [ 📚 Documentation Hub ](../CONTEXT.md) › **UI Automation Tree Structures & Target Zones Reference (SSOT)**
 
 ---
 
@@ -10,7 +10,7 @@
 > **Document Status:** Active / Master Architecture Reference
 > **Target Systems:** Active Desktop Context Engine (ADCE) & Caster Accessibility Engine
 > **Engines Tested:** C# .NET 10 (`FlaUI.UIA3 5.0.0`) & Python 3.10 (`uiautomation` / `ctypes`)
-> **Related Documents:** [010: Traversal Telemetry](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/010_telemetry_benchmarks_and_live_findings.md) | [014: C# Daemon Handover](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/014_csharp_daemon_handover_and_skill_spec.md) | [015: Epistemic Recalibration](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/015_recalibration_and_adversarial_architecture_review.md) | [016: Micro-Spike 2 Telemetry](benchmarks/002_micro_spike_2_python_shallow_telemetry.md) | [FlaUI & Roemer Ecosystem](external_research/FlaUI_And_Roemer_Ecosystem.md)
+> **Related Documents:** [010: Traversal Telemetry](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/010_telemetry_benchmarks_and_live_findings.md) | [014: C# Daemon Handover](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/014_csharp_daemon_handover_and_skill_spec.md) | [015: Epistemic Recalibration](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/015_recalibration_and_adversarial_architecture_review.md) | [016: Micro-Spike 2 Telemetry](../benchmarks/002_micro_spike_2_python_shallow_telemetry.md) | [FlaUI & Roemer Ecosystem](../external_research/FlaUI_And_Roemer_Ecosystem.md)
 
 ---
 

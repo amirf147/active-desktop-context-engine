@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <!-- Copyright (c) 2024-2026 Amir Farhadi -->
 
-[ 🏠 ADCE Home ](../README.md) › [ 📚 Documentation Hub ](CONTEXT.md) › **ADCE.Core Deep-Dive & Architectural Reference**
+[ 🏠 ADCE Home ](../../README.md) › [ 📚 Documentation Hub ](../CONTEXT.md) › **ADCE.Core Deep-Dive & Architectural Reference**
 
 ---
 
@@ -9,8 +9,8 @@
 
 > **Target Library:** `ADCE.Core` (.NET 10 / C# 14)
 > **Purpose:** Plain-English architectural breakdown, modular UML class diagrams, state lifecycle machines, end-to-end sequence diagrams, and file-by-file failure mode analysis.
-> **Parent Context:** [`docs/CONTEXT.md`](CONTEXT.md) | [`docs/MCP_SCHEMA_SPEC.md`](MCP_SCHEMA_SPEC.md)
-> 🔍 **Interactive Full-Screen Visualizer:** [Open Interactive UML Architecture Diagram (Zoom &amp; Pan)](diagrams/adce_core_architecture_uml.html)
+> **Parent Context:** [`docs/CONTEXT.md`](../CONTEXT.md) | [`docs/MCP_SCHEMA_SPEC.md`](../architecture/MCP_SCHEMA_SPEC.md)
+> 🔍 **Interactive Full-Screen Visualizer:** [Open Interactive UML Architecture Diagram (Zoom &amp; Pan)](../diagrams/adce_core_architecture_uml.html)
 
 ---
 
@@ -381,27 +381,27 @@ Every file in `ADCE.Core` was introduced to eliminate a specific systems failure
 
 | Directory | File | Core Responsibility | Failure Mode Prevented |
 | :--- | :--- | :--- | :--- |
-| **`Models/`** | [`DesktopContextSnapshot.cs`](../src/ADCE.Core/Models/DesktopContextSnapshot.cs) | Root immutable record holding the complete desktop context state at a point in time. | **Context Fragmentation & Race Conditions:** Prevents multi-threaded consumers (MCP, storage, voice grammar) from reading partially mutated state. |
-| | [`WorkspaceEnvelope.cs`](../src/ADCE.Core/Models/WorkspaceEnvelope.cs) | Holds virtual desktop GUID, friendly name, workspace index, and monitor bounds. | **Workspace Blindness:** Prevents voice grammars and AI agents from confusing windows across different virtual desktops. |
-| | [`WindowEnvelope.cs`](../src/ADCE.Core/Models/WindowEnvelope.cs) | Encapsulates process metadata, HWND, window title, Win32 class, and archetype. | **HWND Lifetime Ambiguity:** Captures process identity and bounds upfront so subsequent queries don't fail if the window closes. |
-| | [`FocusedControlInfo.cs`](../src/ADCE.Core/Models/FocusedControlInfo.cs) | Stores focused control type, accessibility name, automation ID, and bounding rectangle. | **Target Drift:** Captures the exact active input target at the moment of focus without holding live COM proxy references. |
-| | [`BoundingRectangle.cs`](../src/ADCE.Core/Models/BoundingRectangle.cs) | Lightweight `readonly record struct` for screen coordinates (`Left`, `Top`, `Width`, `Height`). | **Heap Allocation Bloat:** Eliminates GC pressure by allocating bounding geometry on the stack instead of heap objects. |
-| | [`TabItemInfo.cs`](../src/ADCE.Core/Models/TabItemInfo.cs) | Represents open tab items with title, active state, pinned state, and dirty flag. | **Tab Parsing Inconsistency:** Provides a single unified model across IDEs, browsers, Explorer, and Terminal. |
-| | [`IdeContext.cs`](../src/ADCE.Core/Models/IdeContext.cs) | Captures active file path, sidebar view, Monaco breadcrumbs, Git branch, and open editor tabs. | **IDE State Ambiguity:** Prevents AI coding assistants from needing expensive file tree scans by providing active buffers directly. |
-| | [`BrowserContext.cs`](../src/ADCE.Core/Models/BrowserContext.cs) | Captures container type (TreeStyleTab / native), tab count, active tab title, and open tabs list. | **DOM Crawling Traps:** Replaces 6,800-node DOM crawls with isolated tab container extraction. |
-| | [`ExplorerContext.cs`](../src/ADCE.Core/Models/ExplorerContext.cs) | Captures directory path, path breadcrumbs, selected items, and Win11 TabView tabs. | **Shell Navigation Blindness:** Gives voice engines instant awareness of active folders and selected files. |
-| | [`TerminalContext.cs`](../src/ADCE.Core/Models/TerminalContext.cs) | Captures active terminal tab, shell title, and recent buffer text. | **Console Isolation:** Bridges terminal state into the unified desktop semantic graph. |
-| **`Enums/`** | [`DesktopSemanticZone.cs`](../src/ADCE.Core/Enums/DesktopSemanticZone.cs) | Identifies functional UI zones (`EditorCodeBuffer`, `AddressBar`, `GitCommitBox`, `SidebarExplorer`). | **Raw Selector Fragility:** Downstream tools check semantic intent rather than fragile UI automation paths. |
-| | [`DesktopAppArchetype.cs`](../src/ADCE.Core/Enums/DesktopAppArchetype.cs) | Categorizes apps into 5 universal desktop framework archetypes (`ChromiumElectron`, `Gecko`, `WinUI3Xaml`, `ClassicWin32`, `CanvasToolkit`). | **Hardcoded App Fragility:** Enables recipe-based dynamic discovery without hardcoding string rules per application. |
-| | [`DesktopEventType.cs`](../src/ADCE.Core/Enums/DesktopEventType.cs) | Classifies OS events (`ForegroundChanged`, `FocusChanged`, `VirtualDesktopSwitched`, `StructureChanged`, `Heartbeat`). | **Event Type Ambiguity:** Provides strongly-typed dispatching inside Channel consumers. |
-| **`Events/`** | [`DesktopEvent.cs`](../src/ADCE.Core/Events/DesktopEvent.cs) | Polymorphic hierarchy of lightweight event tokens. | **OS Message Loop Lag:** Allows WinEvent callbacks to post minimal structs to a channel and exit in $< 0.01\text{ ms}$, preventing UI stutter. |
-| **`Interfaces/`**| [`IExtractionEngine.cs`](../src/ADCE.Core/Interfaces/IExtractionEngine.cs) | Interface for extracting `DesktopContextSnapshot` from HWND or foreground. | **Tight Coupling to FlaUI:** Allows extraction implementations to be swapped or mocked in unit tests without COM runtime. |
-| | [`IDesktopStateStore.cs`](../src/ADCE.Core/Interfaces/IDesktopStateStore.cs) | Interface for in-memory cache and historical SQLite queries. | **Database Coupling:** Decouples storage persistence from MCP endpoints and daemon services. |
-| | [`IWorkspaceManager.cs`](../src/ADCE.Core/Interfaces/IWorkspaceManager.cs) | Interface for virtual desktop discovery. | **COM Virtual Desktop Deadlocks:** Wraps desktop COM calls behind an asynchronous interface. |
-| | [`IEventHookProvider.cs`](../src/ADCE.Core/Interfaces/IEventHookProvider.cs) | Interface for OS hook lifecycle and Channel exposure. | **Resource Leaks:** Ensures WinEvent hooks are cleanly disposed and unhooked on shutdown. |
-| | [`IArchetypeClassifier.cs`](../src/ADCE.Core/Interfaces/IArchetypeClassifier.cs) | Interface for classifying HWNDs into archetypes. | **Hardcoded Routing:** Enables extensible rule-based and heuristic window classification. |
-| **`Serialization/`**| [`HwndJsonConverter.cs`](../src/ADCE.Core/Serialization/HwndJsonConverter.cs) | Custom `JsonConverter<nint>` formatting HWND as hex strings (e.g. `0x00DB083E`). | **Signed Negative Signs & OverflowExceptions:** Prevents `-0x...` formatting and `Convert.ToInt64` crashes on high-bit addresses. |
-| | [`AdceJsonSerializerOptions.cs`](../src/ADCE.Core/Serialization/AdceJsonSerializerOptions.cs) | Pre-configured `JsonSerializerOptions` enforcing `snake_case` naming and null omission. | **MCP Schema Non-Compliance:** Guarantees 100% byte-level compatibility with `docs/MCP_SCHEMA_SPEC.md`. |
+| **`Models/`** | [`DesktopContextSnapshot.cs`](../../src/ADCE.Core/Models/DesktopContextSnapshot.cs) | Root immutable record holding the complete desktop context state at a point in time. | **Context Fragmentation & Race Conditions:** Prevents multi-threaded consumers (MCP, storage, voice grammar) from reading partially mutated state. |
+| | [`WorkspaceEnvelope.cs`](../../src/ADCE.Core/Models/WorkspaceEnvelope.cs) | Holds virtual desktop GUID, friendly name, workspace index, and monitor bounds. | **Workspace Blindness:** Prevents voice grammars and AI agents from confusing windows across different virtual desktops. |
+| | [`WindowEnvelope.cs`](../../src/ADCE.Core/Models/WindowEnvelope.cs) | Encapsulates process metadata, HWND, window title, Win32 class, and archetype. | **HWND Lifetime Ambiguity:** Captures process identity and bounds upfront so subsequent queries don't fail if the window closes. |
+| | [`FocusedControlInfo.cs`](../../src/ADCE.Core/Models/FocusedControlInfo.cs) | Stores focused control type, accessibility name, automation ID, and bounding rectangle. | **Target Drift:** Captures the exact active input target at the moment of focus without holding live COM proxy references. |
+| | [`BoundingRectangle.cs`](../../src/ADCE.Core/Models/BoundingRectangle.cs) | Lightweight `readonly record struct` for screen coordinates (`Left`, `Top`, `Width`, `Height`). | **Heap Allocation Bloat:** Eliminates GC pressure by allocating bounding geometry on the stack instead of heap objects. |
+| | [`TabItemInfo.cs`](../../src/ADCE.Core/Models/TabItemInfo.cs) | Represents open tab items with title, active state, pinned state, and dirty flag. | **Tab Parsing Inconsistency:** Provides a single unified model across IDEs, browsers, Explorer, and Terminal. |
+| | [`IdeContext.cs`](../../src/ADCE.Core/Models/IdeContext.cs) | Captures active file path, sidebar view, Monaco breadcrumbs, Git branch, and open editor tabs. | **IDE State Ambiguity:** Prevents AI coding assistants from needing expensive file tree scans by providing active buffers directly. |
+| | [`BrowserContext.cs`](../../src/ADCE.Core/Models/BrowserContext.cs) | Captures container type (TreeStyleTab / native), tab count, active tab title, and open tabs list. | **DOM Crawling Traps:** Replaces 6,800-node DOM crawls with isolated tab container extraction. |
+| | [`ExplorerContext.cs`](../../src/ADCE.Core/Models/ExplorerContext.cs) | Captures directory path, path breadcrumbs, selected items, and Win11 TabView tabs. | **Shell Navigation Blindness:** Gives voice engines instant awareness of active folders and selected files. |
+| | [`TerminalContext.cs`](../../src/ADCE.Core/Models/TerminalContext.cs) | Captures active terminal tab, shell title, and recent buffer text. | **Console Isolation:** Bridges terminal state into the unified desktop semantic graph. |
+| **`Enums/`** | [`DesktopSemanticZone.cs`](../../src/ADCE.Core/Enums/DesktopSemanticZone.cs) | Identifies functional UI zones (`EditorCodeBuffer`, `AddressBar`, `GitCommitBox`, `SidebarExplorer`). | **Raw Selector Fragility:** Downstream tools check semantic intent rather than fragile UI automation paths. |
+| | [`DesktopAppArchetype.cs`](../../src/ADCE.Core/Enums/DesktopAppArchetype.cs) | Categorizes apps into 5 universal desktop framework archetypes (`ChromiumElectron`, `Gecko`, `WinUI3Xaml`, `ClassicWin32`, `CanvasToolkit`). | **Hardcoded App Fragility:** Enables recipe-based dynamic discovery without hardcoding string rules per application. |
+| | [`DesktopEventType.cs`](../../src/ADCE.Core/Enums/DesktopEventType.cs) | Classifies OS events (`ForegroundChanged`, `FocusChanged`, `VirtualDesktopSwitched`, `StructureChanged`, `Heartbeat`). | **Event Type Ambiguity:** Provides strongly-typed dispatching inside Channel consumers. |
+| **`Events/`** | [`DesktopEvent.cs`](../../src/ADCE.Core/Events/DesktopEvent.cs) | Polymorphic hierarchy of lightweight event tokens. | **OS Message Loop Lag:** Allows WinEvent callbacks to post minimal structs to a channel and exit in $< 0.01\text{ ms}$, preventing UI stutter. |
+| **`Interfaces/`**| [`IExtractionEngine.cs`](../../src/ADCE.Core/Interfaces/IExtractionEngine.cs) | Interface for extracting `DesktopContextSnapshot` from HWND or foreground. | **Tight Coupling to FlaUI:** Allows extraction implementations to be swapped or mocked in unit tests without COM runtime. |
+| | [`IDesktopStateStore.cs`](../../src/ADCE.Core/Interfaces/IDesktopStateStore.cs) | Interface for in-memory cache and historical SQLite queries. | **Database Coupling:** Decouples storage persistence from MCP endpoints and daemon services. |
+| | [`IWorkspaceManager.cs`](../../src/ADCE.Core/Interfaces/IWorkspaceManager.cs) | Interface for virtual desktop discovery. | **COM Virtual Desktop Deadlocks:** Wraps desktop COM calls behind an asynchronous interface. |
+| | [`IEventHookProvider.cs`](../../src/ADCE.Core/Interfaces/IEventHookProvider.cs) | Interface for OS hook lifecycle and Channel exposure. | **Resource Leaks:** Ensures WinEvent hooks are cleanly disposed and unhooked on shutdown. |
+| | [`IArchetypeClassifier.cs`](../../src/ADCE.Core/Interfaces/IArchetypeClassifier.cs) | Interface for classifying HWNDs into archetypes. | **Hardcoded Routing:** Enables extensible rule-based and heuristic window classification. |
+| **`Serialization/`**| [`HwndJsonConverter.cs`](../../src/ADCE.Core/Serialization/HwndJsonConverter.cs) | Custom `JsonConverter<nint>` formatting HWND as hex strings (e.g. `0x00DB083E`). | **Signed Negative Signs & OverflowExceptions:** Prevents `-0x...` formatting and `Convert.ToInt64` crashes on high-bit addresses. |
+| | [`AdceJsonSerializerOptions.cs`](../../src/ADCE.Core/Serialization/AdceJsonSerializerOptions.cs) | Pre-configured `JsonSerializerOptions` enforcing `snake_case` naming and null omission. | **MCP Schema Non-Compliance:** Guarantees 100% byte-level compatibility with `docs/MCP_SCHEMA_SPEC.md`. |
 
 ---
 

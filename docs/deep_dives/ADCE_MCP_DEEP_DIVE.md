@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 Copyright (c) 2024-2026 Amir Farhadi
 -->
 
-[ 🏠 ADCE Home ](../README.md) › [ 📚 Documentation Hub ](CONTEXT.md) › **ADCE.Mcp Deep-Dive & Systems Reference**
+[ 🏠 ADCE Home ](../../README.md) › [ 📚 Documentation Hub ](../CONTEXT.md) › **ADCE.Mcp Deep-Dive & Systems Reference**
 
 ---
 
@@ -12,8 +12,8 @@ Copyright (c) 2024-2026 Amir Farhadi
 > **Subsystem:** Model Context Protocol Server (`ADCE.Mcp`)
 > **Protocol Standard:** Model Context Protocol (MCP) JSON-RPC 2.0 (`2024-11-05` / `1.0.0`)
 > **Runtime:** .NET 10 (`net10.0-windows`) / C# 14
-> **Parent Context:** [`docs/CONTEXT.md`](CONTEXT.md)
-> **Schema Spec:** [`docs/MCP_SCHEMA_SPEC.md`](MCP_SCHEMA_SPEC.md)
+> **Parent Context:** [`docs/CONTEXT.md`](../CONTEXT.md)
+> **Schema Spec:** [`docs/MCP_SCHEMA_SPEC.md`](../architecture/MCP_SCHEMA_SPEC.md)
 
 ---
 

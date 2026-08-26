@@ -8,7 +8,7 @@ Copyright (c) 2024-2026 Amir Farhadi
 > **Target Systems:** `ADCE.Daemon`, `ADCE.Mcp`, `ADCE.Extraction`, `ADCE.Spikes` (.NET 10 / C# 14 / FlaUI 5)
 > **Date:** August 25, 2026
 > **Scope:** Live Desktop Telemetry, System Tray Daemon Diagnostics, Threading Apartments, Shell Hover Effects, and Purpose Verification.
-> **Parent Documents:** [`docs/CONTEXT.md`](../CONTEXT.md) | [`docs/ADCE_DAEMON_DEEP_DIVE.md`](../ADCE_DAEMON_DEEP_DIVE.md) | [`docs/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_6.md`](../LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_6.md)
+> **Parent Documents:** [`docs/CONTEXT.md`](../CONTEXT.md) | [`docs/ADCE_DAEMON_DEEP_DIVE.md`](../deep_dives/ADCE_DAEMON_DEEP_DIVE.md) | [`docs/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_6.md`](../postmortems/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_6.md)
 
 ---
 

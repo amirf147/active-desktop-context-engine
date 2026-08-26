@@ -164,4 +164,33 @@ graph TD
     WP2_5 -.-> WP5_1
 ```
 
-All 6 items are formally scheduled and documented in the repository's permanent technical architecture ledger.
+```
+
+All items are formally scheduled and documented in the repository's permanent technical architecture ledger.
+
+---
+
+## 7. Advanced Context Primitives & Privacy Tiers (Future Roadmap)
+
+### 7.1 Item 7: Caret Position & Active Text Selection Extraction
+* **The Need:** Speech recognition dictation engines (Caster, Dragonfly, Talon) and AI editing agents need to know what text is currently selected or where the user's cursor is positioned within an editor or document buffer.
+* **Target Architecture:** Leverage `AutomationElement.Patterns.Text` (`TextPattern`) and `TextRange.GetSelection()`.
+* **Implementation Strategy:**
+  1. Extract active text selection substring (`selected_text`) and character offset ranges (`selection_start`, `selection_end`).
+  2. Map caret line and column numbers where supported by Monaco / Scintilla / UIA text controls.
+  3. Expose via `FocusContext.ActiveSelection` in the MCP context payload.
+
+### 7.2 Item 8: Opt-In Full Document & Buffer Extraction
+* **The Need:** AI coding assistants and accessibility reading tools often require the full text of the active document to understand context or apply targeted paragraph edits.
+* **Target Architecture:** Dedicated on-demand MCP tool (`get_document_text`) rather than pushing massive buffers on every 50ms focus wavelet.
+* **Implementation Strategy:**
+  1. Use `ValuePattern.Value` or `TextPattern.DocumentRange.GetText(-1)`.
+  2. Implement strict buffer size limits (e.g. max 64 KB per query) and truncation indicators.
+  3. Apply `ContextPrivacySanitizer` to automatically redact credential patterns and secrets.
+
+### 7.3 Item 9: Multi-Tier Configurable Privacy Depth Levels
+* **The Need:** Users and enterprise environments require granular control over how deeply ADCE inspects desktop elements.
+* **Target Architecture:** Configurable privacy policy (`appsettings.json` / CLI flags):
+  * **Level 1 (Metadata Only):** Window titles, process IDs, and virtual desktop GUIDs only.
+  * **Level 2 (Structural Topology — Default):** Open browser/editor tabs, semantic zone classifications, and focused control identity with automated password/secret redaction.
+  * **Level 3 (Deep Content — Opt-In):** Active text selection, breadcrumb file paths, and document buffer extraction.

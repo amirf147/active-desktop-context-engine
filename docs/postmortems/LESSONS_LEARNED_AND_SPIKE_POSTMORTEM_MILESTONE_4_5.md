@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <!-- Copyright (c) 2024-2026 Amir Farhadi -->
 
-[ 🏠 ADCE Home ](../README.md) › [ 📚 Documentation Hub ](CONTEXT.md) › **Milestone 4.5 Postmortem & Claim Verification Ledger**
+[ 🏠 ADCE Home ](../../README.md) › [ 📚 Documentation Hub ](../CONTEXT.md) › **Milestone 4.5 Postmortem & Claim Verification Ledger**
 
 ---
 
@@ -11,7 +11,7 @@
 > **Status:** Completed & Empirically Verified
 > **Date:** August 2026
 > **Core Deliverable:** Deterministic Stimulus-Response UI Test Harness and Automated Claim Verification Matrix (CLM-001 through CLM-006).
-> **Parent Documents:** [`docs/EMPIRICAL_TEST_HARNESS_AND_CLAIM_VERIFICATION_SPEC.md`](EMPIRICAL_TEST_HARNESS_AND_CLAIM_VERIFICATION_SPEC.md) | [`docs/reports/LATEST_CLAIM_VERIFICATION.md`](reports/LATEST_CLAIM_VERIFICATION.md)
+> **Parent Documents:** [`docs/EMPIRICAL_TEST_HARNESS_AND_CLAIM_VERIFICATION_SPEC.md`](../testing/EMPIRICAL_TEST_HARNESS_AND_CLAIM_VERIFICATION_SPEC.md) | [`docs/reports/LATEST_CLAIM_VERIFICATION.md`](../reports/LATEST_CLAIM_VERIFICATION.md)
 
 ---
 
@@ -137,7 +137,7 @@ Unit test methods for claims must never assert local inline dummy variables (`is
 
 1. **Deterministic Stimulus Eliminates Guesswork:** Replacing manual click-testing with `IStimulusDriver` provides instant, repeatable proof of engine behavior.
 2. **Dual-Mode Execution Guarantees Portability:** Synthetic headless mocks ensure CI passes on non-Windows/headless runners, while live Win32 drivers allow local verification against running apps.
-3. **Canonical Evidence Logging:** Storing the latest run in [`docs/reports/LATEST_CLAIM_VERIFICATION.md`](reports/LATEST_CLAIM_VERIFICATION.md) creates an immutable record of system performance.
+3. **Canonical Evidence Logging:** Storing the latest run in [`docs/reports/LATEST_CLAIM_VERIFICATION.md`](../reports/LATEST_CLAIM_VERIFICATION.md) creates an immutable record of system performance.
 4. **Driver-Backed Assertions & Unmanaged Handle Hygiene:** Always wire xUnit facts to full mock drivers rather than inline dummy asserts, and ensure all unmanaged Win32 kernel handles (`hWinSta`, `hDesktop`) are released in `Dispose()`.
 
 With the verification harness established and all 6 claims mathematically and physically verified, ADCE is fully prepared for **Milestone 5: Model Context Protocol (MCP) Server**.

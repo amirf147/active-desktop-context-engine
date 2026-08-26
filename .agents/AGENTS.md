@@ -9,10 +9,10 @@
 
 ### Documentation & Progressive Disclosure Hub
 - **Primary Domain Context Hub:** [`docs/CONTEXT.md`](../docs/CONTEXT.md)
-- **Educational Guide & Architecture Refresher:** [`docs/EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md`](../docs/EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md)
-- **UI Automation SSOT:** [`docs/UI_AUTOMATION_STRUCTURES_REFERENCE.md`](../docs/UI_AUTOMATION_STRUCTURES_REFERENCE.md)
-- **Requirements & Archetype Spec:** [`docs/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md`](../docs/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md)
-- **MCP Schema & Tool Endpoints:** [`docs/MCP_SCHEMA_SPEC.md`](../docs/MCP_SCHEMA_SPEC.md)
+- **Educational Guide & Architecture Refresher:** [`docs/guides/EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md`](../docs/guides/EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md)
+- **UI Automation SSOT:** [`docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md`](../docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md)
+- **Requirements & Archetype Spec:** [`docs/architecture/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md`](../docs/architecture/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md)
+- **MCP Schema & Tool Endpoints:** [`docs/architecture/MCP_SCHEMA_SPEC.md`](../docs/architecture/MCP_SCHEMA_SPEC.md)
 - **External Research & Ecosystem Audit:** [`docs/external_research/README.md`](../docs/external_research/README.md)
 - **Foundational Research Lineage:** Upstream accessibility research (documents 001–018) lives in [caster-user-directory-and-notes](https://github.com/amirf147/caster-user-directory-and-notes/tree/master/docs/accessibility_mcp).
 - All internal documentation within this repository must use clean relative links.

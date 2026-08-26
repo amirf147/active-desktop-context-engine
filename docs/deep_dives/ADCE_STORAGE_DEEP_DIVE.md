@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <!-- Copyright (c) 2024-2026 Amir Farhadi -->
 
-[ 🏠 ADCE Home ](../README.md) › [ 📚 Documentation Hub ](CONTEXT.md) › **ADCE.Storage Deep-Dive & Architectural Reference**
+[ 🏠 ADCE Home ](../../README.md) › [ 📚 Documentation Hub ](../CONTEXT.md) › **ADCE.Storage Deep-Dive & Architectural Reference**
 
 ---
 
@@ -9,7 +9,7 @@
 
 > **Target Library:** `ADCE.Storage` (.NET 10 / C# 14)
 > **Purpose:** Plain-English architectural breakdown, modular UML class diagrams, concurrency pipelines, temporal query mechanics, and file-by-file failure mode analysis for the ADCE live cache and time-series persistence engine.
-> **Parent Context:** [`docs/CONTEXT.md`](CONTEXT.md) | [`docs/MCP_SCHEMA_SPEC.md`](MCP_SCHEMA_SPEC.md)
+> **Parent Context:** [`docs/CONTEXT.md`](../CONTEXT.md) | [`docs/MCP_SCHEMA_SPEC.md`](../architecture/MCP_SCHEMA_SPEC.md)
 
 ---
 

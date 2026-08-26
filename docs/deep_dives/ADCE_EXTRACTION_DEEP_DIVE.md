@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <!-- Copyright (c) 2024-2026 Amir Farhadi -->
 
-[ 🏠 ADCE Home ](../README.md) › [ 📚 Documentation Hub ](CONTEXT.md) › **ADCE.Extraction Deep-Dive & Architecture Reference**
+[ 🏠 ADCE Home ](../../README.md) › [ 📚 Documentation Hub ](../CONTEXT.md) › **ADCE.Extraction Deep-Dive & Architecture Reference**
 
 ---
 
@@ -9,7 +9,7 @@
 
 > **Target Library:** `ADCE.Extraction` (.NET 10 / C# 14 / `FlaUI.UIA3 5.0.0`)
 > **Purpose:** Plain-English architectural breakdown, modular UML diagrams, state lifecycle machines, sequence dataflows, and file-by-file failure mode analysis for the context extraction engine.
-> **Parent Context:** [`docs/CONTEXT.md`](CONTEXT.md) | [`docs/ADCE_CORE_DEEP_DIVE.md`](ADCE_CORE_DEEP_DIVE.md) | [`docs/HOSTILE_ARCHITECTURE_REVIEW.md`](HOSTILE_ARCHITECTURE_REVIEW.md)
+> **Parent Context:** [`docs/CONTEXT.md`](../CONTEXT.md) | [`docs/ADCE_CORE_DEEP_DIVE.md`](ADCE_CORE_DEEP_DIVE.md) | [`docs/HOSTILE_ARCHITECTURE_REVIEW.md`](../architecture/HOSTILE_ARCHITECTURE_REVIEW.md)
 
 ---
 
@@ -193,7 +193,7 @@ sequenceDiagram
 
 ### 4.2 Fast Win32 Shallow Gating (`Span<char>` & Stackalloc)
 * **The Problem:** UI Automation (UIA) is a heavy cross-process RPC engine. Querying an invalid or closed window via UIA costs 10–50 ms.
-* **The Solution:** [`Win32Gating.cs`](../src/ADCE.Extraction/Win32/Win32Gating.cs) screens candidate windows in $< 0.5\text{ ms}$ using raw C-style Win32 calls (`GetWindowTextW`, `GetClassNameW`, `GetWindowThreadProcessId`).
+* **The Solution:** [`Win32Gating.cs`](../../src/ADCE.Extraction/Win32/Win32Gating.cs) screens candidate windows in $< 0.5\text{ ms}$ using raw C-style Win32 calls (`GetWindowTextW`, `GetClassNameW`, `GetWindowThreadProcessId`).
 * **Zero-Allocation String Extraction:** Instead of allocating managed `StringBuilder(512)` instances, we allocate raw buffers on the CPU thread stack using `Span<char> titleBuffer = stackalloc char[512]`. We only instantiate a single managed string once the final length is returned by the kernel.
 
 ### 4.3 UIPI Privilege Gating (Preventing COM RPC Deadlocks)
@@ -202,7 +202,7 @@ sequenceDiagram
 
 ### 4.4 Single-Roundtrip Batch Caching (`CacheRequest.Activate()`)
 * **The Problem:** In naive UI Automation, reading 30 tabs requires 30 separate cross-process COM calls (querying Name, SelectionItem, ClassName for each tab), totaling $\sim 150\text{ ms}$.
-* **The Solution:** [`MonacoIdeExtractor.cs`](../src/ADCE.Extraction/Extractors/MonacoIdeExtractor.cs) and [`GeckoBrowserExtractor.cs`](../src/ADCE.Extraction/Extractors/GeckoBrowserExtractor.cs) activate a scoped FlaUI `CacheRequest`:
+* **The Solution:** [`MonacoIdeExtractor.cs`](../../src/ADCE.Extraction/Extractors/MonacoIdeExtractor.cs) and [`GeckoBrowserExtractor.cs`](../../src/ADCE.Extraction/Extractors/GeckoBrowserExtractor.cs) activate a scoped FlaUI `CacheRequest`:
   ```csharp
   var cacheRequest = new CacheRequest();
   cacheRequest.AutomationElementMode = AutomationElementMode.None; // Zero active COM proxies created
@@ -218,7 +218,7 @@ sequenceDiagram
 
 ### 4.5 The Privacy Firewall (`ContextPrivacySanitizer`)
 * **The Problem:** Scraping the browser address bar or terminal buffer can capture OAuth authorization codes (`?code=eyJ...`), session tokens, and passwords typed into `.env` files or password prompts.
-* **The Solution:** [`ContextPrivacySanitizer.cs`](../src/ADCE.Extraction/Security/ContextPrivacySanitizer.cs) intercepts data before it enters the snapshot:
+* **The Solution:** [`ContextPrivacySanitizer.cs`](../../src/ADCE.Extraction/Security/ContextPrivacySanitizer.cs) intercepts data before it enters the snapshot:
   1. **URL Sanitizer:** Strips all query parameters (`?param=val`) and hash fragments (`#hash`) from HTTP/HTTPS URLs.
   2. **Buffer Redactor:** Detects `IsPassword` UIA properties and sensitive file patterns (`.env`, `.pem`, `.key`, `id_rsa`, `secrets.yaml`), replacing the text with `[REDACTED_PASSWORD]` or `[REDACTED_SENSITIVE_FILE_BUFFER]`.
 
@@ -228,15 +228,15 @@ sequenceDiagram
 
 | Directory | File | Core Responsibility | Failure Mode Prevented |
 | :--- | :--- | :--- | :--- |
-| **`Win32/`** | [`NativeMethods.cs`](../src/ADCE.Extraction/Win32/NativeMethods.cs) | P/Invoke signatures for User32, Kernel32, and Advapi32 APIs. | **Type Safety & Missing Symbols:** Provides strongly-typed interop without heavy external dependencies. |
-| | [`Win32Gating.cs`](../src/ADCE.Extraction/Win32/Win32Gating.cs) | Stack-allocated window identity queries, visibility checking, and UIPI process token integrity validation. | **COM RPC Deadlocks & UIPI Blocks:** Screens invalid/elevated windows in $< 0.5\text{ ms}$ before entering heavy UIA layer. |
-| **`Security/`** | [`ContextPrivacySanitizer.cs`](../src/ADCE.Extraction/Security/ContextPrivacySanitizer.cs) | URL query string parameter stripping and password/secret file buffer redaction. | **Plaintext Credential Leaks:** Prevents OAuth tokens, reset links, and `.env` secrets from leaking to MCP listeners. |
-| **`Classifiers/`** | [`ArchetypeClassifier.cs`](../src/ADCE.Extraction/Classifiers/ArchetypeClassifier.cs) | Maps HWNDs into 5 universal desktop framework archetypes based on Win32 class and process names. | **Brittle Hardcoding:** Enables recipe-based dynamic discovery without hardcoding per-application rules. |
-| **`Extractors/`** | [`MonacoIdeExtractor.cs`](../src/ADCE.Extraction/Extractors/MonacoIdeExtractor.cs) | Batched extraction of open editor tabs, Monaco breadcrumbs, and sidebar views. | **DOM Crawling Traps:** Replaces full DOM tree scans with scoped `tabs-container` batch cache requests ($< 15\text{ ms}$). |
-| | [`GeckoBrowserExtractor.cs`](../src/ADCE.Extraction/Extractors/GeckoBrowserExtractor.cs) | Batched extraction of Tree Style Tab and native Firefox tabstrips with sanitized URL input. | **Browser Content Viewport Freezes:** Prunes 6,800+ node web page DOM viewports to eliminate 5,800 ms thread stalls. |
-| | [`WinUIExplorerExtractor.cs`](../src/ADCE.Extraction/Extractors/WinUIExplorerExtractor.cs) | Batched extraction of Win11 Explorer TabView tabs, address breadcrumbs, and selected Items View files. | **Shell Navigation Blindness:** Provides voice engines and AI assistants with instant active folder/file awareness. |
-| | [`TerminalExtractor.cs`](../src/ADCE.Extraction/Extractors/TerminalExtractor.cs) | Extraction of Windows Terminal (Cascadia) tabs and active shell title. | **Console Isolation:** Bridges command-line terminal state into the unified desktop semantic graph. |
-| **`Engine/`** | [`UiaExtractionEngine.cs`](../src/ADCE.Extraction/Engine/UiaExtractionEngine.cs) | Orchestrates Win32 gating, UIPI checks, SafeBindWindow, and multi-zone archetype routing with 50ms transaction timeouts. | **Process Hangs & Invalid HWNDs:** Catches `UIA_E_ELEMENTNOTAVAILABLE` and aborts slow COM queries after 50ms. |
+| **`Win32/`** | [`NativeMethods.cs`](../../src/ADCE.Extraction/Win32/NativeMethods.cs) | P/Invoke signatures for User32, Kernel32, and Advapi32 APIs. | **Type Safety & Missing Symbols:** Provides strongly-typed interop without heavy external dependencies. |
+| | [`Win32Gating.cs`](../../src/ADCE.Extraction/Win32/Win32Gating.cs) | Stack-allocated window identity queries, visibility checking, and UIPI process token integrity validation. | **COM RPC Deadlocks & UIPI Blocks:** Screens invalid/elevated windows in $< 0.5\text{ ms}$ before entering heavy UIA layer. |
+| **`Security/`** | [`ContextPrivacySanitizer.cs`](../../src/ADCE.Extraction/Security/ContextPrivacySanitizer.cs) | URL query string parameter stripping and password/secret file buffer redaction. | **Plaintext Credential Leaks:** Prevents OAuth tokens, reset links, and `.env` secrets from leaking to MCP listeners. |
+| **`Classifiers/`** | [`ArchetypeClassifier.cs`](../../src/ADCE.Extraction/Classifiers/ArchetypeClassifier.cs) | Maps HWNDs into 5 universal desktop framework archetypes based on Win32 class and process names. | **Brittle Hardcoding:** Enables recipe-based dynamic discovery without hardcoding per-application rules. |
+| **`Extractors/`** | [`MonacoIdeExtractor.cs`](../../src/ADCE.Extraction/Extractors/MonacoIdeExtractor.cs) | Batched extraction of open editor tabs, Monaco breadcrumbs, and sidebar views. | **DOM Crawling Traps:** Replaces full DOM tree scans with scoped `tabs-container` batch cache requests ($< 15\text{ ms}$). |
+| | [`GeckoBrowserExtractor.cs`](../../src/ADCE.Extraction/Extractors/GeckoBrowserExtractor.cs) | Batched extraction of Tree Style Tab and native Firefox tabstrips with sanitized URL input. | **Browser Content Viewport Freezes:** Prunes 6,800+ node web page DOM viewports to eliminate 5,800 ms thread stalls. |
+| | [`WinUIExplorerExtractor.cs`](../../src/ADCE.Extraction/Extractors/WinUIExplorerExtractor.cs) | Batched extraction of Win11 Explorer TabView tabs, address breadcrumbs, and selected Items View files. | **Shell Navigation Blindness:** Provides voice engines and AI assistants with instant active folder/file awareness. |
+| | [`TerminalExtractor.cs`](../../src/ADCE.Extraction/Extractors/TerminalExtractor.cs) | Extraction of Windows Terminal (Cascadia) tabs and active shell title. | **Console Isolation:** Bridges command-line terminal state into the unified desktop semantic graph. |
+| **`Engine/`** | [`UiaExtractionEngine.cs`](../../src/ADCE.Extraction/Engine/UiaExtractionEngine.cs) | Orchestrates Win32 gating, UIPI checks, SafeBindWindow, and multi-zone archetype routing with 50ms transaction timeouts. | **Process Hangs & Invalid HWNDs:** Catches `UIA_E_ELEMENTNOTAVAILABLE` and aborts slow COM queries after 50ms. |
 
 ---
 

@@ -52,7 +52,7 @@ Through live physical testing and empirical telemetry across real-world applicat
 
 ### Trap 1: Dynamic GDI Icon Handle Leaks in Windows System Tray
 * **The Trap:** Calling `Bitmap.GetHicon()` allocates an unmanaged Windows GDI handle (`HICON`). In Windows, GDI handles are process-limited (default: 10,000 handles). Continuously creating status icons on every context change exhausts the OS GDI table, eventually causing desktop rendering crashes.
-* **The Fix:** [`TrayIconFactory.cs`](../src/ADCE.Daemon/UI/TrayIconFactory.cs) explicitly calls `NativeMethods.DestroyIcon(hIcon)` before managed icon wrappers are released, and old icons are cleanly disposed when state changes.
+* **The Fix:** [`TrayIconFactory.cs`](../../src/ADCE.Daemon/UI/TrayIconFactory.cs) explicitly calls `NativeMethods.DestroyIcon(hIcon)` before managed icon wrappers are released, and old icons are cleanly disposed when state changes.
 
 ### Trap 2: Single-Instance Named Mutex Protection
 * **The Trap:** Multiple background daemons writing concurrently to the same SQLite database cause WAL write locks (`SQLITE_BUSY`), while duplicate MCP servers fail on HTTP port 8424 (`HttpListenerException: Access is denied / Address in use`).
@@ -60,19 +60,19 @@ Through live physical testing and empirical telemetry across real-world applicat
 
 ### Trap 3: `WinExe` Console Attachment & Interactive Output
 * **The Trap:** Windows binaries compiled as `<OutputType>WinExe</OutputType>` do not attach to stdout by default, causing CLI commands like `ADCE.Daemon.exe --status` or `--help` to output nothing in PowerShell.
-* **The Fix:** [`NativeMethods.AttachConsole(ATTACH_PARENT_PROCESS)`](../src/ADCE.Daemon/Program.cs) dynamically binds stdout and stderr to the caller's console when CLI switches are provided.
+* **The Fix:** [`NativeMethods.AttachConsole(ATTACH_PARENT_PROCESS)`](../../src/ADCE.Daemon/Program.cs) dynamically binds stdout and stderr to the caller's console when CLI switches are provided.
 
 ### Trap 4: OLE Clipboard STA ThreadException & Lock Contention
 * **The Trap:** Resuming after `await host.StartAsync()` continues on a .NET ThreadPool (MTA) thread. Calling `Clipboard.SetDataObject()` from an MTA thread throws `System.Threading.ThreadStateException`. Furthermore, tools like Windows Clipboard History (`Win+V`) or Ditto can hold a lock on the clipboard (`CLIPBRD_E_CANT_OPEN` / `0x800401D0`).
-* **The Fix:** [`StaClipboardHelper.cs`](../src/ADCE.Daemon/UI/StaClipboardHelper.cs) guarantees execution on a dedicated STA apartment thread, wrapped in a 3-iteration backoff retry loop catching `ExternalException`.
+* **The Fix:** [`StaClipboardHelper.cs`](../../src/ADCE.Daemon/UI/StaClipboardHelper.cs) guarantees execution on a dedicated STA apartment thread, wrapped in a 3-iteration backoff retry loop catching `ExternalException`.
 
 ### Trap 5: Taskbar Hover Overwrite (`Shell_TrayWnd`)
 * **The Trap:** When moving the mouse over the Windows taskbar or tray icon, Windows fires `EVENT_OBJECT_FOCUS` on `Shell_TrayWnd` (`explorer.exe`), overwriting the active application context with `ADCE: [Unknown]`.
-* **The Fix:** [`Win32Gating.IsTransientShellWindow`](../src/ADCE.Extraction/Win32/Win32Gating.cs) filters `Shell_TrayWnd`, `Shell_SecondaryTrayWnd`, `TopLevelWindowForOverflowXamlIsland`, and `tooltips_class32` as noise, preserving the active user application state.
+* **The Fix:** [`Win32Gating.IsTransientShellWindow`](../../src/ADCE.Extraction/Win32/Win32Gating.cs) filters `Shell_TrayWnd`, `Shell_SecondaryTrayWnd`, `TopLevelWindowForOverflowXamlIsland`, and `tooltips_class32` as noise, preserving the active user application state.
 
 ### Trap 6: Observer Focus Stealing in DevTools Overlays
 * **The Trap:** Standard GUI forms steal OS keyboard and window focus when clicked or activated, displacing the very application under inspection.
-* **The Fix:** [`FloatingHudForm.cs`](../src/ADCE.Daemon/UI/FloatingHudForm.cs) overrides `CreateParams` with `WS_EX_NOACTIVATE (0x08000000) | WS_EX_TOPMOST (0x00000008) | WS_EX_TOOLWINDOW (0x00000080)` and `ShowWithoutActivation => true`, allowing the HUD to be clicked and dragged without stealing focus.
+* **The Fix:** [`FloatingHudForm.cs`](../../src/ADCE.Daemon/UI/FloatingHudForm.cs) overrides `CreateParams` with `WS_EX_NOACTIVATE (0x08000000) | WS_EX_TOPMOST (0x00000008) | WS_EX_TOOLWINDOW (0x00000080)` and `ShowWithoutActivation => true`, allowing the HUD to be clicked and dragged without stealing focus.
 
 ### Trap 7: Intra-App Event Starvation in Multi-Process Browsers & Electron
 * **The Trap:** Clicking tabs or URL bars within Waterfox (Gecko) or Antigravity (Electron) emits `EVENT_OBJECT_SELECTION` (`0x8006`), `EVENT_OBJECT_NAMECHANGE` (`0x800C`), or non-zero `idChild` tokens. Narrowing the hook strictly to `0x0003` and `0x8005` dropped valid intra-app transitions.

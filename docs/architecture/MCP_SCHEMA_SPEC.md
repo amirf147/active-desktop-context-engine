@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 Copyright (c) 2024-2026 Amir Farhadi
 -->
 
-[ 🏠 ADCE Home ](../README.md) › [ 📚 Documentation Hub ](CONTEXT.md) › **MCP Schema Specification**
+[ 🏠 ADCE Home ](../../README.md) › [ 📚 Documentation Hub ](../CONTEXT.md) › **MCP Schema Specification**
 
 ---
 
@@ -11,7 +11,7 @@ Copyright (c) 2024-2026 Amir Farhadi
 
 > **Status:** Draft / Evolving Specification
 > **Protocol Standard:** [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) JSON-RPC 2.0
-> **Parent Context:** [`docs/CONTEXT.md`](CONTEXT.md)
+> **Parent Context:** [`docs/CONTEXT.md`](../CONTEXT.md)
 
 ---
 
