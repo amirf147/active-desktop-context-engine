@@ -1,6 +1,8 @@
 ---
 description: Structured 4-Gate Epistemic Protocol for milestone verification and adversarial red-teaming.
 ---
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Copyright (c) 2026 Amir Farhadi -->
 
 # 4-Gate Epistemic Milestone Verification Workflow
 

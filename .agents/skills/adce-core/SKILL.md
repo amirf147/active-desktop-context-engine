@@ -2,6 +2,8 @@
 name: adce-core
 description: Core architectural reference, UIA 3 caching patterns, and MCP schemas for building the Active Desktop Context Engine (ADCE) in .NET 10 and FlaUI 5.
 ---
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Copyright (c) 2026 Amir Farhadi -->
 
 # Active Desktop Context Engine (ADCE) — Core Architectural Skill
 

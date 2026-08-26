@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright (c) 2024-2026 Amir Farhadi
+// Copyright (c) 2026 Amir Farhadi
 
 using System;
 using System.IO;
@@ -20,7 +20,7 @@ public static class EvidenceLedger
     {
         var sb = new StringBuilder();
         sb.AppendLine("<!-- SPDX-License-Identifier: Apache-2.0 -->");
-        sb.AppendLine("<!-- Copyright (c) 2024-2026 Amir Farhadi -->");
+        sb.AppendLine("<!-- Copyright (c) 2026 Amir Farhadi -->");
         sb.AppendLine();
         sb.AppendLine("[ 🏠 ADCE Home ](../../README.md) › [ 📚 Documentation Hub ](../CONTEXT.md) › **Ground-Truth Claim Verification Ledger**");
         sb.AppendLine();

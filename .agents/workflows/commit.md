@@ -1,6 +1,8 @@
 ---
 description: Generates a copy-paste ready commit message for Caster User Directory repository updates.
 ---
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Copyright (c) 2026 Amir Farhadi -->
 
 # Instructions
 

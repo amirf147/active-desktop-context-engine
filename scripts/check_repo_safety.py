@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2024-2026 Amir Farhadi
+# Copyright (c) 2026 Amir Farhadi
 """
 Repository Safety, Secret & Path Hygiene Checker for ADCE
 """

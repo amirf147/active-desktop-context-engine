@@ -31,4 +31,4 @@ Every milestone or major subsystem must strictly adhere to the 4-gate verificati
 ### Licensing & Headers
 - All source files (`.cs`), project files, and markdown documentation must include standard SPDX Apache-2.0 headers:
   `// SPDX-License-Identifier: Apache-2.0`
-  `// Copyright (c) 2024-2026 Amir Farhadi`
+  `// Copyright (c) 2026 Amir Farhadi`
