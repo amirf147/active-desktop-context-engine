@@ -178,13 +178,21 @@ public class DebouncedDesktopEventPipelineTests
 
         pipeline.Start();
 
-        // 1. Send first event
+        // 1. Send first event and await committed snapshot from output channel
         inputChannel.Writer.TryWrite(new DesktopEventToken((ushort)DesktopEventType.ForegroundChanged, new nint(0x111), 10));
-        await Task.Delay(30);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+        var firstSnapshot = await pipeline.SnapshotReader.ReadAsync(cts.Token);
+        Assert.NotNull(firstSnapshot);
 
         // 2. Send second event for same HWND (mock engine returns identical snapshot)
         inputChannel.Writer.TryWrite(new DesktopEventToken((ushort)DesktopEventType.FocusChanged, new nint(0x111), 20));
-        await Task.Delay(30);
+
+        // Poll for duplicate suppression counter with safety timeout
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        while (pipeline.DuplicateSnapshotsSuppressed == 0 && sw.ElapsedMilliseconds < 3000)
+        {
+            await Task.Delay(10);
+        }
 
         await pipeline.StopAsync();
 
@@ -197,23 +205,66 @@ public class DebouncedDesktopEventPipelineTests
     public async Task NoiseSnapshots_AreDroppedWithoutEmitting()
     {
         var inputChannel = Channel.CreateUnbounded<DesktopEventToken>();
-        // Mock engine that returns csrss or Invalid Window Handle
-        var mockEngine = new MockExtractionEngine();
+
+        // Mock engine that returns a csrss noise window
+        var csrssEngine = new MockExtractionEngineCustom(hwnd => new DesktopContextSnapshot
+        {
+            Timestamp = DateTimeOffset.UtcNow,
+            Workspace = new WorkspaceEnvelope
+            {
+                VirtualDesktopId = Guid.Empty,
+                DesktopIndex = 0,
+                VirtualDesktopName = "Test",
+                MonitorIndex = 0,
+                MonitorBounds = new BoundingRectangle(0, 0, 1920, 1080)
+            },
+            Window = new WindowEnvelope
+            {
+                Hwnd = hwnd,
+                Title = "",
+                ProcessName = "csrss",
+                Pid = 999,
+                ClassName = "csrss",
+                Archetype = DesktopAppArchetype.Unknown,
+                Bounds = new BoundingRectangle(0, 0, 0, 0),
+                IsMinimized = false,
+                IsMaximized = false
+            },
+            Focus = new FocusedControlInfo
+            {
+                ControlType = "Window",
+                ElementName = "",
+                AutomationId = "",
+                ClassName = "csrss",
+                BoundingBox = new BoundingRectangle(0, 0, 0, 0),
+                SemanticZone = DesktopSemanticZone.Unknown
+            },
+            ExtractionDurationMs = 1.0
+        });
 
         using var pipeline = new DebouncedDesktopEventPipeline(
             inputChannel.Reader,
-            mockEngine,
+            csrssEngine,
             debounceWindow: TimeSpan.FromMilliseconds(10));
 
         pipeline.Start();
 
-        // Send event with HWND 0 (empty)
+        // 1. Send invalid event with HWND 0 (dropped at ingress)
         inputChannel.Writer.TryWrite(new DesktopEventToken((ushort)DesktopEventType.ForegroundChanged, nint.Zero, 10));
-        await Task.Delay(30);
+
+        // 2. Send noise event (csrss) with valid HWND (extracted and dropped by filter)
+        inputChannel.Writer.TryWrite(new DesktopEventToken((ushort)DesktopEventType.ForegroundChanged, new nint(0x888), 20));
+
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        while (pipeline.NoiseEventsDropped == 0 && sw.ElapsedMilliseconds < 3000)
+        {
+            await Task.Delay(10);
+        }
 
         await pipeline.StopAsync();
 
         Assert.Equal(0, pipeline.ExtractionsCommitted);
+        Assert.True(pipeline.NoiseEventsDropped >= 1);
     }
 
     [Fact]
@@ -301,7 +352,12 @@ public class DebouncedDesktopEventPipelineTests
         pipeline.Start();
 
         inputChannel.Writer.TryWrite(new DesktopEventToken((ushort)DesktopEventType.FocusChanged, new nint(0x777), 10));
-        await Task.Delay(30);
+
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        while (pipeline.NoiseEventsDropped == 0 && sw.ElapsedMilliseconds < 3000)
+        {
+            await Task.Delay(10);
+        }
 
         await pipeline.StopAsync();
 
