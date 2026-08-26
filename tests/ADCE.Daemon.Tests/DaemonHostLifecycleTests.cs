@@ -149,13 +149,23 @@ public sealed class DaemonHostLifecycleTests
 
         await host.StartAsync();
 
+        var tcs = new TaskCompletionSource<DesktopContextSnapshot>();
+        host.SnapshotChanged += snap =>
+        {
+            if (snap.Window.Title == "Window 2")
+            {
+                tcs.TrySetResult(snap);
+            }
+        };
+
         extractor.NextSnapshot = CreateSampleSnapshot("Window 2");
 
         // Push event through mock hook
         hookProvider.EventWriter.TryWrite(new DesktopEventToken(0x0003, 12345, 100));
 
-        // Wait for debounce and processing
-        await Task.Delay(100);
+        // Await snapshot update deterministically
+        var completed = await Task.WhenAny(tcs.Task, Task.Delay(3000));
+        Assert.Same(tcs.Task, completed);
 
         var current = host.GetCurrentSnapshot();
         Assert.NotNull(current);

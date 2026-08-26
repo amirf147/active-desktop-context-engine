@@ -218,8 +218,18 @@ public class McpToolExecutionTests : IDisposable
         _store.UpdateCurrentSnapshot(snapshot1);
         _store.UpdateCurrentSnapshot(snapshot2);
 
-        // Wait brief moment for background SQLite channel persistence
-        await Task.Delay(250);
+        // Wait for background SQLite channel persistence
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        while (sw.ElapsedMilliseconds < 3000)
+        {
+            int count = 0;
+            await foreach (var _ in _store.GetHistoryAsync(DateTimeOffset.UtcNow.AddMinutes(-5), 10))
+            {
+                count++;
+            }
+            if (count >= 2) break;
+            await Task.Delay(10);
+        }
 
         var transport = new InMemoryMcpTransport();
         var server = new McpServer(transport, _handler);

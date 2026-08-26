@@ -156,7 +156,19 @@ public class McpResourceExecutionTests : IDisposable
     {
         var snapshot = CreateSampleSnapshot();
         _store.UpdateCurrentSnapshot(snapshot);
-        await Task.Delay(250);
+
+        // Wait for background SQLite channel persistence
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        while (sw.ElapsedMilliseconds < 3000)
+        {
+            int count = 0;
+            await foreach (var _ in _store.GetHistoryAsync(DateTimeOffset.UtcNow.AddMinutes(-5), 10))
+            {
+                count++;
+            }
+            if (count >= 1) break;
+            await Task.Delay(10);
+        }
 
         var transport = new InMemoryMcpTransport();
         var server = new McpServer(transport, _handler);
