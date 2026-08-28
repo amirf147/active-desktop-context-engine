@@ -33,7 +33,11 @@ ADCE was designed to bridge low-level Windows accessibility infrastructure with 
 3. **Non-Invasive Execution:** 100% out-of-process execution using official Windows accessibility (`FlaUI.UIA3`), Win32 hooks (`SetWinEventHook`), and Virtual Desktop COM interfaces, requiring zero DLL injection or kernel drivers.
 4. **Targeted Zonal Anchoring:** By scoping extractions to target class names and container bounding boxes, ADCE avoids the classic pitfalls of blind recursive DOM walking across modern Chromium and Gecko applications.
 
+> 🚀 **Verified Downstream Use Case:**
+> ADCE has been empirically integrated into [Caster](https://github.com/dictation-toolbox/Caster) via [caster-user-directory-and-notes](https://github.com/amirf147/caster-user-directory-and-notes), powering **dynamic sub-window voice grammar activation** (e.g. automatically activating CLI/Git commands only when focused in VS Code / Antigravity IDE integrated terminals without audio stutter). See the full [First Real-World Use Case Guide](docs/guides/FIRST_REAL_WORLD_USE_CASE_CASTER_DYNAMIC_TERMINAL_GRAMMARS.md).
+
 ---
+
 
 ## 3. Live Telemetry & DevTools HUD Demos
 
@@ -109,6 +113,7 @@ ADCE functions as both a production codebase and an evolving research ledger tra
 | Guide | Description |
 | :--- | :--- |
 | 📘 [Educational Refresher & Architecture Guide](docs/guides/EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md) | Plain-English walkthrough of UI Automation, Win32 systems programming, and FlaUI caching. |
+| 🚀 [First Real-World Use Case: Caster Dynamic Terminal Grammars](docs/guides/FIRST_REAL_WORLD_USE_CASE_CASTER_DYNAMIC_TERMINAL_GRAMMARS.md) | Verified downstream integration: Dynamic sub-window grammar activation in VS Code / Antigravity IDE via low-latency SSE streaming. |
 | 👁️ [ADCE Focus & Zone Detection Explained](docs/guides/ADCE_FOCUS_AND_ZONE_DETECTION_EXPLAINED.md) | Visual guide to Windows focus mechanics, parent-chain climbing, and semantic zone detection. |
 | 🧪 [Educational Guide: Test Harness & Verification](docs/guides/EDUCATIONAL_GUIDE_TEST_HARNESS_AND_CLAIM_VERIFICATION.md) | Deep dive into stimulus-response testing, claim verification, and empirical measurement. |
 
@@ -118,8 +123,9 @@ ADCE functions as both a production codebase and an evolving research ledger tra
 | **Testing & Roadmap** | • [Empirical Test Harness Spec](docs/testing/EMPIRICAL_TEST_HARNESS_AND_CLAIM_VERIFICATION_SPEC.md)<br/>• [Reviewer Observations & Hardening Roadmap](docs/testing/REVIEWER_OBSERVATIONS_AND_HARDENING_ROADMAP.md) |
 | **Engineering Postmortems** | • [Milestone 2 Postmortem (Extraction & Sessions)](docs/postmortems/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_2.md)<br/>• [Milestone 4 Postmortem (Focus Bleeding & Child HWNDs)](docs/postmortems/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_4.md)<br/>• [Milestone 4.5 Postmortem (Stimulus Test Harness)](docs/postmortems/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_4_5.md)<br/>• [Milestone 6 Postmortem (Tray Daemon & DevTools HUD)](docs/postmortems/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_6.md) |
 | **Telemetry & Evidence** | • [Empirical Telemetry Benchmarks](docs/benchmarks/) ([FlaUI UIA3](docs/benchmarks/001_micro_spike_1_flaui_telemetry.md) / [Win32 Shallow](docs/benchmarks/002_micro_spike_2_python_shallow_telemetry.md))<br/>• [Canonical Ground-Truth Evidence Ledger](docs/reports/LATEST_CLAIM_VERIFICATION.md)<br/>• [Milestones 5 & 6 Diagnostic Report](docs/reports/MILESTONE_5_6_EMPIRICAL_FINDINGS_AND_DIAGNOSTICS_REPORT.md) |
-| **External Research Audits** | • [External Research & Ecosystem Audit Suite](docs/external_research/README.md)<br/>• [FlaUI & Roemer Deep Dive](docs/external_research/FlaUI_And_Roemer_Ecosystem.md)<br/>• [Simon Mourier Ecosystem Audit](docs/external_research/README.md)<br/>• [Wheel Reinvention Synthesis](docs/external_research/SYNTHESIS_AND_WHEEL_REINVENTION_AUDIT.md) |
+| **External Research Audits** | • [External Research Hub](docs/external_research/README.md)<br/>• [Tree-sitter & Syntactic Scoping](docs/external_research/TreeSitter_And_Syntax_Scoping_Audit.md)<br/>• [TIRG-DLL & Text Geometry](docs/external_research/TirgDll_And_Text_Geometry_Audit.md)<br/>• [AccessKit & Accessibility Primitives](docs/external_research/AccessKit_And_Accessibility_Primitives_Audit.md)<br/>• [FlaUI & Roemer Deep Dive](docs/external_research/FlaUI_And_Roemer_Ecosystem.md)<br/>• [Wheel Reinvention Synthesis](docs/external_research/SYNTHESIS_AND_WHEEL_REINVENTION_AUDIT.md) |
 | **Upstream Research Lineage** | • Foundational accessibility research documents (001–018) in [caster-user-directory-and-notes](https://github.com/amirf147/caster-user-directory-and-notes/tree/master/docs/accessibility_mcp). |
+
 
 > 🧭 *Note on Future Roadmap:* A full, interactive guided walkthrough and wiki synthesizing the end-to-end codebase mechanics will be developed as the project reaches its next milestone.
 

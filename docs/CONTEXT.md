@@ -117,6 +117,7 @@ To ensure consistency and ground human developers and local AI agents in verifie
 | Guide | Description |
 | :--- | :--- |
 | 📘 [`guides/EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md`](guides/EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md) | Plain-English walkthrough of UI Automation, Win32 systems programming, FlaUI caching, and the Dual-Engine synthesis. |
+| 🚀 [`guides/FIRST_REAL_WORLD_USE_CASE_CASTER_DYNAMIC_TERMINAL_GRAMMARS.md`](guides/FIRST_REAL_WORLD_USE_CASE_CASTER_DYNAMIC_TERMINAL_GRAMMARS.md) | First verified production use case: Caster dynamic sub-window terminal grammar activation via low-latency SSE streaming. |
 | 👁️ [`guides/ADCE_FOCUS_AND_ZONE_DETECTION_EXPLAINED.md`](guides/ADCE_FOCUS_AND_ZONE_DETECTION_EXPLAINED.md) | Plain-English visual guide to Windows focus mechanics, parent-chain climbing, and how ADCE detects semantic zones. |
 | 🧪 [`guides/EDUCATIONAL_GUIDE_TEST_HARNESS_AND_CLAIM_VERIFICATION.md`](guides/EDUCATIONAL_GUIDE_TEST_HARNESS_AND_CLAIM_VERIFICATION.md) | Detailed educational guide on empirical stimulus testing, claim verification, and telemetry methodology. |
 
@@ -134,6 +135,9 @@ To ensure consistency and ground human developers and local AI agents in verifie
 
 ### 🔬 Tier 6: External Research & Upstream Lineage
 * 🔬 **[External Research Hub](external_research/README.md)**
+  * [Tree-sitter & Syntactic Scoping Audit](external_research/TreeSitter_And_Syntax_Scoping_Audit.md)
+  * [TIRG-DLL & Text Geometry Audit](external_research/TirgDll_And_Text_Geometry_Audit.md)
+  * [AccessKit & Accessibility Primitives Audit](external_research/AccessKit_And_Accessibility_Primitives_Audit.md)
   * [Roman Baeriswyl (Roemer) & FlaUI Ecosystem](external_research/FlaUI_And_Roemer_Ecosystem.md)
   * [Simon Mourier Ecosystem & Systems Tools](external_research/README.md)
   * [Simon Mourier: UInspect Deep Dive](external_research/UInspect.md)
