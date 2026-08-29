@@ -27,10 +27,9 @@ public static class GeckoBrowserExtractor
         var tabsBuilder = ImmutableArray.CreateBuilder<TabItemInfo>();
         string? activeTabTitle = null;
 
-        // 1. Probe for Tree Style Tab Normal Tabs
+        // 1. Probe for Tree Style Tab Normal Tabs (bounded, zero full-DOM crawl)
         var tstContainer = windowElement.FindFirstDescendant(cf.ByClassName("tabs normal")) ??
-                           windowElement.FindAllDescendants(cf.ByControlType(ControlType.List))
-                                        .FirstOrDefault(l => (l.Properties.ClassName.ValueOrDefault ?? string.Empty).Contains("tabs", StringComparison.OrdinalIgnoreCase));
+                           windowElement.FindFirstDescendant(cf.ByAutomationId("sidebar-box"));
         if (tstContainer != null)
         {
             containerType = "TreeStyleTab";

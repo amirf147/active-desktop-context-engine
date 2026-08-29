@@ -36,7 +36,7 @@ public sealed class DesktopContextMcpHandler : IMcpHandler
         [
             new McpTool(
                 Name: "get_desktop_context",
-                Description: "Returns the current live active desktop context snapshot, optionally filtering by process name.",
+                Description: "Returns the current live active desktop context snapshot with explicit container hierarchy, optionally filtering by process name or projecting specific context.",
                 InputSchema: new
                 {
                     type = "object",
@@ -46,7 +46,24 @@ public sealed class DesktopContextMcpHandler : IMcpHandler
                         {
                             type = "string",
                             description = "Optional process name filter (e.g. 'code', 'waterfox', 'Antigravity')"
+                        },
+                        projection = new
+                        {
+                            type = "string",
+                            description = "Optional projection mode: 'full' (default), 'compact' (omits bounding boxes), 'ide' (only IDE file/tabs), 'terminal' (only shell/terminal)"
                         }
+                    }
+                }),
+            new McpTool(
+                Name: "get_active_context",
+                Description: "Alias for get_desktop_context.",
+                InputSchema: new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        process_filter = new { type = "string" },
+                        projection = new { type = "string" }
                     }
                 }),
             new McpTool(
@@ -97,6 +114,7 @@ public sealed class DesktopContextMcpHandler : IMcpHandler
         switch (toolName)
         {
             case "get_desktop_context":
+            case "get_active_context":
                 return ExecuteGetDesktopContext(arguments);
 
             case "search_desktop_history":

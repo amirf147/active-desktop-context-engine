@@ -32,6 +32,8 @@ public sealed class TrayApplicationContext : ApplicationContext
     private ToolStripMenuItem _activeContextMenuItem = null!;
     private ToolStripMenuItem _copyJsonMenuItem = null!;
     private ToolStripMenuItem _toggleHudMenuItem = null!;
+    private ToolStripMenuItem _toggleHudTreeMenuItem = null!;
+    private ToolStripMenuItem _toggleZonesMenuItem = null!;
     private ToolStripMenuItem _pauseResumeMenuItem = null!;
     private ToolStripMenuItem _mcpEndpointsMenuItem = null!;
     private ToolStripMenuItem _storageStatsMenuItem = null!;
@@ -101,6 +103,18 @@ public sealed class TrayApplicationContext : ApplicationContext
 
         _toggleHudMenuItem = new ToolStripMenuItem("🖥️ Toggle Live HUD", null, (s, e) => ToggleFloatingHud());
 
+        _toggleHudTreeMenuItem = new ToolStripMenuItem("🌲 Toggle HUD DOM Tree View", null, (s, e) => ToggleFloatingHudTree());
+
+        _toggleZonesMenuItem = new ToolStripMenuItem("🏷️ Semantic Zone Heuristics", null, (s, e) =>
+        {
+            _host.EnableSemanticZones = !_host.EnableSemanticZones;
+            _toggleZonesMenuItem.Checked = _host.EnableSemanticZones;
+            _host.Resume();
+        })
+        {
+            Checked = _host.EnableSemanticZones
+        };
+
         _pauseResumeMenuItem = new ToolStripMenuItem("⏸ Pause Monitoring", null, (s, e) => TogglePauseResume());
 
         _mcpEndpointsMenuItem = new ToolStripMenuItem("🔌 MCP Endpoints");
@@ -111,6 +125,23 @@ public sealed class TrayApplicationContext : ApplicationContext
 
         var refreshMenuItem = new ToolStripMenuItem("🔄 Refresh Context", null, (s, e) => _host.Resume());
 
+        var logsMenuItem = new ToolStripMenuItem("📄 View Diagnostic Logs", null, (s, e) =>
+        {
+            var logPath = ADCE.Core.Logging.AdceLogger.Default.LogFilePath;
+            if (!string.IsNullOrWhiteSpace(logPath) && File.Exists(logPath))
+            {
+                Process.Start(new ProcessStartInfo(logPath) { UseShellExecute = true });
+            }
+            else
+            {
+                var dir = Path.GetDirectoryName(logPath);
+                if (!string.IsNullOrWhiteSpace(dir) && Directory.Exists(dir))
+                {
+                    Process.Start(new ProcessStartInfo("explorer.exe", dir) { UseShellExecute = true });
+                }
+            }
+        });
+
         var exitMenuItem = new ToolStripMenuItem("❌ Exit ADCE", null, async (s, e) => await ExitApplicationAsync());
 
         _contextMenu.Items.AddRange(new ToolStripItem[]
@@ -119,12 +150,15 @@ public sealed class TrayApplicationContext : ApplicationContext
             _activeContextMenuItem,
             _copyJsonMenuItem,
             _toggleHudMenuItem,
+            _toggleHudTreeMenuItem,
+            _toggleZonesMenuItem,
             new ToolStripSeparator(),
             _pauseResumeMenuItem,
             _mcpEndpointsMenuItem,
             _storageStatsMenuItem,
             new ToolStripSeparator(),
             refreshMenuItem,
+            logsMenuItem,
             exitMenuItem
         });
     }
@@ -138,8 +172,15 @@ public sealed class TrayApplicationContext : ApplicationContext
             string sseUrl = $"http://localhost:{_options.Port}/sse";
             var sseItem = new ToolStripMenuItem($"SSE: {sseUrl}", null, (s, e) =>
             {
-                Clipboard.SetText(sseUrl);
-                _notifyIcon.ShowBalloonTip(1500, "ADCE MCP", "SSE URL copied to clipboard", ToolTipIcon.Info);
+                bool success = StaClipboardHelper.SetText(sseUrl);
+                if (success)
+                {
+                    _notifyIcon.ShowBalloonTip(1500, "ADCE MCP", "SSE URL copied to clipboard", ToolTipIcon.Info);
+                }
+                else
+                {
+                    _notifyIcon.ShowBalloonTip(1500, "ADCE MCP", "Failed to access clipboard (locked by another process)", ToolTipIcon.Warning);
+                }
             });
             _mcpEndpointsMenuItem.DropDownItems.Add(sseItem);
         }
@@ -296,6 +337,23 @@ public sealed class TrayApplicationContext : ApplicationContext
             _hudForm.Show();
             _toggleHudMenuItem.Checked = true;
         }
+    }
+
+    private void ToggleFloatingHudTree()
+    {
+        if (_hudForm == null || _hudForm.IsDisposed)
+        {
+            _hudForm = new FloatingHudForm(_host);
+            _hudForm.Show();
+            _toggleHudMenuItem.Checked = true;
+        }
+        else if (!_hudForm.Visible)
+        {
+            _hudForm.Show();
+            _toggleHudMenuItem.Checked = true;
+        }
+
+        _hudForm.ToggleTreeView();
     }
 
     private async Task ExitApplicationAsync()

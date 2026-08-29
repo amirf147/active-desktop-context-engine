@@ -182,4 +182,61 @@ public class JsonSerializationTests
         Assert.True(deserialized.BrowserContext.Tabs[0].IsActive);
         Assert.True(deserialized.BrowserContext.Tabs[1].IsPinned);
     }
+
+    [Fact]
+    public void StructuralHierarchy_RoundTripSerialization_IsLossless()
+    {
+        var snapshot = new DesktopContextSnapshot
+        {
+            Timestamp = DateTimeOffset.UtcNow,
+            Workspace = new WorkspaceEnvelope { VirtualDesktopId = Guid.NewGuid(), DesktopIndex = 0 },
+            Window = new WindowEnvelope
+            {
+                Hwnd = 0x12345678,
+                Title = "repo - VS Code",
+                ProcessName = "Code.exe",
+                Pid = 4000,
+                ClassName = "Chrome_WidgetWin_1",
+                Archetype = DesktopAppArchetype.ChromiumElectron
+            },
+            Focus = new FocusedControlInfo
+            {
+                ControlType = "Edit",
+                ElementName = "Commit message",
+                AutomationId = "scm.input",
+                ClassName = "monaco-editor",
+                BoundingBox = new BoundingRectangle(10, 20, 300, 100),
+                SemanticZone = DesktopSemanticZone.EditorBuffer,
+                ContainerPath = ["scm-view", "workbench.view.scm"],
+                ContainerClasses = ["monaco-editor", "monaco-pane-view"],
+                IsOverlay = false
+            },
+            IdeContext = new IdeContext
+            {
+                WorkspaceRoot = "/mock/workspace/adce",
+                ActiveFilePath = "src/Engine.cs",
+                ActiveSidebarView = "workbench.view.scm",
+                IsDiffEditor = true
+            }
+        };
+
+        var options = AdceJsonSerializerOptions.Default;
+        string json = JsonSerializer.Serialize(snapshot, options);
+
+        Assert.Contains("\"container_path\":", json);
+        Assert.Contains("\"container_classes\":", json);
+        Assert.Contains("\"is_overlay\":", json);
+        Assert.Contains("\"workspace_root\":", json);
+        Assert.Contains("\"is_diff_editor\":", json);
+
+        var deserialized = JsonSerializer.Deserialize<DesktopContextSnapshot>(json, options);
+        Assert.NotNull(deserialized);
+        Assert.Equal(2, deserialized.Focus.ContainerPath.Length);
+        Assert.Equal("scm-view", deserialized.Focus.ContainerPath[0]);
+        Assert.Equal("workbench.view.scm", deserialized.Focus.ContainerPath[1]);
+        Assert.False(deserialized.Focus.IsOverlay);
+        Assert.NotNull(deserialized.IdeContext);
+        Assert.Equal("/mock/workspace/adce", deserialized.IdeContext.WorkspaceRoot);
+        Assert.True(deserialized.IdeContext.IsDiffEditor);
+    }
 }

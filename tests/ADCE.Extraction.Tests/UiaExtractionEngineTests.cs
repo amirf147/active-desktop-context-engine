@@ -38,4 +38,28 @@ public class UiaExtractionEngineTests
         Assert.NotNull(snapshot.Focus);
         Assert.True(snapshot.ExtractionDurationMs >= 0.0);
     }
+
+    [Theory]
+    [InlineData("Edit", "Message (Ctrl+Enter to commit)", "scm.input", "monaco-editor", DesktopAppArchetype.ChromiumElectron, false, DesktopSemanticZone.EditorBuffer)]
+    [InlineData("Document", "Terminal 1", "workbench.action.terminal.focus", "xterm", DesktopAppArchetype.ChromiumElectron, false, DesktopSemanticZone.Terminal)]
+    [InlineData("Edit", "Type a message", "chat-input", "interactive-session", DesktopAppArchetype.ChromiumElectron, false, DesktopSemanticZone.ChatPrompt)]
+    [InlineData("Edit", "Search box", "quickInput", "quick-input-widget", DesktopAppArchetype.ChromiumElectron, true, DesktopSemanticZone.QuickOpen)]
+    [InlineData("TreeItem", "Source Control", "workbench.view.scm", "monaco-list", DesktopAppArchetype.ChromiumElectron, false, DesktopSemanticZone.NavigationPanel)]
+    [InlineData("Document", "Mozilla Firefox", "urlbar-input", "MozillaWindowClass", DesktopAppArchetype.Gecko, false, DesktopSemanticZone.QuickOpen)]
+    public void ResolveSemanticZone_MapsToExpectedMacroAnchors(
+        string cType, string name, string autoId, string className, DesktopAppArchetype archetype, bool isOverlay, DesktopSemanticZone expected)
+    {
+        var zone = UiaExtractionEngine.ResolveSemanticZone(cType, name, autoId, className, archetype, isOverlay);
+        Assert.Equal(expected, zone);
+    }
+
+    [Fact]
+    public void ExtractionEngine_CanToggleSemanticZones()
+    {
+        using var engine = new UiaExtractionEngine();
+        Assert.True(engine.EnableSemanticZones);
+
+        engine.EnableSemanticZones = false;
+        Assert.False(engine.EnableSemanticZones);
+    }
 }

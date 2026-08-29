@@ -23,11 +23,10 @@ public static class MonacoIdeExtractor
     {
         var cf = automation.ConditionFactory;
 
-        // 1. Extract Open Editor Tabs via CacheRequest
+        // 1. Extract Open Editor Tabs via Scoped CacheRequest (bounded, zero full-tree DOM crawl)
         var tabsBuilder = ImmutableArray.CreateBuilder<TabItemInfo>();
         var tabContainer = windowElement.FindFirstDescendant(cf.ByClassName("tabs-container")) ??
-                           windowElement.FindAllDescendants(cf.ByControlType(ControlType.Tab))
-                                        .FirstOrDefault(t => (t.Properties.ClassName.ValueOrDefault ?? string.Empty).Contains("tabs-container", StringComparison.OrdinalIgnoreCase));
+                           windowElement.FindFirstDescendant(cf.ByControlType(ControlType.Tab));
 
         if (tabContainer != null)
         {
@@ -139,10 +138,31 @@ public static class MonacoIdeExtractor
             activeFilePath = activeTab?.Title;
         }
 
+        // 5. Workspace Root resolution from window title (e.g. "repo-name - Antigravity IDE" -> "repo-name")
+        string? workspaceRoot = null;
+        string windowTitle = windowElement.Properties.Name.ValueOrDefault ?? string.Empty;
+        if (!string.IsNullOrWhiteSpace(windowTitle))
+        {
+            int dashIdx = windowTitle.LastIndexOf(" - ", StringComparison.Ordinal);
+            if (dashIdx > 0)
+            {
+                string candidate = windowTitle[..dashIdx].Trim();
+                int secondDash = candidate.LastIndexOf(" - ", StringComparison.Ordinal);
+                workspaceRoot = secondDash > 0 ? candidate[(secondDash + 3)..].Trim() : candidate;
+            }
+        }
+
+        // 6. Diff Editor detection
+        bool isDiffEditor = tabsBuilder.Any(t => t.IsActive && (t.Title.Contains("(Working Tree)", StringComparison.OrdinalIgnoreCase) ||
+                                                                t.Title.Contains("(Index)", StringComparison.OrdinalIgnoreCase) ||
+                                                                t.Title.Contains("↔", StringComparison.OrdinalIgnoreCase)));
+
         return new IdeContext
         {
+            WorkspaceRoot = workspaceRoot,
             ActiveFilePath = activeFilePath,
             ActiveSidebarView = activeSidebar,
+            IsDiffEditor = isDiffEditor,
             EditBuffer = activeFilePath,
             Breadcrumbs = breadcrumbsBuilder.ToImmutable(),
             OpenEditorTabs = tabsBuilder.ToImmutable()

@@ -30,6 +30,13 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
     private readonly IArchetypeClassifier _classifier;
     private bool _disposed;
 
+    /// <summary>
+    /// Gets or sets whether heuristic semantic zone resolution is enabled.
+    /// When false, semantic zone heuristics are completely bypassed and set to Unknown/None,
+    /// enabling pure explicit structural inspection.
+    /// </summary>
+    public bool EnableSemanticZones { get; set; } = true;
+
     public UiaExtractionEngine(IArchetypeClassifier? classifier = null)
     {
         _classifier = classifier ?? ArchetypeClassifier.Default;
@@ -88,7 +95,7 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
         }
 
         // 4. Extract Focus Target (process-scoped to prevent global UIA focus bleed from other windows)
-        var focusInfo = ExtractFocusedControl(_automation, windowElement, pid, archetype);
+        var focusInfo = ExtractFocusedControl(_automation, windowElement, pid, archetype, EnableSemanticZones);
 
         // 5. Specialized Multi-Zone Extraction based on Archetype
         IdeContext? ideContext = null;
@@ -171,7 +178,8 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
         UIA3Automation automation,
         AutomationElement windowElement,
         int windowPid,
-        DesktopAppArchetype archetype)
+        DesktopAppArchetype archetype,
+        bool enableSemanticZones = true)
     {
         try
         {
@@ -197,12 +205,25 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
                     var boundingBox = rect.IsEmpty ? BoundingRectangle.Empty :
                         new BoundingRectangle((int)rect.Left, (int)rect.Top, (int)rect.Width, (int)rect.Height);
 
-                    var zone = ResolveSemanticZone(cType, name, autoId, cls, archetype);
+                    bool isOverlay = autoId.Contains("quickInput", StringComparison.OrdinalIgnoreCase) ||
+                                     autoId.Contains("command-palette", StringComparison.OrdinalIgnoreCase) ||
+                                     cls.Contains("quick-input", StringComparison.OrdinalIgnoreCase) ||
+                                     name.Equals("Search box", StringComparison.OrdinalIgnoreCase);
 
-                    // WP 2.4: If leaf element is insufficient to determine the zone, climb up to 2 ancestor levels
-                    if (zone == DesktopSemanticZone.Unknown)
+                    nint rootHwnd = nint.Zero;
+                    try
                     {
-                        zone = ResolveSemanticZoneFromAncestors(automation, focused, archetype, maxDepth: 2);
+                        rootHwnd = windowElement.Properties.NativeWindowHandle.ValueOrDefault;
+                    }
+                    catch { }
+
+                    var (containerPath, containerClasses, ancestorZone) = ExtractAncestorHierarchy(
+                        automation, focused, rootHwnd, windowPid, archetype, enableSemanticZones: enableSemanticZones);
+
+                    var zone = enableSemanticZones ? ResolveSemanticZone(cType, name, autoId, cls, archetype, isOverlay) : DesktopSemanticZone.Unknown;
+                    if (enableSemanticZones && zone == DesktopSemanticZone.Unknown && ancestorZone != DesktopSemanticZone.Unknown)
+                    {
+                        zone = ancestorZone;
                     }
 
                     bool isPassword = false;
@@ -229,6 +250,9 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
                         ClassName = cls,
                         BoundingBox = boundingBox,
                         SemanticZone = zone,
+                        ContainerPath = containerPath,
+                        ContainerClasses = containerClasses,
+                        IsOverlay = isOverlay,
                         ValueSnippet = sanitizedValue
                     };
                 }
@@ -243,101 +267,163 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
             AutomationId = string.Empty,
             ClassName = windowElement.Properties.ClassName.ValueOrDefault ?? string.Empty,
             BoundingBox = BoundingRectangle.Empty,
-            SemanticZone = DesktopSemanticZone.Unknown
+            SemanticZone = DesktopSemanticZone.Unknown,
+            ContainerPath = System.Collections.Immutable.ImmutableArray<string>.Empty,
+            ContainerClasses = System.Collections.Immutable.ImmutableArray<string>.Empty,
+            IsOverlay = false
         };
     }
 
-    internal static DesktopSemanticZone ResolveSemanticZoneFromAncestors(
+    internal static (System.Collections.Immutable.ImmutableArray<string> Paths, System.Collections.Immutable.ImmutableArray<string> Classes, DesktopSemanticZone Zone) ExtractAncestorHierarchy(
         UIA3Automation automation,
-        AutomationElement leaf,
+        AutomationElement focusedElement,
+        nint rootWindowHwnd,
+        int expectedPid,
         DesktopAppArchetype archetype,
-        int maxDepth = 2)
+        int maxDepth = 3,
+        bool enableSemanticZones = true)
     {
+        var pathBuilder = System.Collections.Immutable.ImmutableArray.CreateBuilder<string>(maxDepth);
+        var classBuilder = System.Collections.Immutable.ImmutableArray.CreateBuilder<string>(maxDepth);
+        var resolvedZone = DesktopSemanticZone.Unknown;
+
         try
         {
-            var walker = automation.TreeWalkerFactory.GetRawViewWalker();
-            var current = leaf;
+            var nativeAutomation = (Interop.UIAutomationClient.IUIAutomation)automation.NativeAutomation;
+            var nativeWalker = nativeAutomation.RawViewWalker;
+
+            var cacheRequest = nativeAutomation.CreateCacheRequest();
+            cacheRequest.AddProperty(automation.PropertyLibrary.Element.AutomationId.Id);
+            cacheRequest.AddProperty(automation.PropertyLibrary.Element.ClassName.Id);
+            cacheRequest.AddProperty(automation.PropertyLibrary.Element.ControlType.Id);
+            cacheRequest.AddProperty(automation.PropertyLibrary.Element.Name.Id);
+            cacheRequest.AddProperty(automation.PropertyLibrary.Element.ProcessId.Id);
+            cacheRequest.AddProperty(automation.PropertyLibrary.Element.NativeWindowHandle.Id);
+            cacheRequest.TreeScope = Interop.UIAutomationClient.TreeScope.TreeScope_Element;
+
+            var currentNative = ((FlaUI.UIA3.UIA3FrameworkAutomationElement)focusedElement.FrameworkAutomationElement).NativeElement;
 
             for (int depth = 0; depth < maxDepth; depth++)
             {
-                AutomationElement? parent = null;
+                Interop.UIAutomationClient.IUIAutomationElement? parentNative = null;
                 try
                 {
-                    parent = walker.GetParent(current);
+                    parentNative = nativeWalker.GetParentElementBuildCache(currentNative, cacheRequest);
                 }
                 catch (COMException)
                 {
                     break;
                 }
-                catch (Exception)
+                catch
                 {
                     break;
                 }
 
-                if (parent == null)
-                {
-                    break;
-                }
+                if (parentNative == null) break;
 
-                string pType = string.Empty;
-                string pName = string.Empty;
-                string pAutoId = string.Empty;
-                string pCls = string.Empty;
-
+                int parentPid = 0;
+                nint parentHwnd = nint.Zero;
                 try
                 {
-                    pType = parent.Properties.ControlType.ValueOrDefault.ToString();
-                    pName = parent.Properties.Name.ValueOrDefault ?? string.Empty;
-                    pAutoId = parent.Properties.AutomationId.ValueOrDefault ?? string.Empty;
-                    pCls = parent.Properties.ClassName.ValueOrDefault ?? string.Empty;
+                    parentPid = (int)parentNative.GetCachedPropertyValue(automation.PropertyLibrary.Element.ProcessId.Id);
+                    parentHwnd = (nint)(int)parentNative.GetCachedPropertyValue(automation.PropertyLibrary.Element.NativeWindowHandle.Id);
                 }
                 catch { }
 
-                var ancestorZone = ResolveSemanticZone(pType, pName, pAutoId, pCls, archetype);
-                if (ancestorZone != DesktopSemanticZone.Unknown)
+                if (parentPid != expectedPid || (rootWindowHwnd != nint.Zero && parentHwnd == rootWindowHwnd))
                 {
-                    return ancestorZone;
+                    break;
                 }
 
-                // Match structural container class names
-                if (pCls.Contains("monaco-pane-view", StringComparison.OrdinalIgnoreCase) ||
-                    pCls.Contains("editor-container", StringComparison.OrdinalIgnoreCase) ||
-                    pCls.Contains("monaco-editor", StringComparison.OrdinalIgnoreCase))
+                string autoId = string.Empty;
+                string cls = string.Empty;
+                string name = string.Empty;
+                int cTypeId = 0;
+                try
                 {
-                    return DesktopSemanticZone.EditorCodeBuffer;
+                    autoId = (string)parentNative.GetCachedPropertyValue(automation.PropertyLibrary.Element.AutomationId.Id) ?? string.Empty;
+                    cls = (string)parentNative.GetCachedPropertyValue(automation.PropertyLibrary.Element.ClassName.Id) ?? string.Empty;
+                    name = (string)parentNative.GetCachedPropertyValue(automation.PropertyLibrary.Element.Name.Id) ?? string.Empty;
+                    cTypeId = (int)parentNative.GetCachedPropertyValue(automation.PropertyLibrary.Element.ControlType.Id);
+                }
+                catch { }
+
+                if (!string.IsNullOrWhiteSpace(cls) && !IsNoiseWrapperClass(cls))
+                {
+                    classBuilder.Add(cls);
                 }
 
-                if (pCls.Contains("terminal-wrapper", StringComparison.OrdinalIgnoreCase) ||
-                    pCls.Contains("xterm", StringComparison.OrdinalIgnoreCase) ||
-                    pName.StartsWith("Terminal", StringComparison.OrdinalIgnoreCase))
+                if (!string.IsNullOrWhiteSpace(autoId))
                 {
-                    return DesktopSemanticZone.IntegratedTerminal;
+                    pathBuilder.Add(autoId);
                 }
 
-                if (pCls.Contains("activitybar", StringComparison.OrdinalIgnoreCase) ||
-                    pCls.Contains("sidebar", StringComparison.OrdinalIgnoreCase) ||
-                    pCls.Contains("view-pane", StringComparison.OrdinalIgnoreCase) ||
-                    pAutoId.Contains("workbench.view", StringComparison.OrdinalIgnoreCase))
+                if (enableSemanticZones && resolvedZone == DesktopSemanticZone.Unknown)
                 {
-                    // Gecko sidebar (e.g. Tree Style Tab vertical tab container) resolves to TabBar, NOT SidebarExplorer (CLM-004)
-                    if (archetype == DesktopAppArchetype.Gecko)
-                    {
-                        return DesktopSemanticZone.TabBar;
-                    }
-
-                    return DesktopSemanticZone.SidebarExplorer;
+                    resolvedZone = MapContainerToMacroZone(autoId, cls, name, cTypeId, archetype);
                 }
 
-                current = parent;
+                currentNative = parentNative;
             }
         }
-        catch (COMException)
+        catch { }
+
+        return (pathBuilder.ToImmutable(), classBuilder.ToImmutable(), resolvedZone);
+    }
+
+    private static bool IsNoiseWrapperClass(string cls)
+    {
+        return cls.Contains("view-lines", StringComparison.OrdinalIgnoreCase) ||
+               cls.Contains("overflow-guard", StringComparison.OrdinalIgnoreCase) ||
+               cls.Contains("monaco-scrollable-element", StringComparison.OrdinalIgnoreCase) ||
+               cls.Contains("split-view-view", StringComparison.OrdinalIgnoreCase) ||
+               cls.Contains("split-view-container", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static DesktopSemanticZone MapContainerToMacroZone(
+        string autoId, string className, string name, int controlTypeId, DesktopAppArchetype archetype)
+    {
+        if (autoId.Contains("terminal", StringComparison.OrdinalIgnoreCase) ||
+            className.Contains("terminal", StringComparison.OrdinalIgnoreCase) ||
+            className.Contains("xterm", StringComparison.OrdinalIgnoreCase) ||
+            name.StartsWith("Terminal", StringComparison.OrdinalIgnoreCase))
         {
-            // Graceful fallback to Unknown without failing snapshot
+            return DesktopSemanticZone.Terminal;
         }
-        catch (Exception)
+
+        if (className.Contains("monaco-editor", StringComparison.OrdinalIgnoreCase) ||
+            className.Contains("editor-container", StringComparison.OrdinalIgnoreCase) ||
+            className.Contains("monaco-pane-view", StringComparison.OrdinalIgnoreCase) ||
+            className.Contains("native-edit-context", StringComparison.OrdinalIgnoreCase))
         {
-            // Graceful fallback
+            return DesktopSemanticZone.EditorBuffer;
+        }
+
+        if (autoId.Contains("chat", StringComparison.OrdinalIgnoreCase) ||
+            autoId.Contains("interactive-session", StringComparison.OrdinalIgnoreCase) ||
+            className.Contains("chat-input", StringComparison.OrdinalIgnoreCase))
+        {
+            return DesktopSemanticZone.ChatPrompt;
+        }
+
+        if (autoId.Contains("quickInput", StringComparison.OrdinalIgnoreCase) ||
+            autoId.Contains("command-palette", StringComparison.OrdinalIgnoreCase) ||
+            className.Contains("quick-input", StringComparison.OrdinalIgnoreCase))
+        {
+            return DesktopSemanticZone.QuickOpen;
+        }
+
+        if (autoId.Contains("sidebar", StringComparison.OrdinalIgnoreCase) ||
+            autoId.Contains("workbench.view", StringComparison.OrdinalIgnoreCase) ||
+            className.Contains("activitybar", StringComparison.OrdinalIgnoreCase) ||
+            className.Contains("view-pane", StringComparison.OrdinalIgnoreCase))
+        {
+            if (archetype == DesktopAppArchetype.Gecko)
+            {
+                return DesktopSemanticZone.WebDocument;
+            }
+
+            return DesktopSemanticZone.NavigationPanel;
         }
 
         return DesktopSemanticZone.Unknown;
@@ -348,20 +434,26 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
         string name,
         string autoId,
         string className,
-        DesktopAppArchetype archetype)
+        DesktopAppArchetype archetype,
+        bool isOverlay = false)
     {
+        if (isOverlay)
+        {
+            return DesktopSemanticZone.QuickOpen;
+        }
+
         if (autoId.Contains("urlbar", StringComparison.OrdinalIgnoreCase) ||
             autoId.Contains("Address", StringComparison.OrdinalIgnoreCase) ||
             name.Contains("Address and search bar", StringComparison.OrdinalIgnoreCase))
         {
-            return DesktopSemanticZone.AddressBar;
+            return DesktopSemanticZone.QuickOpen;
         }
 
         if (name.Contains("Message (Ctrl+Enter to commit", StringComparison.OrdinalIgnoreCase) ||
             autoId.Contains("scm.input", StringComparison.OrdinalIgnoreCase) ||
             autoId.Contains("git-commit", StringComparison.OrdinalIgnoreCase))
         {
-            return DesktopSemanticZone.GitCommitBox;
+            return DesktopSemanticZone.EditorBuffer;
         }
 
         if (name.Contains("Message input", StringComparison.OrdinalIgnoreCase) ||
@@ -369,39 +461,44 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
             autoId.Contains("chat-input", StringComparison.OrdinalIgnoreCase) ||
             autoId.Contains("interactive-session", StringComparison.OrdinalIgnoreCase) ||
             className.Contains("chat-input", StringComparison.OrdinalIgnoreCase) ||
-            className.Contains("interactive-session", StringComparison.OrdinalIgnoreCase))
+            className.Contains("interactive-session", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("voice memo", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("Stop recording", StringComparison.OrdinalIgnoreCase))
         {
-            return DesktopSemanticZone.ChatAssistant;
+            return DesktopSemanticZone.ChatPrompt;
         }
 
         if (autoId.Contains("terminal", StringComparison.OrdinalIgnoreCase) ||
             name.StartsWith("Terminal", StringComparison.OrdinalIgnoreCase) ||
             name.Contains("terminal accessibility", StringComparison.OrdinalIgnoreCase) ||
+            className.Equals("ConsoleWindowClass", StringComparison.OrdinalIgnoreCase) ||
+            className.StartsWith("CASCADIA", StringComparison.OrdinalIgnoreCase) ||
             (controlType.Equals("Document", StringComparison.OrdinalIgnoreCase) && className.Contains("terminal", StringComparison.OrdinalIgnoreCase)))
         {
-            return DesktopSemanticZone.IntegratedTerminal;
+            return DesktopSemanticZone.Terminal;
         }
 
         if (className.Contains("monaco-editor", StringComparison.OrdinalIgnoreCase) ||
             className.Contains("native-edit-context", StringComparison.OrdinalIgnoreCase))
         {
-            return DesktopSemanticZone.EditorCodeBuffer;
+            return DesktopSemanticZone.EditorBuffer;
         }
 
-        if (autoId.Contains("sidebar", StringComparison.OrdinalIgnoreCase) ||
+        if (controlType.Equals("TreeItem", StringComparison.OrdinalIgnoreCase) ||
+            controlType.Equals("Tree", StringComparison.OrdinalIgnoreCase) ||
+            autoId.Contains("sidebar", StringComparison.OrdinalIgnoreCase) ||
             autoId.Contains("explorer", StringComparison.OrdinalIgnoreCase) ||
             (archetype == DesktopAppArchetype.ChromiumElectron && name.Contains("Source Control", StringComparison.OrdinalIgnoreCase)) ||
             (archetype == DesktopAppArchetype.WinUI3Xaml && className.Equals("CabinetWClass", StringComparison.OrdinalIgnoreCase)))
         {
-            // Gecko sidebar (e.g. Tree Style Tab vertical tab container) resolves to TabBar or DocumentContent, NOT SidebarExplorer (CLM-004)
             if (archetype == DesktopAppArchetype.Gecko)
             {
                 return controlType.Equals("Document", StringComparison.OrdinalIgnoreCase)
-                    ? DesktopSemanticZone.DocumentContent
-                    : DesktopSemanticZone.TabBar;
+                    ? DesktopSemanticZone.WebDocument
+                    : DesktopSemanticZone.NavigationPanel;
             }
 
-            return DesktopSemanticZone.SidebarExplorer;
+            return DesktopSemanticZone.NavigationPanel;
         }
 
         if ((controlType.Equals("ListItem", StringComparison.OrdinalIgnoreCase) ||
@@ -409,19 +506,24 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
              className.Contains("ItemsView", StringComparison.OrdinalIgnoreCase)) &&
             (archetype == DesktopAppArchetype.WinUI3Xaml || archetype == DesktopAppArchetype.ClassicWin32))
         {
-            return DesktopSemanticZone.ShellItemList;
+            return DesktopSemanticZone.NavigationPanel;
         }
 
         if (controlType.Equals("TabItem", StringComparison.OrdinalIgnoreCase) ||
             controlType.Equals("Tab", StringComparison.OrdinalIgnoreCase))
         {
-            return DesktopSemanticZone.TabBar;
+            return DesktopSemanticZone.NavigationPanel;
         }
 
         if (controlType.Equals("Document", StringComparison.OrdinalIgnoreCase) &&
             (archetype == DesktopAppArchetype.Gecko || archetype == DesktopAppArchetype.ChromiumElectron))
         {
-            return DesktopSemanticZone.DocumentContent;
+            return DesktopSemanticZone.WebDocument;
+        }
+
+        if (className.Equals("#32770", StringComparison.OrdinalIgnoreCase))
+        {
+            return DesktopSemanticZone.SystemDialog;
         }
 
         return DesktopSemanticZone.Unknown;

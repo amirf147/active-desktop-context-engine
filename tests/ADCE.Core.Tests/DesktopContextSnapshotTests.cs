@@ -173,4 +173,72 @@ public class DesktopContextSnapshotTests
         var browserEmpty = new BrowserContext { Tabs = [] };
         Assert.Equal(browserDefaultA, browserEmpty);
     }
+
+    [Fact]
+    public void FocusedControlInfo_ContainerHierarchy_ComparesByValue()
+    {
+        var focusA = new FocusedControlInfo
+        {
+            ControlType = "Edit",
+            ElementName = "file.cs",
+            AutomationId = "editor",
+            ClassName = "monaco-editor",
+            BoundingBox = new BoundingRectangle(0, 0, 100, 100),
+            SemanticZone = DesktopSemanticZone.EditorBuffer,
+            ContainerPath = ["monaco-editor", "workbench.parts.editor"],
+            ContainerClasses = ["monaco-editor", "monaco-pane-view"],
+            IsOverlay = false
+        };
+
+        // Construct focusB with separately allocated ImmutableArrays
+        var focusB = new FocusedControlInfo
+        {
+            ControlType = "Edit",
+            ElementName = "file.cs",
+            AutomationId = "editor",
+            ClassName = "monaco-editor",
+            BoundingBox = new BoundingRectangle(0, 0, 100, 100),
+            SemanticZone = DesktopSemanticZone.EditorBuffer,
+            ContainerPath = [string.Concat("monaco-", "editor"), string.Concat("workbench.", "parts.editor")],
+            ContainerClasses = [string.Concat("monaco-", "editor"), string.Concat("monaco-", "pane-view")],
+            IsOverlay = false
+        };
+
+        var focusC = focusA with
+        {
+            ContainerPath = ["terminal", "workbench.parts.panel"]
+        };
+
+        Assert.Equal(focusA, focusB);
+        Assert.True(focusA.Equals(focusB));
+        Assert.Equal(focusA.GetHashCode(), focusB.GetHashCode());
+
+        Assert.NotEqual(focusA, focusC);
+        Assert.False(focusA.Equals(focusC));
+    }
+
+    [Fact]
+    public void IdeContext_WorkspaceRoot_And_IsDiffEditor_CompareByValue()
+    {
+        var ideA = new IdeContext
+        {
+            WorkspaceRoot = "/mock/workspace/adce",
+            ActiveFilePath = "src/Engine.cs",
+            IsDiffEditor = true,
+            ActiveSidebarView = "workbench.view.scm"
+        };
+
+        var ideB = new IdeContext
+        {
+            WorkspaceRoot = string.Concat("/mock/workspace/", "adce"),
+            ActiveFilePath = "src/Engine.cs",
+            IsDiffEditor = true,
+            ActiveSidebarView = "workbench.view.scm"
+        };
+
+        var ideC = ideA with { IsDiffEditor = false };
+
+        Assert.Equal(ideA, ideB);
+        Assert.NotEqual(ideA, ideC);
+    }
 }

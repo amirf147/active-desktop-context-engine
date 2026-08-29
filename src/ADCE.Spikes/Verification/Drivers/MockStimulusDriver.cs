@@ -176,7 +176,7 @@ public sealed class MockStimulusDriver : IStimulusDriver
                 AutomationId = "chat-input",
                 ClassName = "interactive-session",
                 BoundingBox = new BoundingRectangle(1200, 400, 600, 600),
-                SemanticZone = DesktopSemanticZone.ChatAssistant,
+                SemanticZone = DesktopSemanticZone.ChatPrompt,
                 ValueSnippet = null
             },
             ExtractionDurationMs = 0.85
@@ -216,28 +216,28 @@ public sealed class MockStimulusDriver : IStimulusDriver
 
         // 1. Monaco Code Buffer
         var monacoZone = UiaExtractionEngine.ResolveSemanticZone("Edit", "CONTEXT.md", "native-edit-context", "monaco-editor", DesktopAppArchetype.ChromiumElectron);
-        bool monacoOk = monacoZone == DesktopSemanticZone.EditorCodeBuffer;
-        assertions.Add($"Monaco Editor Class -> EditorCodeBuffer (Resolved: {monacoZone}): {monacoOk}");
+        bool monacoOk = monacoZone == DesktopSemanticZone.EditorBuffer;
+        assertions.Add($"Monaco Editor Class -> EditorBuffer (Resolved: {monacoZone}): {monacoOk}");
 
         // 2. Integrated Terminal
         var termZone = UiaExtractionEngine.ResolveSemanticZone("Document", "Terminal 1", "terminal.integrated", "xterm-dom-renderer-owner-1", DesktopAppArchetype.ChromiumElectron);
-        bool termOk = termZone == DesktopSemanticZone.IntegratedTerminal;
-        assertions.Add($"Integrated Terminal -> IntegratedTerminal (Resolved: {termZone}): {termOk}");
+        bool termOk = termZone == DesktopSemanticZone.Terminal;
+        assertions.Add($"Integrated Terminal -> Terminal (Resolved: {termZone}): {termOk}");
 
         // 3. Git Commit Box
         var gitZone = UiaExtractionEngine.ResolveSemanticZone("Edit", "Message (Ctrl+Enter to commit)", "scm.input", "monaco-editor", DesktopAppArchetype.ChromiumElectron);
-        bool gitOk = gitZone == DesktopSemanticZone.GitCommitBox;
-        assertions.Add($"Git Commit Input -> GitCommitBox (Resolved: {gitZone}): {gitOk}");
+        bool gitOk = gitZone == DesktopSemanticZone.EditorBuffer;
+        assertions.Add($"Git Commit Input -> EditorBuffer (Resolved: {gitZone}): {gitOk}");
 
         // 4. Chat Assistant Input
         var chatZone = UiaExtractionEngine.ResolveSemanticZone("Edit", "Message input", "chat-input", "interactive-session", DesktopAppArchetype.ChromiumElectron);
-        bool chatOk = chatZone == DesktopSemanticZone.ChatAssistant;
-        assertions.Add($"Chat Input -> ChatAssistant (Resolved: {chatZone}): {chatOk}");
+        bool chatOk = chatZone == DesktopSemanticZone.ChatPrompt;
+        assertions.Add($"Chat Input -> ChatPrompt (Resolved: {chatZone}): {chatOk}");
 
         // 5. Sidebar Explorer
         var sidebarZone = UiaExtractionEngine.ResolveSemanticZone("Tree", "Explorer", "workbench.view.explorer", "view-pane", DesktopAppArchetype.ChromiumElectron);
-        bool sidebarOk = sidebarZone == DesktopSemanticZone.SidebarExplorer;
-        assertions.Add($"Sidebar Explorer -> SidebarExplorer (Resolved: {sidebarZone}): {sidebarOk}");
+        bool sidebarOk = sidebarZone == DesktopSemanticZone.NavigationPanel;
+        assertions.Add($"Sidebar Explorer -> NavigationPanel (Resolved: {sidebarZone}): {sidebarOk}");
 
         sw.Stop();
         bool passed = monacoOk && termOk && gitOk && chatOk && sidebarOk;
@@ -264,18 +264,18 @@ public sealed class MockStimulusDriver : IStimulusDriver
 
         // 1. Gecko Sidebar Tree Style Tab vertical tab item
         var geckoTabZone = UiaExtractionEngine.ResolveSemanticZone("ListItem", "Active Desktop Context Engine", "sidebar-box", "tab", DesktopAppArchetype.Gecko);
-        bool geckoTabOk = geckoTabZone == DesktopSemanticZone.TabBar;
-        assertions.Add($"Gecko Sidebar Tab -> TabBar (NOT SidebarExplorer) (Resolved: {geckoTabZone}): {geckoTabOk}");
+        bool geckoTabOk = geckoTabZone == DesktopSemanticZone.NavigationPanel;
+        assertions.Add($"Gecko Sidebar Tab -> NavigationPanel (Resolved: {geckoTabZone}): {geckoTabOk}");
 
         // 2. Gecko Sidebar Web Extension Panel (Document)
         var geckoDocZone = UiaExtractionEngine.ResolveSemanticZone("Document", "Tree Style Tab", "sidebar-box", "webextension-panel", DesktopAppArchetype.Gecko);
-        bool geckoDocOk = geckoDocZone == DesktopSemanticZone.DocumentContent;
-        assertions.Add($"Gecko Sidebar Document -> DocumentContent (NOT SidebarExplorer) (Resolved: {geckoDocZone}): {geckoDocOk}");
+        bool geckoDocOk = geckoDocZone == DesktopSemanticZone.WebDocument;
+        assertions.Add($"Gecko Sidebar Document -> WebDocument (Resolved: {geckoDocZone}): {geckoDocOk}");
 
         // 3. Contrast with IDE Explorer (ChromiumElectron / WinUI3)
         var ideSidebarZone = UiaExtractionEngine.ResolveSemanticZone("Tree", "File Explorer", "sidebar-box", "view-pane", DesktopAppArchetype.ChromiumElectron);
-        bool ideSidebarOk = ideSidebarZone == DesktopSemanticZone.SidebarExplorer;
-        assertions.Add($"IDE Explorer -> SidebarExplorer (Resolved: {ideSidebarZone}): {ideSidebarOk}");
+        bool ideSidebarOk = ideSidebarZone == DesktopSemanticZone.NavigationPanel;
+        assertions.Add($"IDE Explorer -> NavigationPanel (Resolved: {ideSidebarZone}): {ideSidebarOk}");
 
         sw.Stop();
         bool passed = geckoTabOk && geckoDocOk && ideSidebarOk;
@@ -403,7 +403,7 @@ public sealed class MockStimulusDriver : IStimulusDriver
                 Timestamp = DateTimeOffset.UtcNow,
                 Workspace = new WorkspaceEnvelope { VirtualDesktopId = Guid.Empty, DesktopIndex = 0, VirtualDesktopName = "Primary", MonitorIndex = 0, MonitorBounds = BoundingRectangle.Empty },
                 Window = new WindowEnvelope { Hwnd = hwnd, Title = "Test Editor", ProcessName = "editor", Pid = 1000, ClassName = "Edit", Archetype = DesktopAppArchetype.ClassicWin32, Bounds = BoundingRectangle.Empty, IsMinimized = false, IsMaximized = false },
-                Focus = new FocusedControlInfo { ControlType = "Edit", ElementName = "Buffer", AutomationId = "buf", ClassName = "Edit", BoundingBox = BoundingRectangle.Empty, SemanticZone = DesktopSemanticZone.EditorCodeBuffer, ValueSnippet = null },
+                Focus = new FocusedControlInfo { ControlType = "Edit", ElementName = "Buffer", AutomationId = "buf", ClassName = "Edit", BoundingBox = BoundingRectangle.Empty, SemanticZone = DesktopSemanticZone.EditorBuffer, ValueSnippet = null },
                 ExtractionDurationMs = 0.1
             });
         }
@@ -416,7 +416,7 @@ public sealed class MockStimulusDriver : IStimulusDriver
             Timestamp = new DateTimeOffset(2026, 8, 25, 6, 0, 0, TimeSpan.Zero),
             Workspace = new WorkspaceEnvelope { VirtualDesktopId = Guid.Empty, DesktopIndex = 0, VirtualDesktopName = "Primary", MonitorIndex = 0, MonitorBounds = BoundingRectangle.Empty },
             Window = new WindowEnvelope { Hwnd = (nint)0x00A10001, Title = "Fixed Target Window", ProcessName = "app", Pid = 1000, ClassName = "WndClass", Archetype = DesktopAppArchetype.ClassicWin32, Bounds = BoundingRectangle.Empty, IsMinimized = false, IsMaximized = false },
-            Focus = new FocusedControlInfo { ControlType = "Edit", ElementName = "Fixed Target", AutomationId = "fixed-target", ClassName = "Edit", BoundingBox = BoundingRectangle.Empty, SemanticZone = DesktopSemanticZone.EditorCodeBuffer, ValueSnippet = null },
+            Focus = new FocusedControlInfo { ControlType = "Edit", ElementName = "Fixed Target", AutomationId = "fixed-target", ClassName = "Edit", BoundingBox = BoundingRectangle.Empty, SemanticZone = DesktopSemanticZone.EditorBuffer, ValueSnippet = null },
             ExtractionDurationMs = 0.1
         };
 

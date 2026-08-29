@@ -34,7 +34,35 @@ public sealed class DaemonOptionsTests
         var opt2 = DaemonOptions.Parse(new[] { "-H" });
 
         Assert.True(opt1.ShowHud);
+        Assert.False(opt1.ShowHudTree);
         Assert.True(opt2.ShowHud);
+    }
+
+    [Fact]
+    public void Parse_HudTreeFlags_EnablesHudAndHudTree()
+    {
+        var opt1 = DaemonOptions.Parse(new[] { "--hud-tree" });
+        var opt2 = DaemonOptions.Parse(new[] { "--tree" });
+        var opt3 = DaemonOptions.Parse(new[] { "--dom-tree" });
+
+        Assert.True(opt1.ShowHud);
+        Assert.True(opt1.ShowHudTree);
+        Assert.True(opt2.ShowHud);
+        Assert.True(opt2.ShowHudTree);
+        Assert.True(opt3.ShowHud);
+        Assert.True(opt3.ShowHudTree);
+    }
+
+    [Fact]
+    public void Parse_ExplicitModeFlags_DisablesSemanticZones()
+    {
+        var opt1 = DaemonOptions.Parse(new[] { "--explicit-only" });
+        var opt2 = DaemonOptions.Parse(new[] { "--no-zones" });
+        var opt3 = DaemonOptions.Parse(new[] { "--disable-zones" });
+
+        Assert.False(opt1.EnableSemanticZones);
+        Assert.False(opt2.EnableSemanticZones);
+        Assert.False(opt3.EnableSemanticZones);
     }
 
     [Fact]

@@ -72,6 +72,27 @@ public sealed class DaemonOptions
     public bool ShowHud { get; init; }
 
     /// <summary>
+    /// Gets whether to automatically expand the DOM & Structural Tree View inside the HUD.
+    /// </summary>
+    public bool ShowHudTree { get; init; }
+
+    /// <summary>
+    /// Gets whether the user requested recent diagnostic logs and system health telemetry.
+    /// </summary>
+    public bool ShowLogs { get; init; }
+
+    /// <summary>
+    /// Gets the configured log severity level (Debug, Info, Warn, Error, None).
+    /// </summary>
+    public ADCE.Core.Logging.AdceLogLevel LogLevel { get; init; } = ADCE.Core.Logging.AdceLogLevel.Info;
+
+    /// <summary>
+    /// Gets whether heuristic semantic zone resolution is enabled (default: true).
+    /// When set to false via --explicit-only or --no-zones, zone heuristics are bypassed for pure explicit structural inspection.
+    /// </summary>
+    public bool EnableSemanticZones { get; init; } = true;
+
+    /// <summary>
     /// Resolves the effective SQLite database file path.
     /// </summary>
     public string ResolveEffectiveDatabasePath()
@@ -108,6 +129,10 @@ public sealed class DaemonOptions
         bool showVersion = false;
         bool showStatus = false;
         bool showHud = false;
+        bool showHudTree = false;
+        bool showLogs = false;
+        bool enableSemanticZones = true;
+        ADCE.Core.Logging.AdceLogLevel logLevel = ADCE.Core.Logging.AdceLogLevel.Info;
 
         for (int i = 0; i < args.Length; i++)
         {
@@ -129,6 +154,39 @@ public sealed class DaemonOptions
                      arg.Equals("-s", StringComparison.OrdinalIgnoreCase))
             {
                 showStatus = true;
+            }
+            else if (arg.Equals("--logs", StringComparison.OrdinalIgnoreCase) ||
+                     arg.Equals("--diagnostics", StringComparison.OrdinalIgnoreCase) ||
+                     arg.Equals("-l", StringComparison.OrdinalIgnoreCase))
+            {
+                showLogs = true;
+            }
+            else if (arg.Equals("--no-zones", StringComparison.OrdinalIgnoreCase) ||
+                     arg.Equals("--explicit-only", StringComparison.OrdinalIgnoreCase) ||
+                     arg.Equals("--disable-zones", StringComparison.OrdinalIgnoreCase))
+            {
+                enableSemanticZones = false;
+            }
+            else if (arg.Equals("--zones", StringComparison.OrdinalIgnoreCase) ||
+                     arg.Equals("--enable-zones", StringComparison.OrdinalIgnoreCase))
+            {
+                enableSemanticZones = true;
+            }
+            else if (arg.Equals("--log-level", StringComparison.OrdinalIgnoreCase) &&
+                     i + 1 < args.Length)
+            {
+                if (Enum.TryParse<ADCE.Core.Logging.AdceLogLevel>(args[i + 1], ignoreCase: true, out var lvl))
+                {
+                    logLevel = lvl;
+                }
+                i++;
+            }
+            else if (arg.Equals("--hud-tree", StringComparison.OrdinalIgnoreCase) ||
+                     arg.Equals("--tree", StringComparison.OrdinalIgnoreCase) ||
+                     arg.Equals("--dom-tree", StringComparison.OrdinalIgnoreCase))
+            {
+                showHud = true;
+                showHudTree = true;
             }
             else if (arg.Equals("--hud", StringComparison.OrdinalIgnoreCase) ||
                      arg == "-H")
@@ -197,7 +255,11 @@ public sealed class DaemonOptions
             ShowHelp = showHelp,
             ShowVersion = showVersion,
             ShowStatus = showStatus,
-            ShowHud = showHud
+            ShowHud = showHud,
+            ShowHudTree = showHudTree,
+            ShowLogs = showLogs,
+            LogLevel = logLevel,
+            EnableSemanticZones = enableSemanticZones
         };
     }
 
@@ -214,7 +276,11 @@ public sealed class DaemonOptions
           -h, --help               Show command line help and exit
           -v, --version            Show version information and exit
           -s, --status             Query live daemon status and exit
+          -l, --logs, --diagnostics Dump recent diagnostic logs and system health
+          --log-level <level>      Set logging severity (Debug, Info, Warn, Error, None)
+          --explicit-only, --no-zones Disable semantic zone heuristics (pure explicit structural mode)
           -H, --hud                Launch with non-activating floating HUD overlay
+          --hud-tree, --tree       Launch floating HUD with DOM & Structural Tree View expanded
           -n, --headless, --no-tray Run daemon in background console mode without tray icon
           --stdio                  Host MCP server over standard I/O (Stdio child process)
           --sse                    Enable MCP server over HTTP/SSE (enabled by default)
@@ -227,8 +293,11 @@ public sealed class DaemonOptions
         Examples:
           ADCE.Daemon.exe                   # Launch with System Tray icon and SSE server on port 8424
           ADCE.Daemon.exe --hud             # Launch with System Tray and live non-activating floating HUD
+          ADCE.Daemon.exe --hud-tree        # Launch HUD with live hierarchical DOM/Structural Tree View
+          ADCE.Daemon.exe --hud --explicit-only # Launch HUD in pure explicit structural inspection mode
+          ADCE.Daemon.exe --logs            # View latest diagnostic logs and troubleshoot issues
+          ADCE.Daemon.exe --log-level Debug # Launch with verbose UIA extraction debug logging
           ADCE.Daemon.exe --stdio           # Launch as MCP server child process over Stdio
-          ADCE.Daemon.exe -p 9000           # Launch with SSE server on custom port 9000
           ADCE.Daemon.exe --no-tray         # Launch as headless background console daemon
         """;
     }

@@ -12,11 +12,17 @@ namespace ADCE.Core.Models;
 /// </summary>
 public sealed record IdeContext : IEquatable<IdeContext>
 {
+    /// <summary>Resolved root directory of the active workspace or repository.</summary>
+    public string? WorkspaceRoot { get; init; }
+
     /// <summary>Workspace-relative or absolute file path currently being edited.</summary>
     public string? ActiveFilePath { get; init; }
 
-    /// <summary>Name of the active sidebar view (e.g. "Explorer (Ctrl+Shift+E)", "Source Control").</summary>
+    /// <summary>Name or automation ID of the active sidebar view (e.g. "workbench.view.scm", "Explorer").</summary>
     public string? ActiveSidebarView { get; init; }
+
+    /// <summary>True if the active editor is a Git diff or side-by-side comparison.</summary>
+    public bool IsDiffEditor { get; init; }
 
     /// <summary>List of open editor tabs in the active editor group.</summary>
     public ImmutableArray<TabItemInfo> OpenEditorTabs { get; init; } = ImmutableArray<TabItemInfo>.Empty;
@@ -35,8 +41,10 @@ public sealed record IdeContext : IEquatable<IdeContext>
         if (other is null) return false;
         if (ReferenceEquals(this, other)) return true;
 
-        if (ActiveFilePath != other.ActiveFilePath ||
+        if (WorkspaceRoot != other.WorkspaceRoot ||
+            ActiveFilePath != other.ActiveFilePath ||
             ActiveSidebarView != other.ActiveSidebarView ||
+            IsDiffEditor != other.IsDiffEditor ||
             EditBuffer != other.EditBuffer ||
             GitBranch != other.GitBranch)
         {
@@ -65,8 +73,10 @@ public sealed record IdeContext : IEquatable<IdeContext>
     public override int GetHashCode()
     {
         var hash = new HashCode();
+        hash.Add(WorkspaceRoot);
         hash.Add(ActiveFilePath);
         hash.Add(ActiveSidebarView);
+        hash.Add(IsDiffEditor);
         hash.Add(EditBuffer);
         hash.Add(GitBranch);
 

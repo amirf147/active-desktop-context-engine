@@ -217,6 +217,8 @@ public sealed class SqliteDesktopStateStore : IDesktopStateStore, IAsyncDisposab
                 focus_element_name,
                 focus_semantic_zone,
                 active_file_or_tab,
+                container_path,
+                container_classes,
                 snapshot_json
             ) VALUES (
                 @timestamp_utc,
@@ -230,6 +232,8 @@ public sealed class SqliteDesktopStateStore : IDesktopStateStore, IAsyncDisposab
                 @focus_element_name,
                 @focus_semantic_zone,
                 @active_file_or_tab,
+                @container_path,
+                @container_classes,
                 @snapshot_json
             );
             """;
@@ -276,6 +280,14 @@ public sealed class SqliteDesktopStateStore : IDesktopStateStore, IAsyncDisposab
         string activeFileOrTab = ExtractActiveFileOrTab(snapshot);
         string json = JsonSerializer.Serialize(snapshot, AdceJsonSerializerOptions.Default);
 
+        string containerPath = snapshot.Focus.ContainerPath.IsDefault || snapshot.Focus.ContainerPath.IsEmpty
+            ? string.Empty
+            : string.Join('/', snapshot.Focus.ContainerPath);
+
+        string containerClasses = snapshot.Focus.ContainerClasses.IsDefault || snapshot.Focus.ContainerClasses.IsEmpty
+            ? string.Empty
+            : string.Join('/', snapshot.Focus.ContainerClasses);
+
         command.Parameters.AddWithValue("@timestamp_utc", snapshot.Timestamp.ToString("o"));
         command.Parameters.AddWithValue("@timestamp_unix_ms", snapshot.Timestamp.ToUnixTimeMilliseconds());
         command.Parameters.AddWithValue("@hwnd", snapshot.Window.Hwnd.ToInt64());
@@ -287,6 +299,8 @@ public sealed class SqliteDesktopStateStore : IDesktopStateStore, IAsyncDisposab
         command.Parameters.AddWithValue("@focus_element_name", snapshot.Focus.ElementName);
         command.Parameters.AddWithValue("@focus_semantic_zone", (int)snapshot.Focus.SemanticZone);
         command.Parameters.AddWithValue("@active_file_or_tab", activeFileOrTab);
+        command.Parameters.AddWithValue("@container_path", containerPath);
+        command.Parameters.AddWithValue("@container_classes", containerClasses);
         command.Parameters.AddWithValue("@snapshot_json", json);
     }
 
@@ -321,7 +335,7 @@ public sealed class SqliteDesktopStateStore : IDesktopStateStore, IAsyncDisposab
             await pragmaCmd.ExecuteNonQueryAsync(cancellationToken);
         }
 
-        const string schema = """
+        const string createTableSql = """
             CREATE TABLE IF NOT EXISTS desktop_snapshots (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 timestamp_utc TEXT NOT NULL,
@@ -335,17 +349,42 @@ public sealed class SqliteDesktopStateStore : IDesktopStateStore, IAsyncDisposab
                 focus_element_name TEXT,
                 focus_semantic_zone INTEGER NOT NULL,
                 active_file_or_tab TEXT,
+                container_path TEXT DEFAULT '',
+                container_classes TEXT DEFAULT '',
                 snapshot_json TEXT NOT NULL
             );
+            """;
 
+        await using (var schemaCmd = new SqliteCommand(createTableSql, connection))
+        {
+            await schemaCmd.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        // Run migrations on existing databases if columns are missing BEFORE index creation
+        try
+        {
+            await using var migCmd = new SqliteCommand("ALTER TABLE desktop_snapshots ADD COLUMN container_path TEXT DEFAULT '';", connection);
+            await migCmd.ExecuteNonQueryAsync(cancellationToken);
+        }
+        catch { }
+
+        try
+        {
+            await using var migCmd2 = new SqliteCommand("ALTER TABLE desktop_snapshots ADD COLUMN container_classes TEXT DEFAULT '';", connection);
+            await migCmd2.ExecuteNonQueryAsync(cancellationToken);
+        }
+        catch { }
+
+        const string createIndexesSql = """
             CREATE INDEX IF NOT EXISTS idx_snapshots_time_desc ON desktop_snapshots(timestamp_unix_ms DESC, id DESC);
             CREATE INDEX IF NOT EXISTS idx_snapshots_process ON desktop_snapshots(process_name, timestamp_unix_ms DESC);
             CREATE INDEX IF NOT EXISTS idx_snapshots_file_tab ON desktop_snapshots(active_file_or_tab);
+            CREATE INDEX IF NOT EXISTS idx_snapshots_container ON desktop_snapshots(process_name, container_path, timestamp_unix_ms DESC);
             """;
 
-        await using (var schemaCmd = new SqliteCommand(schema, connection))
+        await using (var indexCmd = new SqliteCommand(createIndexesSql, connection))
         {
-            await schemaCmd.ExecuteNonQueryAsync(cancellationToken);
+            await indexCmd.ExecuteNonQueryAsync(cancellationToken);
         }
     }
 

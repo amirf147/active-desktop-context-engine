@@ -190,6 +190,60 @@ public class SqliteDesktopStateStoreTests : IDisposable
         Assert.Equal("Snapshot #25", allItems[0].Window.Title); // Newest is preserved
     }
 
+    [Fact]
+    public async Task ContainerHierarchy_PersistsToSqlite_AndRoundTripsViaGetHistory()
+    {
+        var options = new StorageOptions { DatabasePath = _testDbPath };
+        var store = new SqliteDesktopStateStore(options);
+        await store.InitializeAsync();
+
+        var snap = new DesktopContextSnapshot
+        {
+            Timestamp = DateTimeOffset.UtcNow,
+            Workspace = new WorkspaceEnvelope { VirtualDesktopId = Guid.NewGuid(), DesktopIndex = 0 },
+            Window = new WindowEnvelope
+            {
+                Hwnd = 0x1234,
+                Title = "VS Code - Git",
+                ProcessName = "Code.exe",
+                Pid = 5000,
+                ClassName = "Chrome_WidgetWin_1",
+                Archetype = DesktopAppArchetype.ChromiumElectron
+            },
+            Focus = new FocusedControlInfo
+            {
+                ControlType = "Edit",
+                ElementName = "Commit Box",
+                AutomationId = "scm.input",
+                ClassName = "monaco-editor",
+                BoundingBox = new BoundingRectangle(0, 0, 200, 100),
+                SemanticZone = DesktopSemanticZone.EditorBuffer,
+                ContainerPath = ["scm-pane", "workbench.view.scm"],
+                ContainerClasses = ["monaco-editor", "monaco-pane-view"],
+                IsOverlay = false
+            }
+        };
+
+        store.UpdateCurrentSnapshot(snap);
+        await store.DisposeAsync();
+
+        await using var queryStore = new SqliteDesktopStateStore(options);
+        await queryStore.InitializeAsync();
+
+        var history = new List<DesktopContextSnapshot>();
+        await foreach (var item in queryStore.GetHistoryAsync(DateTimeOffset.UtcNow.AddMinutes(-5), limit: 10))
+        {
+            history.Add(item);
+        }
+
+        Assert.Single(history);
+        var loaded = history[0];
+        Assert.Equal(2, loaded.Focus.ContainerPath.Length);
+        Assert.Equal("scm-pane", loaded.Focus.ContainerPath[0]);
+        Assert.Equal("workbench.view.scm", loaded.Focus.ContainerPath[1]);
+        Assert.Equal("monaco-editor", loaded.Focus.ContainerClasses[0]);
+    }
+
     private static DesktopContextSnapshot CreateTestSnapshot(
         string title, string processName, string activeFileOrTab, DesktopSemanticZone zone, DateTimeOffset? timestamp = null)
     {

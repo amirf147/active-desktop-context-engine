@@ -101,6 +101,12 @@ public sealed class DaemonHost : IAsyncDisposable, IDisposable
             TimeSpan.FromMilliseconds(_options.MaxBurstMs)
         );
 
+        _fallbackEnableSemanticZones = _options.EnableSemanticZones;
+        if (_extractor is UiaExtractionEngine uia)
+        {
+            uia.EnableSemanticZones = _options.EnableSemanticZones;
+        }
+
         _mcpHandler = new DesktopContextMcpHandler(_store);
 
         if (_options.EnableSse)
@@ -116,6 +122,24 @@ public sealed class DaemonHost : IAsyncDisposable, IDisposable
         }
     }
 
+    private bool _fallbackEnableSemanticZones;
+
+    /// <summary>
+    /// Gets or sets whether heuristic semantic zone resolution is active.
+    /// </summary>
+    public bool EnableSemanticZones
+    {
+        get => _extractor is UiaExtractionEngine uia ? uia.EnableSemanticZones : _fallbackEnableSemanticZones;
+        set
+        {
+            _fallbackEnableSemanticZones = value;
+            if (_extractor is UiaExtractionEngine uia)
+            {
+                uia.EnableSemanticZones = value;
+            }
+        }
+    }
+
     /// <summary>
     /// Starts all subsystems: storage initialization, initial snapshot capture, hook provider,
     /// debounced event pipeline, snapshot consumer, and MCP servers.
@@ -127,11 +151,13 @@ public sealed class DaemonHost : IAsyncDisposable, IDisposable
         try
         {
             SetState(DaemonState.Starting);
+            ADCE.Core.Logging.AdceLogger.Default.Info("Host", $"Starting ADCE Daemon (DB: {Path.GetFileName(_options.ResolveEffectiveDatabasePath())}, SSE: {_options.EnableSse}:{_options.Port}, Debounce: {_options.DebounceMs}ms, HUD: {_options.ShowHud})");
 
             // 1. Initialize SQLite Database & L1 Cache if supported
             if (_store is SqliteDesktopStateStore sqliteStore)
             {
                 await sqliteStore.InitializeAsync(cancellationToken).ConfigureAwait(false);
+                ADCE.Core.Logging.AdceLogger.Default.Info("Storage", "SQLite WAL store initialized successfully.");
             }
 
             // 2. Capture Initial Foreground Snapshot
@@ -143,16 +169,19 @@ public sealed class DaemonHost : IAsyncDisposable, IDisposable
                     _store.UpdateCurrentSnapshot(initialSnapshot);
                     Interlocked.Increment(ref _totalSnapshotsExtracted);
                     SnapshotChanged?.Invoke(initialSnapshot);
+                    ADCE.Core.Logging.AdceLogger.Default.Info("Snapshot", $"Initial foreground context: {initialSnapshot.Window?.ProcessName} ({initialSnapshot.Focus?.SemanticZone}) in {initialSnapshot.ExtractionDurationMs:F1}ms");
                 }
             }
             catch (Exception ex)
             {
                 _lastError = $"Initial snapshot extraction warning: {ex.Message}";
+                ADCE.Core.Logging.AdceLogger.Default.Warn("Snapshot", _lastError, ex);
             }
 
             // 3. Start Hook Provider & Debounced Pipeline
             _hookProvider.Start();
             _pipeline.Start();
+            ADCE.Core.Logging.AdceLogger.Default.Info("Hook", "WinEvent hook provider and debounced pipeline started.");
 
             // 4. Start Snapshot Consumer Task
             _snapshotConsumerTask = Task.Run(() => ConsumeSnapshotsAsync(_cts.Token), _cts.Token);
@@ -162,11 +191,13 @@ public sealed class DaemonHost : IAsyncDisposable, IDisposable
             {
                 _sseTransport.Start();
                 _sseServerTask = Task.Run(() => _sseServer.RunAsync(_cts.Token), _cts.Token);
+                ADCE.Core.Logging.AdceLogger.Default.Info("SSE", $"MCP HTTP/SSE server listening on http://127.0.0.1:{_options.Port}/sse");
             }
 
             if (_stdioTransport != null && _stdioServer != null)
             {
                 _stdioServerTask = Task.Run(() => _stdioServer.RunAsync(_cts.Token), _cts.Token);
+                ADCE.Core.Logging.AdceLogger.Default.Info("Stdio", "MCP Stdio server active.");
             }
 
             SetState(DaemonState.Running);
