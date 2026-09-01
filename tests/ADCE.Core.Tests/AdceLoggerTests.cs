@@ -58,7 +58,6 @@ public class AdceLoggerTests
             using (var logger = new AdceLogger(tempFile, AdceLogLevel.Info))
             {
                 logger.Info("DiskTest", "File persistence test line");
-                Thread.Sleep(100); // Allow async writer channel to flush
             }
 
             Assert.True(File.Exists(tempFile));

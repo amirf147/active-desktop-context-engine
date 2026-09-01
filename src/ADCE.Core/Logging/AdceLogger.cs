@@ -178,14 +178,35 @@ public sealed class AdceLogger : IDisposable
 
                 while (_logQueue.Reader.TryRead(out var logLine))
                 {
-                    await writer.WriteLineAsync(logLine.AsMemory(), ct).ConfigureAwait(false);
+                    await writer.WriteLineAsync(logLine.AsMemory()).ConfigureAwait(false);
                 }
 
-                await writer.FlushAsync(ct).ConfigureAwait(false);
+                await writer.FlushAsync().ConfigureAwait(false);
             }
         }
         catch (OperationCanceledException) { }
         catch { }
+        finally
+        {
+            // Deterministically drain any remaining messages on shutdown
+            try
+            {
+                if (_logQueue.Reader.TryRead(out var remainingFirst))
+                {
+                    RollLogFileIfNeeded();
+                    await using var stream = new FileStream(_logFilePath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite, 4096, useAsync: true);
+                    await using var writer = new StreamWriter(stream, Encoding.UTF8);
+
+                    await writer.WriteLineAsync(remainingFirst.AsMemory()).ConfigureAwait(false);
+                    while (_logQueue.Reader.TryRead(out var logLine))
+                    {
+                        await writer.WriteLineAsync(logLine.AsMemory()).ConfigureAwait(false);
+                    }
+                    await writer.FlushAsync().ConfigureAwait(false);
+                }
+            }
+            catch { }
+        }
     }
 
     private void RollLogFileIfNeeded()
@@ -217,11 +238,18 @@ public sealed class AdceLogger : IDisposable
     {
         if (!_disposed)
         {
-            _cts.Cancel();
             _logQueue.Writer.TryComplete();
             if (_writerTask != null)
             {
-                try { _writerTask.Wait(500); } catch { }
+                try
+                {
+                    if (!_writerTask.Wait(TimeSpan.FromSeconds(2)))
+                    {
+                        _cts.Cancel();
+                        _writerTask.Wait(TimeSpan.FromSeconds(1));
+                    }
+                }
+                catch { }
             }
             _cts.Dispose();
             _disposed = true;
