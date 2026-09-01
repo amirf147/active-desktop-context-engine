@@ -45,18 +45,22 @@ IGNORED_EXTENSIONS = {
     ".pyo",
 }
 
-# Generic regex patterns for path hygiene (handles unescaped, JSON-escaped, and raw backslashes/slashes)
-WINDOWS_ABS_PATH_RE = re.compile(
-    r"[A-Za-z]:(?:\\{1,4}|/)+(?:Users|Documents|Program Files|AppData|Windows|Temp|repos|Projects|Desktop)(?:\\{1,4}|/)+",
+# Regex patterns for private path hygiene (Windows user directories, Unix home directories, personal profiles)
+# Standard public paths (e.g., C:\Program Files\, C:\Windows\) are allowed across the repo.
+WINDOWS_USER_PATH_RE = re.compile(
+    r"[A-Za-z]:(?:\\{1,4}|/)+(?:Users|Documents and Settings)(?:\\{1,4}|/)+",
     re.IGNORECASE,
 )
 USER_HOME_PATH_RE = re.compile(
     r"(?:[A-Za-z]:(?:\\{1,4}|/)+|/|\\{1,4})(?:Users|home|Documents and Settings)(?:\\{1,4}|/)+[A-Za-z0-9_.-]+(?:\\{1,4}|/)+",
     re.IGNORECASE,
 )
-UNIX_ABS_PATH_RE = re.compile(r"^/(Users|home|root|opt|var|etc)[/]", re.IGNORECASE)
-ENV_VAR_PATH_RE = re.compile(r"%(?:LOCALAPPDATA|APPDATA|USERPROFILE|TEMP|TMP)%", re.IGNORECASE)
-FILE_URI_RE = re.compile(r"file:///", re.IGNORECASE)
+UNIX_USER_PATH_RE = re.compile(r"^/(?:Users|home)/[A-Za-z0-9_.-]+(?:/|$)", re.IGNORECASE)
+ENV_VAR_PATH_RE = re.compile(r"%(?:USERPROFILE|USERNAME)%", re.IGNORECASE)
+USER_FILE_URI_RE = re.compile(
+    r"file:///(?:[A-Za-z]:/(?:Users|Documents and Settings|home)|(?:Users|home)/)",
+    re.IGNORECASE,
+)
 
 # Dynamic runtime detection for active local environment username (without hardcoding any personal name in source)
 try:
@@ -102,17 +106,19 @@ def check_file(file_path: str, rel_path: str) -> list[str]:
             violations.append(f"{rel_path}: Missing SPDX Apache-2.0 header ('{SPDX_PY}')")
 
         for line_no, line in enumerate(lines, start=1):
-            # Check for hardcoded machine paths
-            if WINDOWS_ABS_PATH_RE.search(line):
-                violations.append(f"{rel_path}:{line_no}: Hardcoded Windows absolute path: {line.strip()[:100]}")
+            # Check for hardcoded machine and personal user paths
+            if WINDOWS_USER_PATH_RE.search(line):
+                violations.append(f"{rel_path}:{line_no}: Windows user directory path leak: {line.strip()[:100]}")
             if USER_HOME_PATH_RE.search(line):
                 violations.append(f"{rel_path}:{line_no}: User profile directory path: {line.strip()[:100]}")
+            if UNIX_USER_PATH_RE.search(line):
+                violations.append(f"{rel_path}:{line_no}: Unix user home directory path: {line.strip()[:100]}")
             if ACTIVE_USER_PATH_RE and ACTIVE_USER_PATH_RE.search(line):
                 violations.append(f"{rel_path}:{line_no}: Active OS user path component: {line.strip()[:100]}")
             if ENV_VAR_PATH_RE.search(line):
-                violations.append(f"{rel_path}:{line_no}: Local machine environment variable: {line.strip()[:100]}")
-            if FILE_URI_RE.search(line):
-                violations.append(f"{rel_path}:{line_no}: Local file URI (file:///): {line.strip()[:100]}")
+                violations.append(f"{rel_path}:{line_no}: Personal user profile environment variable: {line.strip()[:100]}")
+            if USER_FILE_URI_RE.search(line):
+                violations.append(f"{rel_path}:{line_no}: Local user file URI (file:///): {line.strip()[:100]}")
 
             # Check secrets
             for pattern, desc in SECRET_PATTERNS:

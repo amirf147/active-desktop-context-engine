@@ -116,6 +116,8 @@ To ensure consistency and ground human developers and local AI agents in verifie
 ### 📘 Tier 4: Educational Guides & Visual Explainers
 | Guide | Description |
 | :--- | :--- |
+| 🎧 [`guides/audiobooks/chapter_1/AUDIOBOOK_CHAPTER_1_WIN32_AND_COM_FOUNDATIONS.md`](guides/audiobooks/chapter_1/AUDIOBOOK_CHAPTER_1_WIN32_AND_COM_FOUNDATIONS.md) | Educational Audio Script: Win32 Architecture, Window Handles, Message Pumps, and Component Object Model (COM). |
+| 🎧 [`guides/audiobooks/chapter_2/AUDIOBOOK_CHAPTER_2_WIN32K_AND_USER32_INTERNALS.md`](guides/audiobooks/chapter_2/AUDIOBOOK_CHAPTER_2_WIN32K_AND_USER32_INTERNALS.md) | Educational Audio Script: Kernel-User GUI Substrate (`win32k.sys`, `user32.dll`), System Calls, and Desktop Introspection. |
 | 📘 [`guides/EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md`](guides/EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md) | Plain-English walkthrough of UI Automation, Win32 systems programming, FlaUI caching, and the Dual-Engine synthesis. |
 | 🚀 [`guides/FIRST_REAL_WORLD_USE_CASE_CASTER_DYNAMIC_TERMINAL_GRAMMARS.md`](guides/FIRST_REAL_WORLD_USE_CASE_CASTER_DYNAMIC_TERMINAL_GRAMMARS.md) | First verified production use case: Caster dynamic sub-window terminal grammar activation via low-latency SSE streaming. |
 | 👁️ [`guides/ADCE_FOCUS_AND_ZONE_DETECTION_EXPLAINED.md`](guides/ADCE_FOCUS_AND_ZONE_DETECTION_EXPLAINED.md) | Plain-English visual guide to Windows focus mechanics, parent-chain climbing, and how ADCE detects semantic zones. |
