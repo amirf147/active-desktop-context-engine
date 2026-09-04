@@ -66,7 +66,7 @@ public class DebouncedDesktopEventPipelineTests
                     AutomationId = "txtInput",
                     ClassName = "Edit",
                     BoundingBox = new BoundingRectangle(10, 10, 100, 20),
-                    SemanticZone = DesktopSemanticZone.EditorCodeBuffer
+                    SemanticZone = DesktopSemanticZone.EditorBuffer
                 },
                 ExtractionDurationMs = 1.5
             };
@@ -424,7 +424,7 @@ public class DebouncedDesktopEventPipelineTests
                     AutomationId = $"tab-{current}",
                     ClassName = "tabbrowser-tab",
                     BoundingBox = new BoundingRectangle(10, 10, 100, 30),
-                    SemanticZone = DesktopSemanticZone.DocumentContent
+                    SemanticZone = DesktopSemanticZone.WebDocument
                 },
                 BrowserContext = new BrowserContext
                 {

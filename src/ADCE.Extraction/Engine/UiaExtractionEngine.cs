@@ -28,7 +28,13 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
 {
     private readonly UIA3Automation _automation;
     private readonly IArchetypeClassifier _classifier;
+    private readonly ISemanticRuleEngine _ruleEngine;
     private bool _disposed;
+
+    /// <summary>
+    /// Gets the active semantic rule engine.
+    /// </summary>
+    public ISemanticRuleEngine RuleEngine => _ruleEngine;
 
     /// <summary>
     /// Gets or sets whether heuristic semantic zone resolution is enabled.
@@ -37,9 +43,10 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
     /// </summary>
     public bool EnableSemanticZones { get; set; } = true;
 
-    public UiaExtractionEngine(IArchetypeClassifier? classifier = null)
+    public UiaExtractionEngine(IArchetypeClassifier? classifier = null, ISemanticRuleEngine? ruleEngine = null)
     {
         _classifier = classifier ?? ArchetypeClassifier.Default;
+        _ruleEngine = ruleEngine ?? new Rules.SemanticRuleEngine();
         _automation = new UIA3Automation();
         ConfigureTransactionTimeouts(_automation, 50);
     }
@@ -95,7 +102,7 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
         }
 
         // 4. Extract Focus Target (process-scoped to prevent global UIA focus bleed from other windows)
-        var focusInfo = ExtractFocusedControl(_automation, windowElement, pid, archetype, EnableSemanticZones);
+        var focusInfo = ExtractFocusedControl(_automation, windowElement, pid, processName, archetype, EnableSemanticZones, _ruleEngine);
 
         // 5. Specialized Multi-Zone Extraction based on Archetype
         IdeContext? ideContext = null;
@@ -178,8 +185,10 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
         UIA3Automation automation,
         AutomationElement windowElement,
         int windowPid,
+        string processName,
         DesktopAppArchetype archetype,
-        bool enableSemanticZones = true)
+        bool enableSemanticZones = true,
+        ISemanticRuleEngine? ruleEngine = null)
     {
         try
         {
@@ -220,10 +229,23 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
                     var (containerPath, containerClasses, ancestorZone) = ExtractAncestorHierarchy(
                         automation, focused, rootHwnd, windowPid, archetype, enableSemanticZones: enableSemanticZones);
 
-                    var zone = enableSemanticZones ? ResolveSemanticZone(cType, name, autoId, cls, archetype, isOverlay) : DesktopSemanticZone.Unknown;
-                    if (enableSemanticZones && zone == DesktopSemanticZone.Unknown && ancestorZone != DesktopSemanticZone.Unknown)
+                    var zone = DesktopSemanticZone.Unknown;
+                    if (enableSemanticZones)
                     {
-                        zone = ancestorZone;
+                        // 1. Declarative custom rules take precedence (user overrides & seeded rules)
+                        zone = ruleEngine?.MatchRule(processName, cType, name, autoId, cls, containerPath) ?? DesktopSemanticZone.Unknown;
+
+                        // 2. Fall back to archetype heuristics
+                        if (zone == DesktopSemanticZone.Unknown)
+                        {
+                            zone = ResolveSemanticZone(cType, name, autoId, cls, archetype, isOverlay);
+                        }
+
+                        // 3. Fall back to ancestor zone
+                        if (zone == DesktopSemanticZone.Unknown && ancestorZone != DesktopSemanticZone.Unknown)
+                        {
+                            zone = ancestorZone;
+                        }
                     }
 
                     bool isPassword = false;
@@ -423,7 +445,7 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
                 return DesktopSemanticZone.WebDocument;
             }
 
-            return DesktopSemanticZone.NavigationPanel;
+            return DesktopSemanticZone.SidebarExplorer;
         }
 
         return DesktopSemanticZone.Unknown;
@@ -446,14 +468,14 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
             autoId.Contains("Address", StringComparison.OrdinalIgnoreCase) ||
             name.Contains("Address and search bar", StringComparison.OrdinalIgnoreCase))
         {
-            return DesktopSemanticZone.QuickOpen;
+            return DesktopSemanticZone.AddressBar;
         }
 
         if (name.Contains("Message (Ctrl+Enter to commit", StringComparison.OrdinalIgnoreCase) ||
             autoId.Contains("scm.input", StringComparison.OrdinalIgnoreCase) ||
             autoId.Contains("git-commit", StringComparison.OrdinalIgnoreCase))
         {
-            return DesktopSemanticZone.EditorBuffer;
+            return DesktopSemanticZone.GitCommitBox;
         }
 
         if (name.Contains("Message input", StringComparison.OrdinalIgnoreCase) ||
@@ -495,10 +517,10 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
             {
                 return controlType.Equals("Document", StringComparison.OrdinalIgnoreCase)
                     ? DesktopSemanticZone.WebDocument
-                    : DesktopSemanticZone.NavigationPanel;
+                    : DesktopSemanticZone.TabBar;
             }
 
-            return DesktopSemanticZone.NavigationPanel;
+            return DesktopSemanticZone.SidebarExplorer;
         }
 
         if ((controlType.Equals("ListItem", StringComparison.OrdinalIgnoreCase) ||
@@ -506,13 +528,26 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
              className.Contains("ItemsView", StringComparison.OrdinalIgnoreCase)) &&
             (archetype == DesktopAppArchetype.WinUI3Xaml || archetype == DesktopAppArchetype.ClassicWin32))
         {
-            return DesktopSemanticZone.NavigationPanel;
+            return DesktopSemanticZone.ShellItemList;
         }
 
         if (controlType.Equals("TabItem", StringComparison.OrdinalIgnoreCase) ||
             controlType.Equals("Tab", StringComparison.OrdinalIgnoreCase))
         {
-            return DesktopSemanticZone.NavigationPanel;
+            return DesktopSemanticZone.TabBar;
+        }
+
+        if (autoId.Contains("status", StringComparison.OrdinalIgnoreCase) ||
+            className.Contains("status-bar", StringComparison.OrdinalIgnoreCase) ||
+            className.Contains("statusbar", StringComparison.OrdinalIgnoreCase))
+        {
+            return DesktopSemanticZone.StatusBar;
+        }
+
+        if (autoId.Contains("command-palette", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("Command Palette", StringComparison.OrdinalIgnoreCase))
+        {
+            return DesktopSemanticZone.CommandPalette;
         }
 
         if (controlType.Equals("Document", StringComparison.OrdinalIgnoreCase) &&

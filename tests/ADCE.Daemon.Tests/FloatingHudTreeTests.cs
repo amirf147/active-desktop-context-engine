@@ -50,7 +50,7 @@ public sealed class FloatingHudTreeTests
                 AutomationId = "monaco-editor-doc",
                 ClassName = "monaco-editor-input",
                 BoundingBox = new BoundingRectangle(200, 200, 1200, 800),
-                SemanticZone = DesktopSemanticZone.EditorCodeBuffer,
+                SemanticZone = DesktopSemanticZone.EditorBuffer,
                 ContainerPath = ["monaco-editor", "workbench.parts.editor", "workbench.main.container"],
                 IsOverlay = false,
                 ValueSnippet = "public sealed class FloatingHudForm : Form"

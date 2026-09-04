@@ -205,7 +205,7 @@ public sealed class LiveWin32StimulusDriver : IStimulusDriver, IDisposable
         bool validHwnd = snapshot.Window.Hwnd == targetHwnd;
         assertions.Add($"Target HWND 0x{targetHwnd:X8} bound: {validHwnd}");
 
-        bool pidBound = snapshot.Focus.SemanticZone != DesktopSemanticZone.EditorCodeBuffer;
+        bool pidBound = snapshot.Focus.SemanticZone != DesktopSemanticZone.EditorBuffer;
         assertions.Add($"Focus isolated to target process (Zone={snapshot.Focus.SemanticZone}): {pidBound}");
 
         bool passed = validHwnd && pidBound;

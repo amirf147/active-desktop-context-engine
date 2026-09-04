@@ -48,7 +48,7 @@ public sealed class TrayApplicationContextTests
                 ElementName = "Code Area",
                 ControlType = "Edit",
                 BoundingBox = new BoundingRectangle(100, 100, 800, 600),
-                SemanticZone = DesktopSemanticZone.EditorCodeBuffer
+                SemanticZone = DesktopSemanticZone.EditorBuffer
             }
         };
     }

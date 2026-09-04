@@ -115,8 +115,8 @@ public sealed class MockStimulusDriver : IStimulusDriver
         bool pidMatch = snapshot.Window.Pid == pwshPid;
         assertions.Add($"Window PID ({snapshot.Window.Pid}) equals Target PID ({pwshPid}): {pidMatch}");
 
-        bool noBleed = snapshot.Focus.SemanticZone != DesktopSemanticZone.EditorCodeBuffer &&
-                       snapshot.Focus.SemanticZone != DesktopSemanticZone.DocumentContent;
+        bool noBleed = snapshot.Focus.SemanticZone != DesktopSemanticZone.EditorBuffer &&
+                       snapshot.Focus.SemanticZone != DesktopSemanticZone.WebDocument;
         assertions.Add($"Zero Focus Bleed from prior GUI state (Zone={snapshot.Focus.SemanticZone}): {noBleed}");
 
         bool passed = pidMatch && noBleed;
@@ -226,8 +226,8 @@ public sealed class MockStimulusDriver : IStimulusDriver
 
         // 3. Git Commit Box
         var gitZone = UiaExtractionEngine.ResolveSemanticZone("Edit", "Message (Ctrl+Enter to commit)", "scm.input", "monaco-editor", DesktopAppArchetype.ChromiumElectron);
-        bool gitOk = gitZone == DesktopSemanticZone.EditorBuffer;
-        assertions.Add($"Git Commit Input -> EditorBuffer (Resolved: {gitZone}): {gitOk}");
+        bool gitOk = gitZone == DesktopSemanticZone.GitCommitBox;
+        assertions.Add($"Git Commit Input -> GitCommitBox (Resolved: {gitZone}): {gitOk}");
 
         // 4. Chat Assistant Input
         var chatZone = UiaExtractionEngine.ResolveSemanticZone("Edit", "Message input", "chat-input", "interactive-session", DesktopAppArchetype.ChromiumElectron);
@@ -236,8 +236,8 @@ public sealed class MockStimulusDriver : IStimulusDriver
 
         // 5. Sidebar Explorer
         var sidebarZone = UiaExtractionEngine.ResolveSemanticZone("Tree", "Explorer", "workbench.view.explorer", "view-pane", DesktopAppArchetype.ChromiumElectron);
-        bool sidebarOk = sidebarZone == DesktopSemanticZone.NavigationPanel;
-        assertions.Add($"Sidebar Explorer -> NavigationPanel (Resolved: {sidebarZone}): {sidebarOk}");
+        bool sidebarOk = sidebarZone == DesktopSemanticZone.SidebarExplorer;
+        assertions.Add($"Sidebar Explorer -> SidebarExplorer (Resolved: {sidebarZone}): {sidebarOk}");
 
         sw.Stop();
         bool passed = monacoOk && termOk && gitOk && chatOk && sidebarOk;
@@ -264,8 +264,8 @@ public sealed class MockStimulusDriver : IStimulusDriver
 
         // 1. Gecko Sidebar Tree Style Tab vertical tab item
         var geckoTabZone = UiaExtractionEngine.ResolveSemanticZone("ListItem", "Active Desktop Context Engine", "sidebar-box", "tab", DesktopAppArchetype.Gecko);
-        bool geckoTabOk = geckoTabZone == DesktopSemanticZone.NavigationPanel;
-        assertions.Add($"Gecko Sidebar Tab -> NavigationPanel (Resolved: {geckoTabZone}): {geckoTabOk}");
+        bool geckoTabOk = geckoTabZone == DesktopSemanticZone.TabBar;
+        assertions.Add($"Gecko Sidebar Tab -> TabBar (Resolved: {geckoTabZone}): {geckoTabOk}");
 
         // 2. Gecko Sidebar Web Extension Panel (Document)
         var geckoDocZone = UiaExtractionEngine.ResolveSemanticZone("Document", "Tree Style Tab", "sidebar-box", "webextension-panel", DesktopAppArchetype.Gecko);
@@ -274,8 +274,8 @@ public sealed class MockStimulusDriver : IStimulusDriver
 
         // 3. Contrast with IDE Explorer (ChromiumElectron / WinUI3)
         var ideSidebarZone = UiaExtractionEngine.ResolveSemanticZone("Tree", "File Explorer", "sidebar-box", "view-pane", DesktopAppArchetype.ChromiumElectron);
-        bool ideSidebarOk = ideSidebarZone == DesktopSemanticZone.NavigationPanel;
-        assertions.Add($"IDE Explorer -> NavigationPanel (Resolved: {ideSidebarZone}): {ideSidebarOk}");
+        bool ideSidebarOk = ideSidebarZone == DesktopSemanticZone.SidebarExplorer;
+        assertions.Add($"IDE Explorer -> SidebarExplorer (Resolved: {ideSidebarZone}): {ideSidebarOk}");
 
         sw.Stop();
         bool passed = geckoTabOk && geckoDocOk && ideSidebarOk;

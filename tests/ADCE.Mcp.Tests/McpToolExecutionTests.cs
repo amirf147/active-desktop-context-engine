@@ -76,7 +76,7 @@ public class McpToolExecutionTests : IDisposable
                 BoundingBox = new BoundingRectangle(100, 100, 400, 200),
                 AutomationId = "chat-input",
                 ClassName = "monaco-editor",
-                SemanticZone = DesktopSemanticZone.ChatAssistant
+                SemanticZone = DesktopSemanticZone.ChatPrompt
             },
             IdeContext = new IdeContext
             {

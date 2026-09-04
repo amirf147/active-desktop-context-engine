@@ -41,9 +41,9 @@ public class ClaimVerificationTests
     [Theory]
     [InlineData("Edit", "CONTEXT.md", "native-edit-context", "monaco-editor", DesktopAppArchetype.ChromiumElectron, DesktopSemanticZone.EditorBuffer)]
     [InlineData("Document", "Terminal 1", "terminal.integrated", "xterm", DesktopAppArchetype.ChromiumElectron, DesktopSemanticZone.Terminal)]
-    [InlineData("Edit", "Message (Ctrl+Enter to commit", "scm.input", "monaco-editor", DesktopAppArchetype.ChromiumElectron, DesktopSemanticZone.EditorBuffer)]
+    [InlineData("Edit", "Message (Ctrl+Enter to commit", "scm.input", "monaco-editor", DesktopAppArchetype.ChromiumElectron, DesktopSemanticZone.GitCommitBox)]
     [InlineData("Edit", "Message input", "chat-input", "interactive-session", DesktopAppArchetype.ChromiumElectron, DesktopSemanticZone.ChatPrompt)]
-    [InlineData("Tree", "Explorer", "workbench.view.explorer", "view-pane", DesktopAppArchetype.ChromiumElectron, DesktopSemanticZone.NavigationPanel)]
+    [InlineData("Tree", "Explorer", "workbench.view.explorer", "view-pane", DesktopAppArchetype.ChromiumElectron, DesktopSemanticZone.SidebarExplorer)]
     public void CLM_003_IdeSemanticZoneResolution_ResolvesExpectedZones(
         string controlType, string name, string autoId, string className, DesktopAppArchetype archetype, DesktopSemanticZone expectedZone)
     {
@@ -59,9 +59,9 @@ public class ClaimVerificationTests
     }
 
     [Theory]
-    [InlineData("ListItem", "Tab Title", "sidebar-box", "tab", DesktopAppArchetype.Gecko, DesktopSemanticZone.NavigationPanel)]
+    [InlineData("ListItem", "Tab Title", "sidebar-box", "tab", DesktopAppArchetype.Gecko, DesktopSemanticZone.TabBar)]
     [InlineData("Document", "Tree Style Tab", "sidebar-box", "webextension-panel", DesktopAppArchetype.Gecko, DesktopSemanticZone.WebDocument)]
-    [InlineData("Tree", "File Explorer", "sidebar-box", "view-pane", DesktopAppArchetype.ChromiumElectron, DesktopSemanticZone.NavigationPanel)]
+    [InlineData("Tree", "File Explorer", "sidebar-box", "view-pane", DesktopAppArchetype.ChromiumElectron, DesktopSemanticZone.SidebarExplorer)]
     public void CLM_004_BrowserSidebarVsIdeExplorer_GeckoNeverResolvesToSidebarExplorer(
         string controlType, string name, string autoId, string className, DesktopAppArchetype archetype, DesktopSemanticZone expectedZone)
     {

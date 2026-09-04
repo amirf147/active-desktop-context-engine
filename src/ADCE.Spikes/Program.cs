@@ -954,7 +954,7 @@ public class Program
         Console.WriteLine("--------------------------------------------------------------------------");
         Console.ResetColor();
 
-        var sampleSnapshot = CreateSampleSnapshot("active-desktop-context-engine - Antigravity IDE", "Antigravity.exe", "docs/CONTEXT.md", DesktopSemanticZone.EditorCodeBuffer);
+        var sampleSnapshot = CreateSampleSnapshot("active-desktop-context-engine - Antigravity IDE", "Antigravity.exe", "docs/CONTEXT.md", DesktopSemanticZone.EditorBuffer);
         store.UpdateCurrentSnapshot(sampleSnapshot);
 
         const int iterations = 100_000;
@@ -987,7 +987,7 @@ public class Program
             string title = i % 2 == 0 ? $"Window #{i} - Waterfox" : $"Window #{i} - Antigravity IDE";
             string proc = i % 2 == 0 ? "waterfox.exe" : "Antigravity.exe";
             string fileOrTab = i % 2 == 0 ? $"https://github.com/repo/tab_{i}" : $"src/Module_{i}.cs";
-            var zone = i % 2 == 0 ? DesktopSemanticZone.AddressBar : DesktopSemanticZone.EditorCodeBuffer;
+            var zone = i % 2 == 0 ? DesktopSemanticZone.AddressBar : DesktopSemanticZone.EditorBuffer;
 
             store.UpdateCurrentSnapshot(CreateSampleSnapshot(title, proc, fileOrTab, zone, DateTimeOffset.UtcNow.AddSeconds(-100 + i)));
         }
@@ -1293,7 +1293,7 @@ public class Program
                 BoundingBox = new BoundingRectangle(1200, 400, 600, 600),
                 AutomationId = "chat-input",
                 ClassName = "interactive-session",
-                SemanticZone = DesktopSemanticZone.ChatAssistant
+                SemanticZone = DesktopSemanticZone.ChatPrompt
             },
             IdeContext = new IdeContext
             {

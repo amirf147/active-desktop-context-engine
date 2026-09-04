@@ -42,7 +42,7 @@ public class DesktopContextSnapshotTests
                 ElementName = "CONTEXT.md",
                 AutomationId = "editor",
                 BoundingBox = new BoundingRectangle(400, 120, 1200, 800),
-                SemanticZone = DesktopSemanticZone.EditorCodeBuffer
+                SemanticZone = DesktopSemanticZone.EditorBuffer
             },
             IdeContext = new IdeContext
             {
@@ -80,7 +80,7 @@ public class DesktopContextSnapshotTests
                 ElementName = "CONTEXT.md",
                 AutomationId = "editor",
                 BoundingBox = new BoundingRectangle(400, 120, 1200, 800),
-                SemanticZone = DesktopSemanticZone.EditorCodeBuffer
+                SemanticZone = DesktopSemanticZone.EditorBuffer
             },
             IdeContext = new IdeContext
             {

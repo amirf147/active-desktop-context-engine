@@ -107,7 +107,8 @@ public sealed class DaemonHost : IAsyncDisposable, IDisposable
             uia.EnableSemanticZones = _options.EnableSemanticZones;
         }
 
-        _mcpHandler = new DesktopContextMcpHandler(_store);
+        var ruleEngine = (_extractor as UiaExtractionEngine)?.RuleEngine;
+        _mcpHandler = new DesktopContextMcpHandler(_store, ruleEngine);
 
         if (_options.EnableSse)
         {

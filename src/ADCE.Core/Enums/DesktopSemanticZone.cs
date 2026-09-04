@@ -4,13 +4,12 @@
 namespace ADCE.Core.Enums;
 
 /// <summary>
-/// Defines high-level macro typing anchors and interaction domains within desktop applications.
+/// Defines fine-grained semantic typing anchors and interaction domains within desktop applications.
 /// </summary>
 public enum DesktopSemanticZone
 {
     /// <summary>Unrecognized or unmapped semantic zone.</summary>
     Unknown = 0,
-    None = 0,
 
     /// <summary>Active code/text editor buffer (e.g. Monaco editor, Notepad, text inputs).</summary>
     EditorBuffer = 1,
@@ -18,53 +17,39 @@ public enum DesktopSemanticZone
     /// <summary>Command shell or terminal window (integrated or standalone).</summary>
     Terminal = 2,
 
-    /// <summary>AI chat assistant prompt or interactive conversational input.</summary>
-    ChatPrompt = 3,
-
-    /// <summary>Main document or rendered web page viewport.</summary>
-    WebDocument = 4,
+    /// <summary>Source control or Git commit input box.</summary>
+    GitCommitBox = 3,
 
     /// <summary>Navigation tree, sidebar explorer, or project file list.</summary>
-    NavigationPanel = 5,
+    SidebarExplorer = 4,
 
-    /// <summary>Command palette, quick switcher, or modal search overlay.</summary>
-    QuickOpen = 6,
+    /// <summary>Web browser URL address bar or search input.</summary>
+    AddressBar = 5,
+
+    /// <summary>Main document or rendered web page viewport.</summary>
+    WebDocument = 6,
+
+    /// <summary>File or folder list view (e.g. Windows Explorer Items View).</summary>
+    ShellItemList = 7,
+
+    /// <summary>Tabstrip container hosting open editor or browser tabs.</summary>
+    TabBar = 8,
+
+    /// <summary>Application status bar (e.g. branch name, encoding, line info).</summary>
+    StatusBar = 9,
+
+    /// <summary>Command palette or quick switcher (Ctrl+Shift+P / Ctrl+P).</summary>
+    CommandPalette = 10,
+
+    /// <summary>AI chat assistant prompt or interactive conversational input.</summary>
+    ChatPrompt = 11,
+
+    /// <summary>Quick open switcher or modal search overlay.</summary>
+    QuickOpen = 12,
 
     /// <summary>Modal system dialog, message box, or file picker.</summary>
-    SystemDialog = 7,
+    SystemDialog = 13,
 
-    #region Backward Compatibility Aliases
-    /// <summary>Legacy alias for EditorBuffer.</summary>
-    EditorCodeBuffer = 1,
-
-    /// <summary>Legacy alias for Terminal.</summary>
-    IntegratedTerminal = 2,
-
-    /// <summary>Legacy alias for NavigationPanel.</summary>
-    GitCommitBox = 8,
-
-    /// <summary>Legacy alias for NavigationPanel.</summary>
-    SidebarExplorer = 5,
-
-    /// <summary>Legacy alias for WebDocument / QuickOpen.</summary>
-    AddressBar = 9,
-
-    /// <summary>Legacy alias for WebDocument.</summary>
-    DocumentContent = 4,
-
-    /// <summary>Legacy alias for NavigationPanel.</summary>
-    ShellItemList = 10,
-
-    /// <summary>Legacy alias for NavigationPanel.</summary>
-    TabBar = 11,
-
-    /// <summary>Legacy alias for NavigationPanel.</summary>
-    StatusBar = 12,
-
-    /// <summary>Legacy alias for QuickOpen.</summary>
-    CommandPalette = 6,
-
-    /// <summary>Legacy alias for ChatPrompt.</summary>
-    ChatAssistant = 3
-    #endregion
+    /// <summary>High-level navigation container or tool panel.</summary>
+    NavigationPanel = 14
 }

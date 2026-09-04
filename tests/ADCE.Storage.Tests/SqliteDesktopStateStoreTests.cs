@@ -54,7 +54,7 @@ public class SqliteDesktopStateStoreTests : IDisposable
         await using var store = new SqliteDesktopStateStore(options);
         await store.InitializeAsync();
 
-        var snapshot = CreateTestSnapshot("Antigravity - Main", "Antigravity.exe", "src/App.cs", DesktopSemanticZone.EditorCodeBuffer);
+        var snapshot = CreateTestSnapshot("Antigravity - Main", "Antigravity.exe", "src/App.cs", DesktopSemanticZone.EditorBuffer);
         store.UpdateCurrentSnapshot(snapshot);
 
         var cached = store.GetCurrentSnapshot();
@@ -73,7 +73,7 @@ public class SqliteDesktopStateStoreTests : IDisposable
         var time1 = DateTimeOffset.UtcNow.AddMinutes(-2);
         var time2 = DateTimeOffset.UtcNow.AddMinutes(-1);
 
-        var snap1 = CreateTestSnapshot("Window 1", "app1.exe", "tab1", DesktopSemanticZone.EditorCodeBuffer, time1);
+        var snap1 = CreateTestSnapshot("Window 1", "app1.exe", "tab1", DesktopSemanticZone.EditorBuffer, time1);
         var snap2 = CreateTestSnapshot("Window 2", "app2.exe", "tab2", DesktopSemanticZone.AddressBar, time2);
 
         store.UpdateCurrentSnapshot(snap1);
@@ -105,8 +105,8 @@ public class SqliteDesktopStateStoreTests : IDisposable
         await store.InitializeAsync();
 
         store.UpdateCurrentSnapshot(CreateTestSnapshot("Waterfox Browser", "waterfox.exe", "https://github.com/adce", DesktopSemanticZone.AddressBar));
-        store.UpdateCurrentSnapshot(CreateTestSnapshot("VS Code - Project", "Code.exe", "docs/CONTEXT.md", DesktopSemanticZone.EditorCodeBuffer));
-        store.UpdateCurrentSnapshot(CreateTestSnapshot("Terminal Shell", "WindowsTerminal.exe", "pwsh", DesktopSemanticZone.IntegratedTerminal));
+        store.UpdateCurrentSnapshot(CreateTestSnapshot("VS Code - Project", "Code.exe", "docs/CONTEXT.md", DesktopSemanticZone.EditorBuffer));
+        store.UpdateCurrentSnapshot(CreateTestSnapshot("Terminal Shell", "WindowsTerminal.exe", "pwsh", DesktopSemanticZone.Terminal));
 
         await store.DisposeAsync();
 
@@ -171,7 +171,7 @@ public class SqliteDesktopStateStoreTests : IDisposable
 
         for (int i = 1; i <= 25; i++)
         {
-            store.UpdateCurrentSnapshot(CreateTestSnapshot($"Snapshot #{i}", "test.exe", $"item_{i}", DesktopSemanticZone.EditorCodeBuffer, DateTimeOffset.UtcNow.AddSeconds(-30 + i)));
+            store.UpdateCurrentSnapshot(CreateTestSnapshot($"Snapshot #{i}", "test.exe", $"item_{i}", DesktopSemanticZone.EditorBuffer, DateTimeOffset.UtcNow.AddSeconds(-30 + i)));
         }
 
         await store.DisposeAsync();

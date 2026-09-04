@@ -117,7 +117,7 @@ public class InMemoryDesktopStateCacheTests
                 AutomationId = "input_1",
                 ClassName = "Edit",
                 BoundingBox = BoundingRectangle.Empty,
-                SemanticZone = DesktopSemanticZone.EditorCodeBuffer,
+                SemanticZone = DesktopSemanticZone.EditorBuffer,
                 ValueSnippet = null
             },
             ExtractionDurationMs = 0.5

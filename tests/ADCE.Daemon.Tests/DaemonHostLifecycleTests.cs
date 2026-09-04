@@ -77,7 +77,7 @@ public sealed class DaemonHostLifecycleTests
                 ElementName = "Code Area",
                 ControlType = "Edit",
                 BoundingBox = new BoundingRectangle(100, 100, 800, 600),
-                SemanticZone = DesktopSemanticZone.EditorCodeBuffer
+                SemanticZone = DesktopSemanticZone.EditorBuffer
             }
         };
     }
