@@ -7,10 +7,16 @@
 
 # Single Source of Truth: UI Automation Tree Structures & Target Zones Reference (017)
 
-> **Document Status:** Active / Master Architecture Reference
+> **Document Status:** Active / Master Architecture Reference (Augmented with Hierarchical Research)
 > **Target Systems:** Active Desktop Context Engine (ADCE) & Caster Accessibility Engine
 > **Engines Tested:** C# .NET 10 (`FlaUI.UIA3 5.0.0`) & Python 3.10 (`uiautomation` / `ctypes`)
-> **Related Documents:** [010: Traversal Telemetry](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/010_telemetry_benchmarks_and_live_findings.md) | [014: C# Daemon Handover](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/014_csharp_daemon_handover_and_skill_spec.md) | [015: Epistemic Recalibration](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/015_recalibration_and_adversarial_architecture_review.md) | [016: Micro-Spike 2 Telemetry](../benchmarks/002_micro_spike_2_python_shallow_telemetry.md) | [FlaUI & Roemer Ecosystem](../external_research/FlaUI_And_Roemer_Ecosystem.md)
+> **Related Documents:** [`APPLICATION_PANE_AND_HIERARCHY_STRUCTURES_RESEARCH.md`](./APPLICATION_PANE_AND_HIERARCHY_STRUCTURES_RESEARCH.md) | [010: Traversal Telemetry](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/010_telemetry_benchmarks_and_live_findings.md) | [014: C# Daemon Handover](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/014_csharp_daemon_handover_and_skill_spec.md) | [015: Epistemic Recalibration](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/015_recalibration_and_adversarial_architecture_review.md) | [016: Micro-Spike 2 Telemetry](../benchmarks/002_micro_spike_2_python_shallow_telemetry.md) | [FlaUI & Roemer Ecosystem](../external_research/FlaUI_And_Roemer_Ecosystem.md)
+
+---
+
+> [!NOTE]
+> **Hierarchical Model Supercedence:**
+> The flat single-zone model in earlier revisions has been augmented by the 3-level hierarchical model detailed in [`APPLICATION_PANE_AND_HIERARCHY_STRUCTURES_RESEARCH.md`](./APPLICATION_PANE_AND_HIERARCHY_STRUCTURES_RESEARCH.md). Macro window regions are classified under `WindowPaneLocation` (`ActivityBar`, `PrimarySidebar`, `MainContent`, `AuxiliarySidebar`, `BottomPanel`), logical containers under `ActiveView` and `SectionName`, and leaf typing targets under `SemanticZone`.
 
 ---
 
@@ -44,7 +50,7 @@ This single source of truth details the exact UIA3 accessibility node hierarchie
 ├──────────────────────┼──────────────────────┼─────────────────────────┼──────────────────────┼─────────┼───────────────┤
 │ **Windows Terminal** │ `CASCADIA_HOSTING_..`│ **Terminal Tabs**       │ `ControlType:Tab`    │ D3 – D4 │ **~2–5 ms**   │
 │ **& Command Prompt** │ `ConsoleWindowClass` │ **Active Buffer**       │ `ControlType:Document│ D1 – D2 │ **< 1 ms**    │
-└──────────────────────┴──────────────────────┴─────────────────────────┴──────────────────────┴─────────┴───────────────┘
+└──────────────────────┴──────────────────────┴─────────────────────────┴──────────────────────┴─────────┴───────────────┤
 ```
 
 ---
@@ -72,6 +78,10 @@ Electron / Monaco IDEs structure the user interface into distinct workbench part
                      │    │    └── [D7] Group: AutoId='' Class='editor-instance'
                      │    │         └── [D8] Text: AutoId='' Class='monaco-editor'
                      │    │              └── [D9] Edit: Class='native-edit-context'                ◄ (CODE BUFFER / CARET)
+                     ├── [D5] Group: AutoId='workbench.parts.auxiliarybar' Class='part auxiliarybar' ◄ (AI Agent / Chat Panel)
+                     │    └── [D6] Group: AutoId='antigravity-agent-side-panel'
+                     │         ├── [D7] Group: AutoId='conversation' Name='Agent Conversation'     ◄ (CONVERSATION STREAM)
+                     │         └── [D7] Group: AutoId='antigravity.agentSidePanelInputBox'         ◄ (CHAT PROMPT INPUT)
                      ├── [D5] Group: AutoId='workbench.parts.panel' Class='part panel'             ◄ (Terminal / Output)
                      └── [D5] StatusBar: AutoId='workbench.parts.statusbar' Class='part statusbar' ◄ (Git Branch / Mode)
 ```
@@ -94,20 +104,33 @@ Electron / Monaco IDEs structure the user interface into distinct workbench part
   * `'Code Search (Ctrl+Shift+F)'`
   * `'Run and Debug (Ctrl+Shift+D)'`
 
-#### 3. Active File Disk Breadcrumbs
+#### 3. Inner Sidebar Accordion Sections (Explorer & SCM)
+* **Section Headers:** `ControlType.Button` with `ClassName: "pane-header"`.
+  * Name formats: `'Explorer Section: <WorkspaceRoot>'`, `'Outline Section'`, `'Timeline Section'`.
+  * Expanded state: `ClassName` contains `"expanded"` or `"focused"`.
+* **Section List Items:** `ControlType.TreeItem` or `ListItem` with `ClassName: "monaco-list-row"`.
+* **Source Control Commit Box:** `ControlType.Edit` inside parent container with `ClassName: "scm-editor-container"`.
+
+#### 4. Auxiliary Bar (AI Chat Assistant Panel)
+* **Target Container:** `AutoId: "workbench.parts.auxiliarybar"` or `ClassName: "antigravity-agent-side-panel"`.
+* **Conversation Stream:** `AutoId: "conversation"` with `Name: "Agent Conversation"`.
+* **Message Prompt Box:** `AutoId: "antigravity.agentSidePanelInputBox"` or `ControlType.ComboBox` with `Name: "Message input"`.
+
+#### 5. Active File Disk Breadcrumbs
 * **Target Container:** `ControlType: List` with `ClassName: "monaco-breadcrumbs"` (Depth 7).
 * **Path Reconstruction:** Children are `ControlType.ListItem` nodes with `ClassName: "... monaco-breadcrumb-item"`. Joining their names with `/` reconstructs the full workspace-relative file path (e.g. `src/FlaUI.Core/CacheRequest.cs`).
 
-#### 4. Monaco Text Editor & Edit Context
+#### 6. Monaco Text Editor & Edit Context
 * **Target Container:** `ControlType.Edit` with `ClassName: "native-edit-context"` (Depth 8–9).
 * **Capabilities:**
   * `Name`: Active file name and buffer status (`"CacheRequest.cs, preview"`).
   * `ValuePattern` / `TextPattern`: Exposes active editor text buffer and caret position.
 
-#### 5. Git Commit Box & Focus Detection
+#### 7. Git Commit Box & Focus Detection
 * When user focus is in the Source Control commit box, the active `Edit` control has:
   * `Name`: `'Message (Ctrl+Enter to commit on "branch-name"), Use Alt+F1 to open Source Control Accessibility Help.'`
   * `ControlType`: `ControlType.Edit`
+  * `Container`: Enclosed within `scm-editor-container` inside `PrimarySidebar`.
 
 ---
 
