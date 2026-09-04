@@ -259,4 +259,110 @@ public sealed class FloatingHudTreeTests
         if (threadEx != null) throw new InvalidOperationException($"STA thread failed: {threadEx.Message}", threadEx);
         Assert.True(joined);
     }
+
+    [Fact]
+    public void FloatingHudForm_SnapshotWithHierarchy_ConstructsSemanticHierarchyTreeNodes()
+    {
+        var sampleSnapshot = new DesktopContextSnapshot
+        {
+            Timestamp = DateTimeOffset.UtcNow,
+            Workspace = new WorkspaceEnvelope
+            {
+                VirtualDesktopId = Guid.NewGuid(),
+                DesktopIndex = 0,
+                VirtualDesktopName = "Code Workspace"
+            },
+            Window = new WindowEnvelope
+            {
+                Hwnd = 0x00012345,
+                Pid = 5555,
+                ProcessName = "Code",
+                Title = "SemanticRuleEngine.cs - ADCE",
+                ClassName = "Chrome_WidgetWin_1",
+                Archetype = DesktopAppArchetype.ChromiumElectron,
+                Bounds = new BoundingRectangle(0, 0, 1920, 1080)
+            },
+            Focus = new FocusedControlInfo
+            {
+                ControlType = "TreeItem",
+                ElementName = "Timeline: Commit History",
+                AutomationId = "timeline.item.1",
+                ClassName = "monaco-tree",
+                BoundingBox = new BoundingRectangle(50, 300, 250, 25),
+                SemanticZone = DesktopSemanticZone.Timeline,
+                PaneLocation = WindowPaneLocation.PrimarySidebar,
+                ActiveView = "Explorer",
+                SectionName = "Timeline",
+                SemanticPath = ["PrimarySidebar", "Explorer", "Timeline"],
+                ContainerClasses = ["monaco-list", "pane-header"]
+            }
+        };
+
+        var options = new DaemonOptions
+        {
+            IsHeadless = false,
+            EnableSse = false,
+            ShowHudTree = true,
+            DatabasePath = ":memory:"
+        };
+
+        var store = new SqliteDesktopStateStore(new StorageOptions { DatabasePath = ":memory:" });
+        store.UpdateCurrentSnapshot(sampleSnapshot);
+        var host = new DaemonHost(options, store, new DummyExtractor(sampleSnapshot), new DummyHookProvider());
+
+        Exception? threadEx = null;
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                using var hud = new FloatingHudForm(host);
+                Assert.NotNull(hud);
+
+                // Verify label representations
+                Assert.Contains("Pane: [PrimarySidebar]", hud.ZoneLabel.Text);
+                Assert.Contains("Hierarchy: PrimarySidebar › Explorer › Timeline", hud.HierarchyLabel.Text);
+
+                // Verify TreeView hierarchy nodes
+                var rootNode = hud.TreeView.Nodes[0];
+                TreeNode? semanticNode = null;
+                foreach (TreeNode node in rootNode.Nodes)
+                {
+                    if (node.Text.StartsWith("🏛️ Semantic Hierarchy"))
+                    {
+                        semanticNode = node;
+                        break;
+                    }
+                }
+
+                Assert.NotNull(semanticNode);
+                Assert.Single(semanticNode.Nodes);
+
+                var paneNode = semanticNode.Nodes[0];
+                Assert.Equal("🪟 Window Pane: PrimarySidebar", paneNode.Text);
+                Assert.Single(paneNode.Nodes);
+
+                var viewNode = paneNode.Nodes[0];
+                Assert.Equal("📑 Active View: Explorer", viewNode.Text);
+                Assert.Single(viewNode.Nodes);
+
+                var sectionNode = viewNode.Nodes[0];
+                Assert.Equal("📂 Section: Timeline", sectionNode.Text);
+                Assert.Single(sectionNode.Nodes);
+
+                var targetZoneNode = sectionNode.Nodes[0];
+                Assert.Equal("🎯 Target Zone: Timeline [TreeItem]", targetZoneNode.Text);
+            }
+            catch (Exception ex)
+            {
+                threadEx = ex;
+            }
+        });
+
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        bool joined = thread.Join(5000);
+
+        if (threadEx != null) throw new InvalidOperationException($"STA thread failed: {threadEx.Message}", threadEx);
+        Assert.True(joined);
+    }
 }

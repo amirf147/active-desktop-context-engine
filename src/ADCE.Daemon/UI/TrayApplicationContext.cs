@@ -8,6 +8,7 @@ using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Windows.Forms;
+using ADCE.Core.Enums;
 using ADCE.Core.Models;
 using ADCE.Core.Serialization;
 using ADCE.Daemon.Configuration;
@@ -251,10 +252,13 @@ public sealed class TrayApplicationContext : ApplicationContext
         if (title.Length > 35) title = title[..32] + "...";
 
         string zone = snapshot.Focus?.SemanticZone.ToString() ?? "Unknown";
+        string pane = (snapshot.Focus != null && snapshot.Focus.PaneLocation != WindowPaneLocation.Unknown)
+            ? $" | {snapshot.Focus.PaneLocation}"
+            : string.Empty;
 
-        _activeContextMenuItem.Text = $"Active: {title} [{zone}]";
+        _activeContextMenuItem.Text = $"Active: {title} [{zone}{pane}]";
 
-        string tooltip = $"ADCE: {title} [{zone}]";
+        string tooltip = $"ADCE: {title} [{zone}{pane}]";
         if (tooltip.Length >= 64) tooltip = tooltip[..60] + "...";
         _notifyIcon.Text = tooltip;
 

@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Text.Json;
 using System.Windows.Forms;
+using ADCE.Core.Enums;
 using ADCE.Core.Models;
 using ADCE.Core.Serialization;
 using ADCE.Daemon.Hosting;
@@ -24,6 +25,7 @@ public sealed class FloatingHudForm : Form
     private const int DefaultWidth = 520;
 
     private readonly DaemonHost _host;
+    private readonly ToolTip _hudToolTip = new();
     private Label _processLabel = null!;
     private Label _latencyLabel = null!;
     private Button _treeToggleButton = null!;
@@ -33,6 +35,10 @@ public sealed class FloatingHudForm : Form
     private Label _zoneLabel = null!;
     private Label _detailLabel = null!;
     private NoActivateTreeView _structuralTreeView = null!;
+
+    internal Label HierarchyLabel => _hierarchyLabel;
+    internal Label ZoneLabel => _zoneLabel;
+    internal NoActivateTreeView TreeView => _structuralTreeView;
 
     private bool _isTreeExpanded;
     private Point _dragStartPoint;
@@ -170,21 +176,21 @@ public sealed class FloatingHudForm : Form
             AutoEllipsis = true
         };
 
-        _hierarchyLabel = new Label
-        {
-            Text = "Container: (Root)",
-            Font = new Font("Consolas", 8.0f, FontStyle.Regular),
-            ForeColor = Color.FromArgb(100, 200, 255), // Sky blue
-            Location = new Point(12, 74),
-            Size = new Size(495, 18),
-            AutoEllipsis = true
-        };
-
         _zoneLabel = new Label
         {
             Text = "Mode: [Explicit Structural Inspection]",
             Font = new Font("Consolas", 8.0f, FontStyle.Regular),
             ForeColor = Color.FromArgb(160, 230, 150), // Light green
+            Location = new Point(12, 74),
+            Size = new Size(495, 18),
+            AutoEllipsis = true
+        };
+
+        _hierarchyLabel = new Label
+        {
+            Text = "Hierarchy: (Root)",
+            Font = new Font("Consolas", 8.0f, FontStyle.Regular),
+            ForeColor = Color.FromArgb(255, 215, 100), // Amber / gold
             Location = new Point(12, 95),
             Size = new Size(495, 18),
             AutoEllipsis = true
@@ -290,35 +296,64 @@ public sealed class FloatingHudForm : Form
         string nameStr = string.IsNullOrWhiteSpace(elemName) ? "(unnamed)" : $"\"{elemName}\"";
         _focusLabel.Text = $"Focus: [{ctrlType}] {nameStr}{idStr}";
 
-        // Structural Container Hierarchy
-        if (snapshot.Focus != null && snapshot.Focus.ContainerClasses.Length > 0)
-        {
-            var classes = string.Join(" > ", snapshot.Focus.ContainerClasses);
-            _hierarchyLabel.Text = $"Classes: {classes}";
-        }
-        else if (snapshot.Focus != null && snapshot.Focus.ContainerPath.Length > 0)
-        {
-            var path = string.Join(" > ", snapshot.Focus.ContainerPath);
-            _hierarchyLabel.Text = $"Container IDs: {path}";
-        }
-        else
-        {
-            _hierarchyLabel.Text = "Container: (Direct Window Child / Root)";
-        }
+        // Mode, Semantic Zone, and Macro Window Pane Badge
+        string paneStr = (snapshot.Focus != null && snapshot.Focus.PaneLocation != WindowPaneLocation.Unknown)
+            ? $" | Pane: [{snapshot.Focus.PaneLocation}]"
+            : string.Empty;
 
-        // Mode & Semantic Zone Badge
         if (_host.EnableSemanticZones)
         {
             string zone = snapshot.Focus?.SemanticZone.ToString() ?? "Unknown";
             string overlayStr = snapshot.Focus?.IsOverlay == true ? " | Overlay: True" : string.Empty;
-            _zoneLabel.Text = $"Zone: [{zone}]{overlayStr}";
+            _zoneLabel.Text = $"Zone: [{zone}]{paneStr}{overlayStr}";
             _zoneLabel.ForeColor = Color.FromArgb(160, 230, 150);
         }
         else
         {
             string overlayStr = snapshot.Focus?.IsOverlay == true ? " (Overlay: True)" : string.Empty;
-            _zoneLabel.Text = $"[Explicit Structural Inspection Mode]{overlayStr}";
+            _zoneLabel.Text = $"[Explicit Inspection Mode]{paneStr}{overlayStr}";
             _zoneLabel.ForeColor = Color.FromArgb(200, 180, 255); // Lavender
+        }
+
+        // Structural & Semantic Hierarchy Path
+        if (snapshot.Focus != null && snapshot.Focus.SemanticPath.Length > 0)
+        {
+            var path = string.Join(" › ", snapshot.Focus.SemanticPath);
+            _hierarchyLabel.Text = $"Hierarchy: {path}";
+            _hierarchyLabel.ForeColor = Color.FromArgb(255, 215, 100); // Amber / gold
+
+            if (snapshot.Focus.ContainerClasses.Length > 0)
+            {
+                _hudToolTip.SetToolTip(_hierarchyLabel, $"Classes: {string.Join(" > ", snapshot.Focus.ContainerClasses)}");
+            }
+            else if (snapshot.Focus.ContainerPath.Length > 0)
+            {
+                _hudToolTip.SetToolTip(_hierarchyLabel, $"Container IDs: {string.Join(" > ", snapshot.Focus.ContainerPath)}");
+            }
+            else
+            {
+                _hudToolTip.SetToolTip(_hierarchyLabel, $"Path: {path}");
+            }
+        }
+        else if (snapshot.Focus != null && snapshot.Focus.ContainerClasses.Length > 0)
+        {
+            var classes = string.Join(" > ", snapshot.Focus.ContainerClasses);
+            _hierarchyLabel.Text = $"Classes: {classes}";
+            _hierarchyLabel.ForeColor = Color.FromArgb(100, 200, 255);
+            _hudToolTip.SetToolTip(_hierarchyLabel, classes);
+        }
+        else if (snapshot.Focus != null && snapshot.Focus.ContainerPath.Length > 0)
+        {
+            var path = string.Join(" > ", snapshot.Focus.ContainerPath);
+            _hierarchyLabel.Text = $"Container IDs: {path}";
+            _hierarchyLabel.ForeColor = Color.FromArgb(100, 200, 255);
+            _hudToolTip.SetToolTip(_hierarchyLabel, path);
+        }
+        else
+        {
+            _hierarchyLabel.Text = "Hierarchy: (Direct Window Child / Root)";
+            _hierarchyLabel.ForeColor = Color.FromArgb(100, 200, 255);
+            _hudToolTip.SetToolTip(_hierarchyLabel, "No intermediate parent containers detected");
         }
 
         // Domain Specific Context
@@ -387,6 +422,62 @@ public sealed class FloatingHudForm : Form
                 {
                     ForeColor = Color.FromArgb(140, 200, 255)
                 });
+            }
+
+            // Application Pane & Semantic Hierarchy
+            if (snapshot.Focus != null &&
+                (snapshot.Focus.PaneLocation != WindowPaneLocation.Unknown ||
+                 snapshot.Focus.SemanticPath.Length > 0 ||
+                 !string.IsNullOrWhiteSpace(snapshot.Focus.ActiveView)))
+            {
+                string pathSummary = snapshot.Focus.SemanticPath.Length > 0
+                    ? string.Join(" › ", snapshot.Focus.SemanticPath)
+                    : snapshot.Focus.PaneLocation.ToString();
+
+                var semanticRootNode = new TreeNode($"🏛️ Semantic Hierarchy ({pathSummary})")
+                {
+                    ForeColor = Color.FromArgb(255, 215, 100) // Amber / gold
+                };
+
+                TreeNode currentSemanticNode = semanticRootNode;
+
+                if (snapshot.Focus.PaneLocation != WindowPaneLocation.Unknown)
+                {
+                    var paneNode = new TreeNode($"🪟 Window Pane: {snapshot.Focus.PaneLocation}")
+                    {
+                        ForeColor = Color.FromArgb(100, 200, 255)
+                    };
+                    currentSemanticNode.Nodes.Add(paneNode);
+                    currentSemanticNode = paneNode;
+                }
+
+                if (!string.IsNullOrWhiteSpace(snapshot.Focus.ActiveView))
+                {
+                    var viewNode = new TreeNode($"📑 Active View: {snapshot.Focus.ActiveView}")
+                    {
+                        ForeColor = Color.FromArgb(180, 220, 255)
+                    };
+                    currentSemanticNode.Nodes.Add(viewNode);
+                    currentSemanticNode = viewNode;
+                }
+
+                if (!string.IsNullOrWhiteSpace(snapshot.Focus.SectionName))
+                {
+                    var sectionNode = new TreeNode($"📂 Section: {snapshot.Focus.SectionName}")
+                    {
+                        ForeColor = Color.FromArgb(200, 235, 255)
+                    };
+                    currentSemanticNode.Nodes.Add(sectionNode);
+                    currentSemanticNode = sectionNode;
+                }
+
+                var targetZoneNode = new TreeNode($"🎯 Target Zone: {snapshot.Focus.SemanticZone} [{snapshot.Focus.ControlType}]")
+                {
+                    ForeColor = Color.FromArgb(160, 230, 150)
+                };
+                currentSemanticNode.Nodes.Add(targetZoneNode);
+
+                rootNode.Nodes.Add(semanticRootNode);
             }
 
             // DOM & Structural Container Hierarchy
@@ -583,6 +674,38 @@ public sealed class FloatingHudForm : Form
             ForeColor = Color.FromArgb(255, 190, 60) // Amber
         };
 
+        if (focus.PaneLocation != WindowPaneLocation.Unknown)
+        {
+            focusNode.Nodes.Add(new TreeNode($"Window Pane: {focus.PaneLocation}")
+            {
+                ForeColor = Color.FromArgb(100, 200, 255)
+            });
+        }
+
+        if (!string.IsNullOrWhiteSpace(focus.ActiveView))
+        {
+            focusNode.Nodes.Add(new TreeNode($"Active View: {focus.ActiveView}")
+            {
+                ForeColor = Color.FromArgb(180, 220, 255)
+            });
+        }
+
+        if (!string.IsNullOrWhiteSpace(focus.SectionName))
+        {
+            focusNode.Nodes.Add(new TreeNode($"Section: {focus.SectionName}")
+            {
+                ForeColor = Color.FromArgb(200, 235, 255)
+            });
+        }
+
+        if (focus.SemanticPath.Length > 0)
+        {
+            focusNode.Nodes.Add(new TreeNode($"Semantic Path: {string.Join(" › ", focus.SemanticPath)}")
+            {
+                ForeColor = Color.FromArgb(255, 215, 100)
+            });
+        }
+
         if (!string.IsNullOrWhiteSpace(focus.ClassName))
         {
             focusNode.Nodes.Add(new TreeNode($"Class: {focus.ClassName}")
@@ -599,7 +722,7 @@ public sealed class FloatingHudForm : Form
             });
         }
 
-        if (focus.SemanticZone != ADCE.Core.Enums.DesktopSemanticZone.Unknown)
+        if (focus.SemanticZone != DesktopSemanticZone.Unknown)
         {
             focusNode.Nodes.Add(new TreeNode($"Semantic Zone: {focus.SemanticZone}")
             {
@@ -685,6 +808,7 @@ public sealed class FloatingHudForm : Form
         if (disposing)
         {
             _host.SnapshotChanged -= OnSnapshotChanged;
+            _hudToolTip.Dispose();
         }
         base.Dispose(disposing);
     }
