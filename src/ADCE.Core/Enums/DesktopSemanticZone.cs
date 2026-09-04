@@ -51,5 +51,17 @@ public enum DesktopSemanticZone
     SystemDialog = 13,
 
     /// <summary>High-level navigation container or tool panel.</summary>
-    NavigationPanel = 14
+    NavigationPanel = 14,
+
+    /// <summary>Primary activity bar strip or icon launcher buttons.</summary>
+    ActivityBar = 15,
+
+    /// <summary>File or project version timeline history list item.</summary>
+    Timeline = 16,
+
+    /// <summary>Document symbol or structure outline tree item.</summary>
+    Outline = 17,
+
+    /// <summary>Rendered chat history or conversational stream in an AI assistant panel.</summary>
+    ChatConversation = 18
 }

@@ -28,8 +28,20 @@ public sealed record FocusedControlInfo : IEquatable<FocusedControlInfo>
     /// <summary>Win32 / UI Automation class name of the control.</summary>
     public string ClassName { get; init; } = string.Empty;
 
-    /// <summary>Resolved macro semantic typing anchor.</summary>
+    /// <summary>Resolved fine-grained semantic typing anchor.</summary>
     public DesktopSemanticZone SemanticZone { get; init; } = DesktopSemanticZone.Unknown;
+
+    /// <summary>Resolved macro window pane hosting this control.</summary>
+    public WindowPaneLocation PaneLocation { get; init; } = WindowPaneLocation.Unknown;
+
+    /// <summary>Active view or tool container hosting this control (e.g. "Explorer", "SourceControl", "Chat").</summary>
+    public string? ActiveView { get; init; }
+
+    /// <summary>Inner section or accordion container within the active view (e.g. "active-desktop-context-engine", "Timeline", "Outline", "CommitBox").</summary>
+    public string? SectionName { get; init; }
+
+    /// <summary>Hierarchical semantic path from pane down to section (e.g. ["PrimarySidebar", "Explorer", "Timeline"]).</summary>
+    public ImmutableArray<string> SemanticPath { get; init; } = ImmutableArray<string>.Empty;
 
     /// <summary>Normalized ancestor automation IDs from immediate container to macro parent.</summary>
     public ImmutableArray<string> ContainerPath { get; init; } = ImmutableArray<string>.Empty;
@@ -53,6 +65,9 @@ public sealed record FocusedControlInfo : IEquatable<FocusedControlInfo>
             AutomationId != other.AutomationId ||
             ClassName != other.ClassName ||
             SemanticZone != other.SemanticZone ||
+            PaneLocation != other.PaneLocation ||
+            ActiveView != other.ActiveView ||
+            SectionName != other.SectionName ||
             IsOverlay != other.IsOverlay ||
             ValueSnippet != other.ValueSnippet ||
             BoundingBox != other.BoundingBox)
@@ -61,7 +76,8 @@ public sealed record FocusedControlInfo : IEquatable<FocusedControlInfo>
         }
 
         return FastArrayEquals(ContainerPath, other.ContainerPath) &&
-               FastArrayEquals(ContainerClasses, other.ContainerClasses);
+               FastArrayEquals(ContainerClasses, other.ContainerClasses) &&
+               FastArrayEquals(SemanticPath, other.SemanticPath);
     }
 
     public override int GetHashCode()
@@ -72,9 +88,18 @@ public sealed record FocusedControlInfo : IEquatable<FocusedControlInfo>
         hash.Add(AutomationId);
         hash.Add(ClassName);
         hash.Add((int)SemanticZone);
+        hash.Add((int)PaneLocation);
+        hash.Add(ActiveView);
+        hash.Add(SectionName);
         hash.Add(IsOverlay);
         hash.Add(ValueSnippet);
         hash.Add(BoundingBox);
+
+        if (!SemanticPath.IsDefault)
+        {
+            for (int i = 0; i < SemanticPath.Length; i++)
+                hash.Add(SemanticPath[i]);
+        }
 
         if (!ContainerPath.IsDefault)
         {

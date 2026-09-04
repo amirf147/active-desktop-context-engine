@@ -60,13 +60,25 @@ public sealed class SemanticRuleEngine : ISemanticRuleEngine
         string className,
         ImmutableArray<string> containerPath)
     {
+        return FindMatchingRule(processName, controlType, elementName, automationId, className, containerPath)?.TargetZone;
+    }
+
+    /// <inheritdoc />
+    public SemanticRule? FindMatchingRule(
+        string processName,
+        string controlType,
+        string elementName,
+        string automationId,
+        string className,
+        ImmutableArray<string> containerPath)
+    {
         var rules = _rules;
         for (int i = 0; i < rules.Length; i++)
         {
             var rule = rules[i];
             if (rule.Matches(processName, controlType, elementName, automationId, className, containerPath))
             {
-                return rule.TargetZone;
+                return rule;
             }
         }
 

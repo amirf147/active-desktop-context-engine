@@ -18,6 +18,15 @@ public sealed record SemanticRule
     /// <summary>The semantic zone assigned when this rule matches.</summary>
     public required DesktopSemanticZone TargetZone { get; init; }
 
+    /// <summary>Optional target window pane assigned when this rule matches.</summary>
+    public WindowPaneLocation? TargetPane { get; init; }
+
+    /// <summary>Optional target view identifier assigned when this rule matches (e.g. "Explorer", "SourceControl", "Chat").</summary>
+    public string? TargetView { get; init; }
+
+    /// <summary>Optional target section identifier assigned when this rule matches (e.g. "Timeline", "Outline", "CommitBox").</summary>
+    public string? TargetSection { get; init; }
+
     /// <summary>Optional case-insensitive substring match for process executable name (e.g. "code", "antigravity").</summary>
     public string? ProcessPattern { get; init; }
 

@@ -27,6 +27,17 @@ public interface ISemanticRuleEngine
         ImmutableArray<string> containerPath);
 
     /// <summary>
+    /// Evaluates active rules in priority order and returns the first matching SemanticRule, if any.
+    /// </summary>
+    SemanticRule? FindMatchingRule(
+        string processName,
+        string controlType,
+        string elementName,
+        string automationId,
+        string className,
+        ImmutableArray<string> containerPath);
+
+    /// <summary>
     /// Adds or replaces a rule in the active rule collection.
     /// </summary>
     void AddOrUpdateRule(SemanticRule rule);

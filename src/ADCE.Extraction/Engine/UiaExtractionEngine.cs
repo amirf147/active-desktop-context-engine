@@ -102,7 +102,7 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
         }
 
         // 4. Extract Focus Target (process-scoped to prevent global UIA focus bleed from other windows)
-        var focusInfo = ExtractFocusedControl(_automation, windowElement, pid, processName, archetype, EnableSemanticZones, _ruleEngine);
+        var focusInfo = ExtractFocusedControl(_automation, windowElement, pid, processName, archetype, EnableSemanticZones, _ruleEngine, bounds);
 
         // 5. Specialized Multi-Zone Extraction based on Archetype
         IdeContext? ideContext = null;
@@ -188,7 +188,8 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
         string processName,
         DesktopAppArchetype archetype,
         bool enableSemanticZones = true,
-        ISemanticRuleEngine? ruleEngine = null)
+        ISemanticRuleEngine? ruleEngine = null,
+        BoundingRectangle windowBounds = default)
     {
         try
         {
@@ -226,14 +227,89 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
                     }
                     catch { }
 
-                    var (containerPath, containerClasses, ancestorZone) = ExtractAncestorHierarchy(
-                        automation, focused, rootHwnd, windowPid, archetype, enableSemanticZones: enableSemanticZones);
+                    var (containerPath, containerClasses, ancestorZone, ancestorPane, ancestorView, ancestorSection) = ExtractAncestorHierarchy(
+                        automation, focused, rootHwnd, windowPid, archetype, maxDepth: 4, enableSemanticZones: enableSemanticZones);
 
+                    WindowPaneLocation pane = ancestorPane;
+                    string? activeView = ancestorView;
+                    string? sectionName = ancestorSection;
                     var zone = DesktopSemanticZone.Unknown;
+
+                    // Direct signatures on focused control itself
+                    if (isOverlay)
+                    {
+                        pane = WindowPaneLocation.OverlayModal;
+                        activeView = "QuickOpen";
+                    }
+                    else if (autoId.Contains("antigravity.agentSidePanelInputBox", StringComparison.OrdinalIgnoreCase) ||
+                             name.Equals("Message input", StringComparison.OrdinalIgnoreCase))
+                    {
+                        pane = WindowPaneLocation.AuxiliarySidebar;
+                        activeView = "Chat";
+                        sectionName = "ChatPrompt";
+                        zone = DesktopSemanticZone.ChatPrompt;
+                    }
+                    else if (name.Contains("Message (Ctrl+Enter to commit", StringComparison.OrdinalIgnoreCase) ||
+                             autoId.Contains("scm.input", StringComparison.OrdinalIgnoreCase))
+                    {
+                        pane = WindowPaneLocation.PrimarySidebar;
+                        activeView = "SourceControl";
+                        sectionName = "CommitBox";
+                        zone = DesktopSemanticZone.GitCommitBox;
+                    }
+                    else if (cls.Contains("pane-header", StringComparison.OrdinalIgnoreCase) ||
+                             (cType.Equals("Button", StringComparison.OrdinalIgnoreCase) && name.Contains("Section", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        pane = WindowPaneLocation.PrimarySidebar;
+                        activeView = "Explorer";
+                        if (name.Contains("Timeline", StringComparison.OrdinalIgnoreCase))
+                        {
+                            sectionName = "Timeline";
+                            zone = DesktopSemanticZone.Timeline;
+                        }
+                        else if (name.Contains("Outline", StringComparison.OrdinalIgnoreCase))
+                        {
+                            sectionName = "Outline";
+                            zone = DesktopSemanticZone.Outline;
+                        }
+                        else if (name.StartsWith("Explorer Section:", StringComparison.OrdinalIgnoreCase))
+                        {
+                            string parsed = name["Explorer Section:".Length..].Trim();
+                            sectionName = string.IsNullOrEmpty(parsed) ? "Explorer" : parsed;
+                            zone = DesktopSemanticZone.SidebarExplorer;
+                        }
+                    }
+                    else if (cls.Contains("activitybar", StringComparison.OrdinalIgnoreCase) ||
+                             autoId.Contains("workbench.parts.activitybar", StringComparison.OrdinalIgnoreCase))
+                    {
+                        pane = WindowPaneLocation.ActivityBar;
+                        activeView = "ActivityBar";
+                        zone = DesktopSemanticZone.ActivityBar;
+                    }
+
                     if (enableSemanticZones)
                     {
                         // 1. Declarative custom rules take precedence (user overrides & seeded rules)
-                        zone = ruleEngine?.MatchRule(processName, cType, name, autoId, cls, containerPath) ?? DesktopSemanticZone.Unknown;
+                        var matchedRule = ruleEngine?.FindMatchingRule(processName, cType, name, autoId, cls, containerPath);
+                        if (matchedRule != null)
+                        {
+                            if (matchedRule.TargetZone != DesktopSemanticZone.Unknown)
+                            {
+                                zone = matchedRule.TargetZone;
+                            }
+                            if (matchedRule.TargetPane.HasValue && matchedRule.TargetPane.Value != WindowPaneLocation.Unknown)
+                            {
+                                pane = matchedRule.TargetPane.Value;
+                            }
+                            if (!string.IsNullOrEmpty(matchedRule.TargetView))
+                            {
+                                activeView = matchedRule.TargetView;
+                            }
+                            if (!string.IsNullOrEmpty(matchedRule.TargetSection))
+                            {
+                                sectionName = matchedRule.TargetSection;
+                            }
+                        }
 
                         // 2. Fall back to archetype heuristics
                         if (zone == DesktopSemanticZone.Unknown)
@@ -247,6 +323,45 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
                             zone = ancestorZone;
                         }
                     }
+
+                    // Infer pane from zone if still unknown
+                    if (pane == WindowPaneLocation.Unknown && zone != DesktopSemanticZone.Unknown)
+                    {
+                        pane = InferPaneFromZone(zone);
+                    }
+
+                    // Spatial relative geometry fallback if still unknown
+                    if (pane == WindowPaneLocation.Unknown && !windowBounds.IsEmpty && !boundingBox.IsEmpty)
+                    {
+                        pane = InferPaneFromGeometry(windowBounds, boundingBox);
+                    }
+
+                    // Infer view and section from zone if missing
+                    if (string.IsNullOrEmpty(activeView) && zone != DesktopSemanticZone.Unknown)
+                    {
+                        activeView = InferViewFromZone(zone);
+                    }
+
+                    if (string.IsNullOrEmpty(sectionName) && zone != DesktopSemanticZone.Unknown)
+                    {
+                        sectionName = InferSectionFromZone(zone);
+                    }
+
+                    // Assemble semantic path: [Pane, ActiveView, SectionName]
+                    var pathBuilder = System.Collections.Immutable.ImmutableArray.CreateBuilder<string>(3);
+                    if (pane != WindowPaneLocation.Unknown)
+                    {
+                        pathBuilder.Add(pane.ToString());
+                    }
+                    if (!string.IsNullOrWhiteSpace(activeView))
+                    {
+                        pathBuilder.Add(activeView);
+                    }
+                    if (!string.IsNullOrWhiteSpace(sectionName))
+                    {
+                        pathBuilder.Add(sectionName);
+                    }
+                    var semanticPath = pathBuilder.ToImmutable();
 
                     bool isPassword = false;
                     try
@@ -272,6 +387,10 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
                         ClassName = cls,
                         BoundingBox = boundingBox,
                         SemanticZone = zone,
+                        PaneLocation = pane,
+                        ActiveView = activeView,
+                        SectionName = sectionName,
+                        SemanticPath = semanticPath,
                         ContainerPath = containerPath,
                         ContainerClasses = containerClasses,
                         IsOverlay = isOverlay,
@@ -288,26 +407,39 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
             ElementName = windowElement.Properties.Name.ValueOrDefault ?? string.Empty,
             AutomationId = string.Empty,
             ClassName = windowElement.Properties.ClassName.ValueOrDefault ?? string.Empty,
-            BoundingBox = BoundingRectangle.Empty,
+            BoundingBox = windowBounds.IsEmpty ? BoundingRectangle.Empty : windowBounds,
             SemanticZone = DesktopSemanticZone.Unknown,
+            PaneLocation = WindowPaneLocation.Unknown,
+            ActiveView = null,
+            SectionName = null,
+            SemanticPath = System.Collections.Immutable.ImmutableArray<string>.Empty,
             ContainerPath = System.Collections.Immutable.ImmutableArray<string>.Empty,
             ContainerClasses = System.Collections.Immutable.ImmutableArray<string>.Empty,
             IsOverlay = false
         };
     }
 
-    internal static (System.Collections.Immutable.ImmutableArray<string> Paths, System.Collections.Immutable.ImmutableArray<string> Classes, DesktopSemanticZone Zone) ExtractAncestorHierarchy(
+    internal static (
+        System.Collections.Immutable.ImmutableArray<string> Paths,
+        System.Collections.Immutable.ImmutableArray<string> Classes,
+        DesktopSemanticZone Zone,
+        WindowPaneLocation Pane,
+        string? ActiveView,
+        string? SectionName) ExtractAncestorHierarchy(
         UIA3Automation automation,
         AutomationElement focusedElement,
         nint rootWindowHwnd,
         int expectedPid,
         DesktopAppArchetype archetype,
-        int maxDepth = 3,
+        int maxDepth = 4,
         bool enableSemanticZones = true)
     {
         var pathBuilder = System.Collections.Immutable.ImmutableArray.CreateBuilder<string>(maxDepth);
         var classBuilder = System.Collections.Immutable.ImmutableArray.CreateBuilder<string>(maxDepth);
         var resolvedZone = DesktopSemanticZone.Unknown;
+        var resolvedPane = WindowPaneLocation.Unknown;
+        string? resolvedView = null;
+        string? resolvedSection = null;
 
         try
         {
@@ -380,6 +512,110 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
                     pathBuilder.Add(autoId);
                 }
 
+                // Structural and semantic container inspection:
+                if (cls.Contains("scm-editor-container", StringComparison.OrdinalIgnoreCase) ||
+                    autoId.Contains("workbench.view.scm", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (resolvedPane == WindowPaneLocation.Unknown) resolvedPane = WindowPaneLocation.PrimarySidebar;
+                    resolvedView ??= "SourceControl";
+                    resolvedSection ??= "CommitBox";
+                    if (enableSemanticZones && resolvedZone == DesktopSemanticZone.Unknown)
+                        resolvedZone = DesktopSemanticZone.GitCommitBox;
+                }
+                else if (autoId.Contains("antigravity.agentSidePanelInputBox", StringComparison.OrdinalIgnoreCase) ||
+                         cls.Contains("antigravity-agent-side-panel", StringComparison.OrdinalIgnoreCase) ||
+                         autoId.Contains("workbench.parts.auxiliarybar", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (resolvedPane == WindowPaneLocation.Unknown) resolvedPane = WindowPaneLocation.AuxiliarySidebar;
+                    resolvedView ??= "Chat";
+                }
+                else if (autoId.Equals("conversation", StringComparison.OrdinalIgnoreCase) ||
+                         name.Equals("Agent Conversation", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (resolvedPane == WindowPaneLocation.Unknown) resolvedPane = WindowPaneLocation.AuxiliarySidebar;
+                    resolvedView ??= "Chat";
+                    resolvedSection ??= "Conversation";
+                    if (enableSemanticZones && resolvedZone == DesktopSemanticZone.Unknown)
+                        resolvedZone = DesktopSemanticZone.ChatConversation;
+                }
+                else if (cls.Contains("pane-header", StringComparison.OrdinalIgnoreCase) ||
+                         (name.Contains("Section", StringComparison.OrdinalIgnoreCase) && (cls.Contains("pane") || cls.Contains("header"))))
+                {
+                    if (resolvedPane == WindowPaneLocation.Unknown) resolvedPane = WindowPaneLocation.PrimarySidebar;
+                    if (name.Contains("Timeline", StringComparison.OrdinalIgnoreCase))
+                    {
+                        resolvedView ??= "Explorer";
+                        resolvedSection ??= "Timeline";
+                        if (enableSemanticZones && resolvedZone == DesktopSemanticZone.Unknown)
+                            resolvedZone = DesktopSemanticZone.Timeline;
+                    }
+                    else if (name.Contains("Outline", StringComparison.OrdinalIgnoreCase))
+                    {
+                        resolvedView ??= "Explorer";
+                        resolvedSection ??= "Outline";
+                        if (enableSemanticZones && resolvedZone == DesktopSemanticZone.Unknown)
+                            resolvedZone = DesktopSemanticZone.Outline;
+                    }
+                    else if (name.StartsWith("Explorer Section:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        resolvedView ??= "Explorer";
+                        string parsed = name["Explorer Section:".Length..].Trim();
+                        resolvedSection ??= string.IsNullOrEmpty(parsed) ? "Explorer" : parsed;
+                        if (enableSemanticZones && resolvedZone == DesktopSemanticZone.Unknown)
+                            resolvedZone = DesktopSemanticZone.SidebarExplorer;
+                    }
+                    else if (name.EndsWith("Section", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string parsed = name[..^"Section".Length].Trim();
+                        resolvedSection ??= string.IsNullOrEmpty(parsed) ? name : parsed;
+                    }
+                }
+                else if (autoId.Contains("workbench.parts.sidebar", StringComparison.OrdinalIgnoreCase) ||
+                         cls.Contains("part sidebar", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (resolvedPane == WindowPaneLocation.Unknown) resolvedPane = WindowPaneLocation.PrimarySidebar;
+                    if (autoId.Contains("workbench.view.explorer", StringComparison.OrdinalIgnoreCase))
+                    {
+                        resolvedView ??= "Explorer";
+                    }
+                }
+                else if (autoId.Contains("workbench.parts.activitybar", StringComparison.OrdinalIgnoreCase) ||
+                         cls.Contains("activitybar", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (resolvedPane == WindowPaneLocation.Unknown) resolvedPane = WindowPaneLocation.ActivityBar;
+                    resolvedView ??= "ActivityBar";
+                    if (enableSemanticZones && resolvedZone == DesktopSemanticZone.Unknown)
+                        resolvedZone = DesktopSemanticZone.ActivityBar;
+                }
+                else if (autoId.Contains("workbench.parts.editor", StringComparison.OrdinalIgnoreCase) ||
+                         cls.Contains("monaco-editor", StringComparison.OrdinalIgnoreCase) ||
+                         cls.Contains("tabs-container", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (resolvedPane == WindowPaneLocation.Unknown) resolvedPane = WindowPaneLocation.MainContent;
+                    resolvedView ??= "Editor";
+                    if (enableSemanticZones && resolvedZone == DesktopSemanticZone.Unknown && !cls.Contains("scm-editor", StringComparison.OrdinalIgnoreCase))
+                        resolvedZone = DesktopSemanticZone.EditorBuffer;
+                }
+                else if (autoId.Contains("workbench.parts.panel", StringComparison.OrdinalIgnoreCase) ||
+                         autoId.Contains("terminal", StringComparison.OrdinalIgnoreCase) ||
+                         cls.Contains("terminal", StringComparison.OrdinalIgnoreCase) ||
+                         cls.Contains("xterm", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (resolvedPane == WindowPaneLocation.Unknown) resolvedPane = WindowPaneLocation.BottomPanel;
+                    resolvedView ??= "Terminal";
+                    if (enableSemanticZones && resolvedZone == DesktopSemanticZone.Unknown)
+                        resolvedZone = DesktopSemanticZone.Terminal;
+                }
+                else if (autoId.Contains("workbench.parts.statusbar", StringComparison.OrdinalIgnoreCase) ||
+                         cls.Contains("status-bar", StringComparison.OrdinalIgnoreCase) ||
+                         cls.Contains("statusbar", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (resolvedPane == WindowPaneLocation.Unknown) resolvedPane = WindowPaneLocation.StatusBar;
+                    resolvedView ??= "StatusBar";
+                    if (enableSemanticZones && resolvedZone == DesktopSemanticZone.Unknown)
+                        resolvedZone = DesktopSemanticZone.StatusBar;
+                }
+
                 if (enableSemanticZones && resolvedZone == DesktopSemanticZone.Unknown)
                 {
                     resolvedZone = MapContainerToMacroZone(autoId, cls, name, cTypeId, archetype);
@@ -390,7 +626,7 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
         }
         catch { }
 
-        return (pathBuilder.ToImmutable(), classBuilder.ToImmutable(), resolvedZone);
+        return (pathBuilder.ToImmutable(), classBuilder.ToImmutable(), resolvedZone, resolvedPane, resolvedView, resolvedSection);
     }
 
     private static bool IsNoiseWrapperClass(string cls)
@@ -413,19 +649,42 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
             return DesktopSemanticZone.Terminal;
         }
 
+        if (className.Contains("scm-editor-container", StringComparison.OrdinalIgnoreCase) ||
+            autoId.Contains("workbench.view.scm", StringComparison.OrdinalIgnoreCase))
+        {
+            return DesktopSemanticZone.GitCommitBox;
+        }
+
+        if (name.Contains("Timeline", StringComparison.OrdinalIgnoreCase))
+        {
+            return DesktopSemanticZone.Timeline;
+        }
+
+        if (name.Contains("Outline", StringComparison.OrdinalIgnoreCase))
+        {
+            return DesktopSemanticZone.Outline;
+        }
+
+        if (autoId.Equals("conversation", StringComparison.OrdinalIgnoreCase) ||
+            name.Equals("Agent Conversation", StringComparison.OrdinalIgnoreCase))
+        {
+            return DesktopSemanticZone.ChatConversation;
+        }
+
+        if (autoId.Contains("antigravity.agentSidePanelInputBox", StringComparison.OrdinalIgnoreCase) ||
+            autoId.Contains("chat", StringComparison.OrdinalIgnoreCase) ||
+            autoId.Contains("interactive-session", StringComparison.OrdinalIgnoreCase) ||
+            className.Contains("chat-input", StringComparison.OrdinalIgnoreCase))
+        {
+            return DesktopSemanticZone.ChatPrompt;
+        }
+
         if (className.Contains("monaco-editor", StringComparison.OrdinalIgnoreCase) ||
             className.Contains("editor-container", StringComparison.OrdinalIgnoreCase) ||
             className.Contains("monaco-pane-view", StringComparison.OrdinalIgnoreCase) ||
             className.Contains("native-edit-context", StringComparison.OrdinalIgnoreCase))
         {
             return DesktopSemanticZone.EditorBuffer;
-        }
-
-        if (autoId.Contains("chat", StringComparison.OrdinalIgnoreCase) ||
-            autoId.Contains("interactive-session", StringComparison.OrdinalIgnoreCase) ||
-            className.Contains("chat-input", StringComparison.OrdinalIgnoreCase))
-        {
-            return DesktopSemanticZone.ChatPrompt;
         }
 
         if (autoId.Contains("quickInput", StringComparison.OrdinalIgnoreCase) ||
@@ -435,9 +694,14 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
             return DesktopSemanticZone.QuickOpen;
         }
 
+        if (className.Contains("activitybar", StringComparison.OrdinalIgnoreCase) ||
+            autoId.Contains("workbench.parts.activitybar", StringComparison.OrdinalIgnoreCase))
+        {
+            return DesktopSemanticZone.ActivityBar;
+        }
+
         if (autoId.Contains("sidebar", StringComparison.OrdinalIgnoreCase) ||
             autoId.Contains("workbench.view", StringComparison.OrdinalIgnoreCase) ||
-            className.Contains("activitybar", StringComparison.OrdinalIgnoreCase) ||
             className.Contains("view-pane", StringComparison.OrdinalIgnoreCase))
         {
             if (archetype == DesktopAppArchetype.Gecko)
@@ -490,6 +754,12 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
             return DesktopSemanticZone.ChatPrompt;
         }
 
+        if (autoId.Equals("conversation", StringComparison.OrdinalIgnoreCase) ||
+            name.Equals("Agent Conversation", StringComparison.OrdinalIgnoreCase))
+        {
+            return DesktopSemanticZone.ChatConversation;
+        }
+
         if (autoId.Contains("terminal", StringComparison.OrdinalIgnoreCase) ||
             name.StartsWith("Terminal", StringComparison.OrdinalIgnoreCase) ||
             name.Contains("terminal accessibility", StringComparison.OrdinalIgnoreCase) ||
@@ -504,6 +774,26 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
             className.Contains("native-edit-context", StringComparison.OrdinalIgnoreCase))
         {
             return DesktopSemanticZone.EditorBuffer;
+        }
+
+        if (name.Contains("Timeline Section", StringComparison.OrdinalIgnoreCase) ||
+            autoId.Contains("timeline", StringComparison.OrdinalIgnoreCase) ||
+            (controlType.Equals("TreeItem", StringComparison.OrdinalIgnoreCase) && name.Equals("Timeline", StringComparison.OrdinalIgnoreCase)))
+        {
+            return DesktopSemanticZone.Timeline;
+        }
+
+        if (name.Contains("Outline Section", StringComparison.OrdinalIgnoreCase) ||
+            autoId.Contains("outline", StringComparison.OrdinalIgnoreCase) ||
+            (controlType.Equals("TreeItem", StringComparison.OrdinalIgnoreCase) && name.Equals("Outline", StringComparison.OrdinalIgnoreCase)))
+        {
+            return DesktopSemanticZone.Outline;
+        }
+
+        if (className.Contains("activitybar", StringComparison.OrdinalIgnoreCase) ||
+            autoId.Contains("workbench.parts.activitybar", StringComparison.OrdinalIgnoreCase))
+        {
+            return DesktopSemanticZone.ActivityBar;
         }
 
         if (controlType.Equals("TreeItem", StringComparison.OrdinalIgnoreCase) ||
@@ -562,6 +852,118 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
         }
 
         return DesktopSemanticZone.Unknown;
+    }
+
+    internal static WindowPaneLocation InferPaneFromZone(DesktopSemanticZone zone)
+    {
+        return zone switch
+        {
+            DesktopSemanticZone.GitCommitBox => WindowPaneLocation.PrimarySidebar,
+            DesktopSemanticZone.SidebarExplorer => WindowPaneLocation.PrimarySidebar,
+            DesktopSemanticZone.Timeline => WindowPaneLocation.PrimarySidebar,
+            DesktopSemanticZone.Outline => WindowPaneLocation.PrimarySidebar,
+            DesktopSemanticZone.ShellItemList => WindowPaneLocation.PrimarySidebar,
+            DesktopSemanticZone.NavigationPanel => WindowPaneLocation.PrimarySidebar,
+            DesktopSemanticZone.EditorBuffer => WindowPaneLocation.MainContent,
+            DesktopSemanticZone.WebDocument => WindowPaneLocation.MainContent,
+            DesktopSemanticZone.ChatPrompt => WindowPaneLocation.AuxiliarySidebar,
+            DesktopSemanticZone.ChatConversation => WindowPaneLocation.AuxiliarySidebar,
+            DesktopSemanticZone.Terminal => WindowPaneLocation.BottomPanel,
+            DesktopSemanticZone.ActivityBar => WindowPaneLocation.ActivityBar,
+            DesktopSemanticZone.AddressBar => WindowPaneLocation.TopBar,
+            DesktopSemanticZone.TabBar => WindowPaneLocation.TopBar,
+            DesktopSemanticZone.StatusBar => WindowPaneLocation.StatusBar,
+            DesktopSemanticZone.QuickOpen or DesktopSemanticZone.CommandPalette or DesktopSemanticZone.SystemDialog => WindowPaneLocation.OverlayModal,
+            _ => WindowPaneLocation.Unknown
+        };
+    }
+
+    internal static string? InferViewFromZone(DesktopSemanticZone zone)
+    {
+        return zone switch
+        {
+            DesktopSemanticZone.GitCommitBox => "SourceControl",
+            DesktopSemanticZone.Timeline => "Explorer",
+            DesktopSemanticZone.Outline => "Explorer",
+            DesktopSemanticZone.SidebarExplorer => "Explorer",
+            DesktopSemanticZone.ChatPrompt => "Chat",
+            DesktopSemanticZone.ChatConversation => "Chat",
+            DesktopSemanticZone.EditorBuffer => "Editor",
+            DesktopSemanticZone.Terminal => "Terminal",
+            DesktopSemanticZone.ActivityBar => "ActivityBar",
+            DesktopSemanticZone.StatusBar => "StatusBar",
+            DesktopSemanticZone.QuickOpen or DesktopSemanticZone.CommandPalette => "QuickOpen",
+            _ => null
+        };
+    }
+
+    internal static string? InferSectionFromZone(DesktopSemanticZone zone)
+    {
+        return zone switch
+        {
+            DesktopSemanticZone.GitCommitBox => "CommitBox",
+            DesktopSemanticZone.Timeline => "Timeline",
+            DesktopSemanticZone.Outline => "Outline",
+            DesktopSemanticZone.ChatPrompt => "ChatPrompt",
+            DesktopSemanticZone.ChatConversation => "Conversation",
+            _ => null
+        };
+    }
+
+    internal static WindowPaneLocation InferPaneFromGeometry(BoundingRectangle windowBounds, BoundingRectangle controlBounds)
+    {
+        if (windowBounds.IsEmpty || windowBounds.Width <= 0 || windowBounds.Height <= 0 ||
+            controlBounds.IsEmpty || controlBounds.Width <= 0 || controlBounds.Height <= 0)
+        {
+            return WindowPaneLocation.Unknown;
+        }
+
+        double relX = (controlBounds.Left - windowBounds.Left) / (double)windowBounds.Width;
+        double relY = (controlBounds.Top - windowBounds.Top) / (double)windowBounds.Height;
+
+        // Check status bar at bottom (height <= 35 and within 40px of bottom or relY >= 0.95)
+        if (relY >= 0.95 || (controlBounds.Height <= 35 && (windowBounds.Bottom - controlBounds.Bottom) <= 40))
+        {
+            return WindowPaneLocation.StatusBar;
+        }
+
+        // Check bottom panel (e.g. terminal / output at bottom quadrant)
+        if (relY >= 0.75)
+        {
+            return WindowPaneLocation.BottomPanel;
+        }
+
+        // Check top bar (e.g. tabs or title bar)
+        if (relY < 0.05 && controlBounds.Height <= 45)
+        {
+            return WindowPaneLocation.TopBar;
+        }
+
+        // Check Activity Bar (narrow vertical rail on far-left)
+        if (relX < 0.035 && controlBounds.Width <= 60)
+        {
+            return WindowPaneLocation.ActivityBar;
+        }
+
+        // Check Primary Sidebar (left ~30%)
+        if (relX < 0.30)
+        {
+            return WindowPaneLocation.PrimarySidebar;
+        }
+
+        // Check Auxiliary Sidebar (right ~35%)
+        if (relX >= 0.65)
+        {
+            return WindowPaneLocation.AuxiliarySidebar;
+        }
+
+        // Main content (center)
+        if (relX >= 0.30 && relX < 0.65)
+        {
+            return WindowPaneLocation.MainContent;
+        }
+
+        return WindowPaneLocation.Unknown;
     }
 
     private static AutomationElement? SafeBindWindow(UIA3Automation automation, nint hwnd)

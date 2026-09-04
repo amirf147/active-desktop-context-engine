@@ -10,6 +10,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using ADCE.Core.Enums;
 using ADCE.Core.Interfaces;
 using ADCE.Core.Models;
 using ADCE.Core.Serialization;
@@ -216,6 +217,10 @@ public sealed class SqliteDesktopStateStore : IDesktopStateStore, IAsyncDisposab
                 focus_control_type,
                 focus_element_name,
                 focus_semantic_zone,
+                pane_location,
+                active_view,
+                section_name,
+                semantic_path,
                 active_file_or_tab,
                 container_path,
                 container_classes,
@@ -231,6 +236,10 @@ public sealed class SqliteDesktopStateStore : IDesktopStateStore, IAsyncDisposab
                 @focus_control_type,
                 @focus_element_name,
                 @focus_semantic_zone,
+                @pane_location,
+                @active_view,
+                @section_name,
+                @semantic_path,
                 @active_file_or_tab,
                 @container_path,
                 @container_classes,
@@ -288,6 +297,10 @@ public sealed class SqliteDesktopStateStore : IDesktopStateStore, IAsyncDisposab
             ? string.Empty
             : string.Join('/', snapshot.Focus.ContainerClasses);
 
+        string semanticPath = snapshot.Focus.SemanticPath.IsDefault || snapshot.Focus.SemanticPath.IsEmpty
+            ? string.Empty
+            : string.Join('/', snapshot.Focus.SemanticPath);
+
         command.Parameters.AddWithValue("@timestamp_utc", snapshot.Timestamp.ToString("o"));
         command.Parameters.AddWithValue("@timestamp_unix_ms", snapshot.Timestamp.ToUnixTimeMilliseconds());
         command.Parameters.AddWithValue("@hwnd", snapshot.Window.Hwnd.ToInt64());
@@ -298,6 +311,10 @@ public sealed class SqliteDesktopStateStore : IDesktopStateStore, IAsyncDisposab
         command.Parameters.AddWithValue("@focus_control_type", snapshot.Focus.ControlType);
         command.Parameters.AddWithValue("@focus_element_name", snapshot.Focus.ElementName);
         command.Parameters.AddWithValue("@focus_semantic_zone", (int)snapshot.Focus.SemanticZone);
+        command.Parameters.AddWithValue("@pane_location", snapshot.Focus.PaneLocation.ToSnakeCase());
+        command.Parameters.AddWithValue("@active_view", snapshot.Focus.ActiveView ?? string.Empty);
+        command.Parameters.AddWithValue("@section_name", snapshot.Focus.SectionName ?? string.Empty);
+        command.Parameters.AddWithValue("@semantic_path", semanticPath);
         command.Parameters.AddWithValue("@active_file_or_tab", activeFileOrTab);
         command.Parameters.AddWithValue("@container_path", containerPath);
         command.Parameters.AddWithValue("@container_classes", containerClasses);
@@ -348,6 +365,10 @@ public sealed class SqliteDesktopStateStore : IDesktopStateStore, IAsyncDisposab
                 focus_control_type TEXT,
                 focus_element_name TEXT,
                 focus_semantic_zone INTEGER NOT NULL,
+                pane_location TEXT DEFAULT 'unknown',
+                active_view TEXT DEFAULT '',
+                section_name TEXT DEFAULT '',
+                semantic_path TEXT DEFAULT '',
                 active_file_or_tab TEXT,
                 container_path TEXT DEFAULT '',
                 container_classes TEXT DEFAULT '',
@@ -372,6 +393,34 @@ public sealed class SqliteDesktopStateStore : IDesktopStateStore, IAsyncDisposab
         {
             await using var migCmd2 = new SqliteCommand("ALTER TABLE desktop_snapshots ADD COLUMN container_classes TEXT DEFAULT '';", connection);
             await migCmd2.ExecuteNonQueryAsync(cancellationToken);
+        }
+        catch { }
+
+        try
+        {
+            await using var migCmd3 = new SqliteCommand("ALTER TABLE desktop_snapshots ADD COLUMN pane_location TEXT DEFAULT 'unknown';", connection);
+            await migCmd3.ExecuteNonQueryAsync(cancellationToken);
+        }
+        catch { }
+
+        try
+        {
+            await using var migCmd4 = new SqliteCommand("ALTER TABLE desktop_snapshots ADD COLUMN active_view TEXT DEFAULT '';", connection);
+            await migCmd4.ExecuteNonQueryAsync(cancellationToken);
+        }
+        catch { }
+
+        try
+        {
+            await using var migCmd5 = new SqliteCommand("ALTER TABLE desktop_snapshots ADD COLUMN section_name TEXT DEFAULT '';", connection);
+            await migCmd5.ExecuteNonQueryAsync(cancellationToken);
+        }
+        catch { }
+
+        try
+        {
+            await using var migCmd6 = new SqliteCommand("ALTER TABLE desktop_snapshots ADD COLUMN semantic_path TEXT DEFAULT '';", connection);
+            await migCmd6.ExecuteNonQueryAsync(cancellationToken);
         }
         catch { }
 

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -102,7 +103,22 @@ public sealed class DesktopContextMcpHandler : IMcpHandler
                         target_zone = new
                         {
                             type = "string",
-                            description = "The target DesktopSemanticZone name (e.g. 'GitCommitBox', 'EditorBuffer', 'Terminal', 'SidebarExplorer', 'ChatPrompt', 'TabBar', 'QuickOpen', 'AddressBar')"
+                            description = "The target DesktopSemanticZone name (e.g. 'GitCommitBox', 'EditorBuffer', 'Terminal', 'SidebarExplorer', 'ChatPrompt', 'Timeline', 'Outline', 'ActivityBar', 'TabBar', 'QuickOpen', 'AddressBar')"
+                        },
+                        target_pane = new
+                        {
+                            type = "string",
+                            description = "Optional target WindowPaneLocation name (e.g. 'ActivityBar', 'PrimarySidebar', 'MainContent', 'AuxiliarySidebar', 'BottomPanel', 'TopBar', 'StatusBar', 'OverlayModal')"
+                        },
+                        target_view = new
+                        {
+                            type = "string",
+                            description = "Optional target view name (e.g. 'Explorer', 'SourceControl', 'Chat', 'Terminal', 'Editor')"
+                        },
+                        target_section = new
+                        {
+                            type = "string",
+                            description = "Optional target section name (e.g. 'Timeline', 'Outline', 'CommitBox', 'ChatPrompt')"
                         },
                         scope = new
                         {
@@ -292,9 +308,38 @@ public sealed class DesktopContextMcpHandler : IMcpHandler
         }
 
         string targetZoneStr = targetZoneElem.GetString()!.Trim();
-        if (!Enum.TryParse<DesktopSemanticZone>(targetZoneStr, ignoreCase: true, out var targetZone) || targetZone == DesktopSemanticZone.Unknown)
+        if (!DesktopSemanticZoneExtensions.TryParseCanonical(targetZoneStr, out var targetZone) || targetZone == DesktopSemanticZone.Unknown)
         {
-            return CallToolResult.ErrorText($"Invalid target_zone: '{targetZoneStr}'. Valid options are: {string.Join(", ", Enum.GetNames<DesktopSemanticZone>())}");
+            if (!Enum.TryParse<DesktopSemanticZone>(targetZoneStr, ignoreCase: true, out targetZone) || targetZone == DesktopSemanticZone.Unknown)
+            {
+                return CallToolResult.ErrorText($"Invalid target_zone: '{targetZoneStr}'. Valid options are: {string.Join(", ", Enum.GetNames<DesktopSemanticZone>())}");
+            }
+        }
+
+        WindowPaneLocation? targetPane = null;
+        if (arguments.Value.TryGetProperty("target_pane", out var targetPaneElem) && !string.IsNullOrWhiteSpace(targetPaneElem.GetString()))
+        {
+            string paneStr = targetPaneElem.GetString()!.Trim();
+            if (!WindowPaneLocationExtensions.TryParseCanonical(paneStr, out var parsedPane) || parsedPane == WindowPaneLocation.Unknown)
+            {
+                if (!Enum.TryParse<WindowPaneLocation>(paneStr, ignoreCase: true, out parsedPane) || parsedPane == WindowPaneLocation.Unknown)
+                {
+                    return CallToolResult.ErrorText($"Invalid target_pane: '{paneStr}'. Valid options are: {string.Join(", ", Enum.GetNames<WindowPaneLocation>())}");
+                }
+            }
+            targetPane = parsedPane;
+        }
+
+        string? targetView = null;
+        if (arguments.Value.TryGetProperty("target_view", out var targetViewElem) && !string.IsNullOrWhiteSpace(targetViewElem.GetString()))
+        {
+            targetView = targetViewElem.GetString()!.Trim();
+        }
+
+        string? targetSection = null;
+        if (arguments.Value.TryGetProperty("target_section", out var targetSectionElem) && !string.IsNullOrWhiteSpace(targetSectionElem.GetString()))
+        {
+            targetSection = targetSectionElem.GetString()!.Trim();
         }
 
         var snapshot = _stateStore.GetCurrentSnapshot();
@@ -325,6 +370,9 @@ public sealed class DesktopContextMcpHandler : IMcpHandler
             rule = new SemanticRule
             {
                 TargetZone = targetZone,
+                TargetPane = targetPane,
+                TargetView = targetView,
+                TargetSection = targetSection,
                 ProcessPattern = window.ProcessName,
                 ContainerPattern = !string.IsNullOrWhiteSpace(containerTarget) ? containerTarget : null,
                 Priority = 100,
@@ -337,6 +385,9 @@ public sealed class DesktopContextMcpHandler : IMcpHandler
             rule = new SemanticRule
             {
                 TargetZone = targetZone,
+                TargetPane = targetPane,
+                TargetView = targetView,
+                TargetSection = targetSection,
                 ProcessPattern = window.ProcessName,
                 ControlType = focus.ControlType,
                 Priority = 90,
@@ -349,6 +400,9 @@ public sealed class DesktopContextMcpHandler : IMcpHandler
             rule = new SemanticRule
             {
                 TargetZone = targetZone,
+                TargetPane = targetPane,
+                TargetView = targetView,
+                TargetSection = targetSection,
                 ProcessPattern = window.ProcessName,
                 ControlType = focus.ControlType,
                 AutomationIdPattern = !string.IsNullOrWhiteSpace(focus.AutomationId) ? focus.AutomationId : null,
@@ -362,7 +416,23 @@ public sealed class DesktopContextMcpHandler : IMcpHandler
 
         _ruleEngine?.AddOrUpdateRule(rule);
 
-        var updatedFocus = focus with { SemanticZone = targetZone };
+        var resolvedPane = targetPane ?? (focus.PaneLocation != WindowPaneLocation.Unknown ? focus.PaneLocation : targetZone.ToDefaultPaneLocation());
+        var resolvedView = targetView ?? focus.ActiveView ?? targetZone.ToDefaultView();
+        var resolvedSection = targetSection ?? focus.SectionName ?? targetZone.ToDefaultSection();
+
+        var pathBuilder = ImmutableArray.CreateBuilder<string>(3);
+        if (resolvedPane != WindowPaneLocation.Unknown) pathBuilder.Add(resolvedPane.ToString());
+        if (!string.IsNullOrWhiteSpace(resolvedView)) pathBuilder.Add(resolvedView);
+        if (!string.IsNullOrWhiteSpace(resolvedSection)) pathBuilder.Add(resolvedSection);
+
+        var updatedFocus = focus with
+        {
+            SemanticZone = targetZone,
+            PaneLocation = resolvedPane,
+            ActiveView = resolvedView,
+            SectionName = resolvedSection,
+            SemanticPath = pathBuilder.ToImmutable()
+        };
         var updatedSnapshot = snapshot with { Focus = updatedFocus };
         _stateStore.UpdateCurrentSnapshot(updatedSnapshot);
 
@@ -371,12 +441,20 @@ public sealed class DesktopContextMcpHandler : IMcpHandler
             success = true,
             rule_id = rule.RuleId,
             target_zone = targetZone.ToString(),
+            semantic_zone = targetZone.ToString(),
+            target_pane = resolvedPane.ToString(),
+            pane_location = resolvedPane.ToString(),
+            target_view = resolvedView,
+            active_view = resolvedView,
+            target_section = resolvedSection,
+            section_name = resolvedSection,
+            semantic_path = updatedFocus.SemanticPath,
             process = window.ProcessName,
             control_type = focus.ControlType,
             automation_id = focus.AutomationId,
             scope = scope,
             priority = rule.Priority,
-            message = $"Successfully tagged active control as [{targetZone}] with priority {rule.Priority}."
+            message = $"Successfully tagged active control as [{targetZone}] in pane [{resolvedPane}] with priority {rule.Priority}."
         };
 
         return CallToolResult.SuccessText(JsonSerializer.Serialize(resultPayload, AdceJsonSerializerOptions.Default));
