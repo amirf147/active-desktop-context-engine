@@ -22,7 +22,6 @@
     <ProjectReference Include="..\ADCE.Extraction\ADCE.Extraction.csproj" />
     <ProjectReference Include="..\ADCE.Storage\ADCE.Storage.csproj" />
     <ProjectReference Include="..\ADCE.Mcp\ADCE.Mcp.csproj" />
-    <ProjectReference Include="..\ADCE.Daemon\ADCE.Daemon.csproj" />
   </ItemGroup>
 
 </Project>
