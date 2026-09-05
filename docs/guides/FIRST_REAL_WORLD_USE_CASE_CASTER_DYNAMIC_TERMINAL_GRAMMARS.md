@@ -70,11 +70,11 @@ The end-to-end integration was implemented completely inside user configuration 
 ### 3.1 The Low-Latency SSE Bridge (`adce_bridge.py`)
 * **Upstream Source:** [`caster_user_content/util/adce_bridge.py`](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/caster_user_content/util/adce_bridge.py)
 * **Mechanics:** Runs a lightweight background daemon thread consuming the unchunked SSE stream from ADCE (`http://127.0.0.1:8424/sse`). It synchronizes state every 60ms and updates an atomic Python dictionary (`_ADCE_CACHE`).
-* **Predicate Definition:**
+* **Canonical Zone Normalization:** ADCE streams typed zones using snake_case (e.g. `terminal`, `editor_buffer`, `git_commit_box`). `adce_bridge.py` normalizes incoming zones to seamlessly support both canonical ADCE zones and legacy PascalCase aliases (`IntegratedTerminal`, `EditorCodeBuffer`):
   ```python
   def is_ide_terminal_focused() -> bool:
       """Instantaneous RAM read (< 0.0001 ms) for Dragonfly FuncContext evaluation."""
-      return adce.get_current_zone() == "IntegratedTerminal"
+      return adce.is_ide_terminal()
   ```
 
 ### 3.2 The Dynamic Terminal Grammar (`ide_terminal.py`)
@@ -83,22 +83,24 @@ The end-to-end integration was implemented completely inside user configuration 
   ```python
   class IDETerminalRule(MappingRule):
       mapping = {
-          "git status": Text("git status") + Key("enter"),
-          "git branch": Text("git branch -a") + Key("enter"),
-          "git log": Text("git log -n 5 --oneline") + Key("enter"),
-          "clear terminal": Key("c-l"),
-          "kill terminal": Key("cs-w"),
-          "run tests": Text("npm test") + Key("enter"),
-          "run build": Text("npm run build") + Key("enter"),
-          "terminal voice ping": Text(">>> ADCE TERMINAL CONTEXT VERIFIED <<<") + Key("enter"),
+          "git status": R(Text("git status") + Key("enter")),
+          "git branch": R(Text("git branch -a") + Key("enter")),
+          "git log": R(Text("git log -n 5 --oneline") + Key("enter")),
+          "clear terminal": R(Key("c-l")),
+          "kill terminal": R(Key("c-shift-w")),
+          "run tests": R(Text("npm test") + Key("enter")),
+          "run build": R(Text("npm run build") + Key("enter")),
+          "cargo run": R(Text("cargo run") + Key("enter")),
+          "cargo build": R(Text("cargo build") + Key("enter")),
+          "terminal voice ping": R(Text("echo '>>> ADCE TERMINAL CONTEXT VERIFIED <<<'") + Key("enter")),
       }
 
   def get_rule():
-      details = RuleDetails(
-          name="IDE Terminal Context Rule",
-          function_context=FuncContext(is_ide_terminal_focused),
+      return IDETerminalRule, RuleDetails(
+          name="IDETerminal",
+          executable=["Code", "Antigravity", "Antigravity IDE", "cursor", "Windsurf", "VSCodium", "code - oss"],
+          function_context=is_ide_terminal_focused,
       )
-      return IDETerminalRule, details
   ```
 
 ### 3.3 Dragonfly Telemetry Logging via `RecognitionObserver`
