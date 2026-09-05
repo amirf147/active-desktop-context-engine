@@ -10,7 +10,7 @@
 > **Document Status:** Active / Master Architecture Specification (Reconciled with Milestone 6 Production Baseline)
 > **Epistemic Authority:** Tier 2 (Normative Architectural Blueprint — Subordinate to Tier 1 Code)
 > **Target System:** Active Desktop Context Engine (ADCE)
-> **Related Documents:** [Executive Summary](../reports/CODEBASE_AUDIT_EXECUTIVE_SUMMARY.md) | [Stage 1 Ground-Truth Baseline](../reports/AUDIT_STAGE_1_GROUND_TRUTH_BASELINE.md) | [Stage 2 Drift Audit](../reports/AUDIT_STAGE_2_SPECIFICATION_DRIFT.md) | [UI Automation SSOT](UI_AUTOMATION_STRUCTURES_REFERENCE.md)
+> **Related Documents:** [Core Domain Model](CORE_DOMAIN_MODEL.md) | [Extraction Pipeline](EXTRACTION_PIPELINE.md) | [UI Automation SSOT](UI_AUTOMATION_STRUCTURES_REFERENCE.md)
 
 ---
 

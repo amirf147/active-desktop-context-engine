@@ -42,9 +42,37 @@ __pycache__/
 # Cloned third-party reference repositories
 external/
 
-# Transient empirical test harness reports (canonical summary is docs/reports/LATEST_CLAIM_VERIFICATION.md)
-docs/reports/claim_verification_*.md
-docs/reports/claim_verification_*.json
+# Transient empirical test harness reports & claim verification
+**/claim_verification_*.md
+**/claim_verification_*.json
+**/LATEST_CLAIM_VERIFICATION.md
+docs/reports/
+
+# Dual-tier database & SQLite files
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# Test results & code coverage
+[Tt]est[Rr]esult*/
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+coverage/
+
+# Crash dumps & Windows minidumps
+*.dmp
+*.mdmp
+*.crash
+
+# Temporary files, scratchpads & spike outputs
+*.tmp
+*.bak
+scratch/
+artifacts/claim_reports/
 
 # Empirical telemetry captures and visual screenshots
 docs/media/

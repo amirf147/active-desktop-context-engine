@@ -10,12 +10,12 @@ Copyright (c) 2026 Amir Farhadi
 # ADCE Educational Refresher & Architectural Guide
 
 > **Document Status:** Active Educational Guide
-> **Epistemic Authority:** Tier 4 (Pedagogical Overview — Subordinate to Tier 1 Code & Tier 2 Specs)
-> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md), [docs/reports/CODEBASE_AUDIT_EXECUTIVE_SUMMARY.md](../reports/CODEBASE_AUDIT_EXECUTIVE_SUMMARY.md), and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
+> **Epistemic Authority:** Tier 3 (Pedagogical Overview — Subordinate to Tier 1 Code & Tier 2 Specs)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md), [docs/architecture/CORE_DOMAIN_MODEL.md](../architecture/CORE_DOMAIN_MODEL.md), and [docs/architecture/EXTRACTION_PIPELINE.md](../architecture/EXTRACTION_PIPELINE.md).
 > **Target Audience:** Contributors, AI pair-programmers, and researchers
-> **Purpose:** Plain-English educational breakdown of Windows UI Automation, Win32 systems programming, and the ADCE Dual-Plane architecture
-> **Parent Context:** [`docs/CONTEXT.md`](../CONTEXT.md) | [`docs/deep_dives/ADCE_CORE_DEEP_DIVE.md`](../deep_dives/ADCE_CORE_DEEP_DIVE.md)
-> **External Research:** [`docs/external_research/README.md`](../external_research/README.md)
+> **Purpose:** Plain-English educational breakdown of Windows UI Automation, Win32 systems programming, and the ADCE architecture
+> **Parent Context:** [`docs/CONTEXT.md`](../CONTEXT.md) | [`docs/architecture/CORE_DOMAIN_MODEL.md`](../architecture/CORE_DOMAIN_MODEL.md)
+> **Historical Archive:** [`docs/archive/README.md`](../archive/README.md)
 
 ---
 

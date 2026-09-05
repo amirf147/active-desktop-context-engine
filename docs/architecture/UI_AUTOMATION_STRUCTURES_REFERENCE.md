@@ -11,7 +11,7 @@
 > **Epistemic Authority:** Tier 2 (Normative Architectural Blueprint — Subordinate to Tier 1 Code)
 > **Target Systems:** Active Desktop Context Engine (ADCE) & Caster Accessibility Engine
 > **Engines Tested:** C# .NET 10 (`FlaUI.UIA3 5.0.0`) & Python 3.10 (`uiautomation` / `ctypes`)
-> **Related Documents:** [Executive Summary](../reports/CODEBASE_AUDIT_EXECUTIVE_SUMMARY.md) | [Stage 1 Ground-Truth Baseline](../reports/AUDIT_STAGE_1_GROUND_TRUTH_BASELINE.md) | [Stage 2 Drift Audit](../reports/AUDIT_STAGE_2_SPECIFICATION_DRIFT.md) | [`APPLICATION_PANE_AND_HIERARCHY_STRUCTURES_RESEARCH.md`](./APPLICATION_PANE_AND_HIERARCHY_STRUCTURES_RESEARCH.md)
+> **Related Documents:** [Core Domain Model](CORE_DOMAIN_MODEL.md) | [Extraction Pipeline](EXTRACTION_PIPELINE.md) | [`APPLICATION_PANE_AND_HIERARCHY_STRUCTURES_RESEARCH.md`](./APPLICATION_PANE_AND_HIERARCHY_STRUCTURES_RESEARCH.md)
 
 ---
 

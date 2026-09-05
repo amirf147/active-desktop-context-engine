@@ -15,7 +15,9 @@ if sys.stdout.encoding != 'utf-8':
 
 def check_links():
     repo_root = Path(__file__).resolve().parent.parent
-    md_files = list(repo_root.glob("*.md")) + list((repo_root / "docs").rglob("*.md")) + list((repo_root / ".agents").rglob("*.md"))
+    archive_dir = (repo_root / "docs" / "archive").resolve()
+    raw_files = list(repo_root.glob("*.md")) + list((repo_root / "docs").rglob("*.md")) + list((repo_root / ".agents").rglob("*.md"))
+    md_files = [f for f in raw_files if archive_dir not in f.resolve().parents and f.parent.resolve() != archive_dir]
 
     link_pattern = re.compile(r'!?\[([^\]]*)\]\(([^)]+)\)')
 

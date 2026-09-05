@@ -6,17 +6,21 @@
 - **Language & Framework:** C# 14 / .NET 10 (`<TargetFramework>net10.0-windows</TargetFramework>`).
 - **CLI Commands:** Use `dotnet build` and `dotnet run --project <path>` in PowerShell (`pwsh`).
 - **UIA Stack:** Exclusively use `FlaUI.UIA3` (v5.0.0+) over native `UIAutomationCore.dll`.
+- **Daemon Process Lock Awareness:** When `ADCE.Daemon` is running in the background, executing a bare `dotnet test` will fail on MSBuild file locks. Target specific test projects (e.g. `dotnet test tests/ADCE.Extraction.Tests/ADCE.Extraction.Tests.csproj`) or use `dotnet test --no-build`.
 
 ### Documentation & Progressive Disclosure Hub
 - **Primary Domain Context Hub:** [`docs/CONTEXT.md`](../docs/CONTEXT.md)
-- **Executive Architecture Summary:** [`docs/reports/CODEBASE_AUDIT_EXECUTIVE_SUMMARY.md`](../docs/reports/CODEBASE_AUDIT_EXECUTIVE_SUMMARY.md)
-- **Educational Guide & Architecture Refresher:** [`docs/guides/EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md`](../docs/guides/EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md)
-- **UI Automation SSOT:** [`docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md`](../docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md)
-- **Requirements & Archetype Spec:** [`docs/architecture/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md`](../docs/architecture/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md)
-- **MCP Schema & Tool Endpoints:** [`docs/architecture/MCP_SCHEMA_SPEC.md`](../docs/architecture/MCP_SCHEMA_SPEC.md)
-- **External Research & Ecosystem Audit:** [`docs/external_research/README.md`](../docs/external_research/README.md)
-- **Foundational Research Lineage:** Upstream accessibility research (documents 001–018) lives in [caster-user-directory-and-notes](https://github.com/amirf147/caster-user-directory-and-notes/tree/master/docs/accessibility_mcp).
+- **Core Domain Model Spec:** [`docs/architecture/CORE_DOMAIN_MODEL.md`](../docs/architecture/CORE_DOMAIN_MODEL.md)
+- **Extraction Pipeline Spec:** [`docs/architecture/EXTRACTION_PIPELINE.md`](../docs/architecture/EXTRACTION_PIPELINE.md)
+- **Storage Architecture Spec:** [`docs/architecture/STORAGE_ARCHITECTURE.md`](../docs/architecture/STORAGE_ARCHITECTURE.md)
+- **Daemon & Consumer Spec:** [`docs/architecture/DAEMON_AND_CONSUMER_INTEGRATION.md`](../docs/architecture/DAEMON_AND_CONSUMER_INTEGRATION.md)
+- **Postmortems Ledger:** [`docs/postmortems/README.md`](../docs/postmortems/README.md)
+- **Archive Exclusion:** Never index, search, or cite files in `docs/archive/` for active architecture or coding tasks. These are non-normative historical records.
 - All internal documentation within this repository must use clean relative links.
+
+### Testing & Verification Invariants
+- **Standard xUnit Suites Only:** Real behavioral invariants are verified exclusively via standard automated xUnit tests in `tests/`.
+- **No Bespoke Meta-Runners:** Never construct custom claim verification runners, in-memory mock stimulus drivers, or markdown evidence generators. If a test asserts against its own manually instantiated mock without exercising production code, delete it.
 
 ### 4-Gate Epistemic Protocol (Mandatory)
 Every milestone or major subsystem must strictly adhere to the 4-gate verification workflow (`/gate`):

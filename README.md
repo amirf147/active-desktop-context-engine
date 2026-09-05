@@ -89,50 +89,37 @@ ADCE is structured as a high-performance, unidirectional 4-tier pipeline designe
 ADCE functions as both a production codebase and an evolving research ledger tracking low-level COM experiments, UI Automation benchmarks, and systems architecture.
 
 > 📚 **Central Documentation Entrypoint:** Explore the full documentation suite in **[`docs/CONTEXT.md`](docs/CONTEXT.md)**.
-> 📑 **Architecture & Codebase Audit Executive Summary:** Master synthesis of active architecture, closed technical debt, and roadmap in **[`docs/reports/CODEBASE_AUDIT_EXECUTIVE_SUMMARY.md`](docs/reports/CODEBASE_AUDIT_EXECUTIVE_SUMMARY.md)**.
+> 📑 **Architecture Specifications:** Explore the normative architecture specifications in **[`docs/architecture/`](docs/architecture/)**.
 
 ### 🏛️ Architecture & System Specifications
 | Document | Description |
 | :--- | :--- |
-| 📑 [Architecture & Codebase Audit: Executive Summary](docs/reports/CODEBASE_AUDIT_EXECUTIVE_SUMMARY.md) | High-level synthesis of active architecture, closed technical debt, and roadmap. |
-| 🏗️ [Architecture & Modular Implementation Plan](docs/architecture/ARCHITECTURE_AND_MODULAR_IMPLEMENTATION_PLAN.md) | 5-project solution architecture, decoupled work packages, and phased execution milestones. |
-| 📋 [Requirements & Dynamic Discovery Specification](docs/architecture/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md) | 6 Desktop Framework Archetypes, dynamic heuristic discovery pipeline, and performance targets. |
-| 🔌 [Model Context Protocol (MCP) Schema Spec](docs/architecture/MCP_SCHEMA_SPEC.md) | JSON schema specifications, decoupled envelope definitions, and MCP tool endpoints. |
-| 📑 [UI Automation Structures Reference (SSOT)](docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md) | Definitive structural map of UIA node hierarchies and target zones across major applications. |
-| 📚 [Application Layout Hierarchies Catalog](docs/app_hierarchies/README.md) | Modular per-application empirical profiles, container anatomies, and visual telemetry evidence. |
-| 🌐 [Waterfox Browser Profile (01)](docs/app_hierarchies/01_waterfox.md) | Verified Ground-Truth: Gecko chrome dissection, viewport boundary isolation, and 9-stop matrix. |
-| 💻 [Antigravity IDE Profile (02)](docs/app_hierarchies/02_antigravity_ide.md) | Verified Ground-Truth: Chromium / Monaco dissection, auxiliary chat isolation, terminal, and 9-stop matrix. |
-| ⚔️ [Gate 2 Hostile Architecture & Systems Review](docs/architecture/HOSTILE_ARCHITECTURE_REVIEW.md) | Adversarial systems review evaluating COM apartment deadlocks, GC churn, and UIPI boundaries. |
+| 📑 [Core Domain Model Specification](docs/architecture/CORE_DOMAIN_MODEL.md) | Immutable records, 19 semantic zones, 6 application archetypes, and JSON serialization. |
+| ⚡ [Extraction Pipeline Specification](docs/architecture/EXTRACTION_PIPELINE.md) | Win32 shallow gating (< 0.5 ms), UIPI privilege checks, FlaUI caching, and dynamic rules. |
+| 💾 [Dual-Tier Storage Architecture](docs/architecture/STORAGE_ARCHITECTURE.md) | Sub-microsecond L1 atomic memory cache and SQLite WAL time-series state persistence. |
+| 🖥️ [Daemon Host & Consumer Integration](docs/architecture/DAEMON_AND_CONSUMER_INTEGRATION.md) | WinEvent STA message pump, tray host, HUD overlay, and MCP endpoints for Caster voice grammars. |
+| 📚 [Application Layout Hierarchies Catalog](docs/app_hierarchies/README.md) | Per-application empirical profiles, container structures, and UIA selectors (Waterfox, Antigravity). |
+| ⚔️ [Hostile Architecture & Systems Review](docs/architecture/HOSTILE_ARCHITECTURE_REVIEW.md) | Adversarial review evaluating COM apartment deadlocks, GC allocation churn, and UIPI boundaries. |
 
-### 🧠 Subsystem Deep Dives
-| Project / Subsystem | Deep Dive Reference | Focus Area |
-| :--- | :--- | :--- |
-| `ADCE.Core` | [ADCE.Core Deep-Dive](docs/deep_dives/ADCE_CORE_DEEP_DIVE.md) | Domain models, immutable state envelopes, sequence equality mechanics. |
-| `ADCE.Extraction` | [ADCE.Extraction Deep-Dive](docs/deep_dives/ADCE_EXTRACTION_DEEP_DIVE.md) | Win32 shallow gating, UIPI filtering, single-roundtrip batch caching. |
-| `ADCE.EventPipeline` | [ADCE Event Pipeline Deep-Dive](docs/deep_dives/ADCE_EVENT_PIPELINE_DEEP_DIVE.md) | Dedicated STA message pump, WinEvent hooks, trailing-edge debouncing. |
-| `ADCE.Storage` | [ADCE.Storage Deep-Dive](docs/deep_dives/ADCE_STORAGE_DEEP_DIVE.md) | Dual-tier storage, L1 in-memory cache, channel-decoupled SQLite WAL store. |
-| `ADCE.Mcp` | [ADCE.Mcp Deep-Dive](docs/deep_dives/ADCE_MCP_DEEP_DIVE.md) | JSON-RPC 2.0 protocol handlers, Stdio & SSE/HTTP transport layers. |
-| `ADCE.Daemon` | [ADCE.Daemon Deep-Dive](docs/deep_dives/ADCE_DAEMON_DEEP_DIVE.md) | System tray hosting, non-activating DevTools HUD overlay, lifecycle management. |
-
-### 📘 Educational Guides & Visual Walkthroughs
+### 📘 Educational Guides & Consumer Integrations
 | Guide | Description |
 | :--- | :--- |
-| 📘 [Educational Refresher & Architecture Guide](docs/guides/EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md) | Plain-English walkthrough of UI Automation, Win32 systems programming, and FlaUI caching. |
-| 🚀 [First Real-World Use Case: Caster Dynamic Terminal Grammars](docs/guides/FIRST_REAL_WORLD_USE_CASE_CASTER_DYNAMIC_TERMINAL_GRAMMARS.md) | Verified downstream integration: Dynamic sub-window grammar activation in VS Code / Antigravity IDE via low-latency SSE streaming. |
-| 👁️ [ADCE Focus & Zone Detection Explained](docs/guides/ADCE_FOCUS_AND_ZONE_DETECTION_EXPLAINED.md) | Visual guide to Windows focus mechanics, parent-chain climbing, and semantic zone detection. |
-| 🧪 [Educational Guide: Test Harness & Verification](docs/guides/EDUCATIONAL_GUIDE_TEST_HARNESS_AND_CLAIM_VERIFICATION.md) | Deep dive into stimulus-response testing, claim verification, and empirical measurement. |
+| 📘 [Educational Refresher & Architecture Guide](docs/guides/EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md) | Conceptual walkthrough of UI Automation, Win32 systems programming, and FlaUI caching. |
+| 🚀 [First Real-World Use Case: Caster Dynamic Terminal Grammars](docs/guides/FIRST_REAL_WORLD_USE_CASE_CASTER_DYNAMIC_TERMINAL_GRAMMARS.md) | Production integration: Dynamic voice grammar activation in VS Code / Antigravity IDE via SSE streaming. |
+| 👁️ [ADCE Focus & Zone Detection Explained](docs/guides/ADCE_FOCUS_AND_ZONE_DETECTION_EXPLAINED.md) | Practical visual guide to Windows focus mechanics, parent-chain traversal, and semantic zone detection. |
 
-### 🔬 Testing, Postmortems & Research Ledgers
-| Category | Resources |
-| :--- | :--- |
-| **Testing & Roadmap** | • [Empirical Test Harness Spec](docs/testing/EMPIRICAL_TEST_HARNESS_AND_CLAIM_VERIFICATION_SPEC.md)<br/>• [Reviewer Observations & Hardening Roadmap](docs/testing/REVIEWER_OBSERVATIONS_AND_HARDENING_ROADMAP.md) |
-| **Engineering Postmortems** | • [Master Postmortems & Retrospectives Index](docs/postmortems/README.md)<br/>• [Hardware Acceleration & UIA Immunity](docs/postmortems/LESSONS_LEARNED_HARDWARE_ACCELERATED_SCREENSHOTS_AND_UIA.md)<br/>• [Milestone 2 Postmortem (Extraction & Sessions)](docs/postmortems/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_2.md)<br/>• [Milestone 4 Postmortem (Focus Bleeding & Child HWNDs)](docs/postmortems/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_4.md)<br/>• [Milestone 4.5 Postmortem (Stimulus Test Harness)](docs/postmortems/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_4_5.md)<br/>• [Milestone 6 Postmortem (Tray Daemon & DevTools HUD)](docs/postmortems/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_6.md) |
-| **Telemetry & Evidence** | • [Empirical Telemetry Benchmarks](docs/benchmarks/) ([FlaUI UIA3](docs/benchmarks/001_micro_spike_1_flaui_telemetry.md) / [Win32 Shallow](docs/benchmarks/002_micro_spike_2_python_shallow_telemetry.md))<br/>• [Canonical Ground-Truth Evidence Ledger](docs/reports/LATEST_CLAIM_VERIFICATION.md)<br/>• [Milestones 5 & 6 Diagnostic Report](docs/reports/MILESTONE_5_6_EMPIRICAL_FINDINGS_AND_DIAGNOSTICS_REPORT.md) |
-| **External Research Audits** | • [External Research Hub](docs/external_research/README.md)<br/>• [Tree-sitter & Syntactic Scoping](docs/external_research/TreeSitter_And_Syntax_Scoping_Audit.md)<br/>• [TIRG-DLL & Text Geometry](docs/external_research/TirgDll_And_Text_Geometry_Audit.md)<br/>• [AccessKit & Accessibility Primitives](docs/external_research/AccessKit_And_Accessibility_Primitives_Audit.md)<br/>• [FlaUI & Roemer Deep Dive](docs/external_research/FlaUI_And_Roemer_Ecosystem.md)<br/>• [Wheel Reinvention Synthesis](docs/external_research/SYNTHESIS_AND_WHEEL_REINVENTION_AUDIT.md) |
-| **Upstream Research Lineage** | • Foundational accessibility research documents (001–018) in [caster-user-directory-and-notes](https://github.com/amirf147/caster-user-directory-and-notes/tree/master/docs/accessibility_mcp). |
+### 🔬 Engineering Postmortems & Retrospectives
+| Ledger | Focus Area | Key Architectural Finding |
+| :--- | :--- | :--- |
+| 📚 [Master Postmortems Index](docs/postmortems/README.md) | Master Ledger | Comprehensive catalog of development milestones and system retrospectives. |
+| 🔬 [Claim Verifier Deprecation Postmortem](docs/postmortems/CLAIM_VERIFIER_DEPRECATION_AND_SELF_CONFIRMATION_LOOP_POSTMORTEM.md) | Verification | Retrospective on the self-confirmation loop anti-pattern and return to standard xUnit testing. |
+| 🔬 [Hardware Acceleration & UIA Immunity](docs/postmortems/LESSONS_LEARNED_HARDWARE_ACCELERATED_SCREENSHOTS_AND_UIA.md) | Graphics / UIA | DirectComposition clipping, PrintWindow capture modes, and UIA semantic immunity. |
+| 🔬 [STA Threading & HUD Postmortem](docs/postmortems/STA_THREADING_AND_HUD_CASTER_INTEGRATION_POSTMORTEM.md) | Threading | STA WinForms message pump isolation and non-activating floating HUD window styles. |
 
+### 🗄️ Historical & Non-Normative Archive
+Superseded test run outputs, exploratory research into unused third-party libraries, and deprecated custom claim verification matrices are archived in [`docs/archive/`](docs/archive/README.md).
 
-> 🧭 *Progressive Disclosure Navigation for AI Agents:* Do not attempt to parse all markdown files simultaneously. Start exclusively at **[`docs/CONTEXT.md`](docs/CONTEXT.md)**, which maps the entire repository into 6 strictly ordered epistemic tiers. Traverse to Tier 2/3 documents only when working on their specific subsystems.
+> 🧭 *Navigation for AI Agents:* Restrict architectural reasoning to **[`docs/CONTEXT.md`](docs/CONTEXT.md)** and [`docs/architecture/`](docs/architecture/). Do not index or cite files in `docs/archive/`.
 
 ---
 
@@ -144,7 +131,7 @@ Following our **4-Gate Epistemic Protocol**, ADCE engineering is structured acro
 | :--- | :--- | :--- | :--- |
 | **Phase 1: Physical Observation** | Identify DOM traversal traps and latency bottlenecks across real-world apps. | `[x]` Complete | • [Doc 010: DOM Traversal Telemetry](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/010_telemetry_benchmarks_and_live_findings.md)<br/>• Exposed 6,800-node DOM COM stall. |
 | **Phase 2: Adversarial Evaluation & Spikes** | Gate 2 & Gate 3 empirical tests validating container targeting and Win32 gating. | `[x]` Complete | • [Micro-Spike 1 Telemetry (FlaUI UIA3)](docs/benchmarks/001_micro_spike_1_flaui_telemetry.md)<br/>• [Micro-Spike 2 Telemetry (Win32 Shallow)](docs/benchmarks/002_micro_spike_2_python_shallow_telemetry.md) |
-| **Phase 3: Ecosystem Audit & Synthesis** | Deep-dive audits of leading open-source Windows/COM/UIA tooling catalogs. | `[x]` Complete | • [Simon Mourier Ecosystem Suite](docs/external_research/README.md)<br/>• [Roman Baeriswyl (Roemer / FlaUI) Deep Dive](docs/external_research/FlaUI_And_Roemer_Ecosystem.md)<br/>• [Synthesis & Wheel Reinvention Audit](docs/external_research/SYNTHESIS_AND_WHEEL_REINVENTION_AUDIT.md) |
+| **Phase 3: Ecosystem Audit & Synthesis** | Deep-dive audits of leading open-source Windows/COM/UIA tooling catalogs. | `[x]` Complete | • [Simon Mourier Ecosystem Suite](docs/archive/external_research/README.md)<br/>• [Roman Baeriswyl (Roemer / FlaUI) Deep Dive](docs/archive/external_research/FlaUI_And_Roemer_Ecosystem.md)<br/>• [Synthesis & Wheel Reinvention Audit](docs/archive/external_research/SYNTHESIS_AND_WHEEL_REINVENTION_AUDIT.md) |
 | **Phase 4: Architectural Specs & SSOT** | Formalize ground-truth target zones, heuristic discovery archetypes, and MCP schemas. | `[x]` Complete | • [UI Automation SSOT Reference](docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md)<br/>• [Dynamic Discovery & Requirements Spec](docs/architecture/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md)<br/>• [MCP JSON Schema Specification](docs/architecture/MCP_SCHEMA_SPEC.md) |
 | **Phase 5: Production Daemon Suite** | Build modular multi-project solution (`ADCE.slnx`), event pipeline, storage, and MCP server. | `[x]` Complete | • **Milestone 1:** `ADCE.Core` domain models, events & serialization (`[x]` Complete)<br/>• **Milestone 2:** `ADCE.Extraction` standalone context grabber (`[x]` Complete)<br/>• **Milestone 3:** Low-overhead event pipeline (`SetWinEventHook` + channel debouncer) (`[x]` Complete)<br/>• **Milestone 4:** SQLite WAL store & in-memory live cache (`[x]` Complete)<br/>• **Milestone 4.5:** Ground-Truth Stimulus Test Harness (`[x]` Complete)<br/>• **Milestone 5:** High-Performance MCP Server (Stdio & SSE/HTTP) (`[x]` Complete)<br/>• **Milestone 6:** Windows System Tray Daemon & Live DevTools HUD (`[x]` Complete) |
 | **Phase 6: Application Layout Hierarchy Profiling & Viewport Boundary Hardening (Milestone 7)** | Build verified empirical ground-truth profiles across desktop application archetypes, tracing leaf-to-root ancestor chains, isolating window chrome from client document viewports, and generating annotated visual proof. | `[ ]` Active | • **WP 7.1:** Known Limitations & Technical Gaps specification (`[x]` Complete)<br/>• **WP 7.2:** Application Hierarchy Catalog (`docs/app_hierarchies/`) & Profile Specification (`[x]` Complete)<br/>• **WP 7.3:** Waterfox (`Gecko`) Empirical Profile & Viewport Boundary Lock (`01_waterfox.md`) (`[x]` Complete)<br/>• **WP 7.4:** Antigravity IDE / VS Code (`Monaco/Electron`) Profile (`02_antigravity_ide.md`) (`[x]` Complete)<br/>• **WP 7.5:** Windows Terminal (`Cascadia`) & Shell Profiles (`[ ]` Scheduled) |

@@ -868,16 +868,16 @@ internal static class MilestoneSpikes
 
         EvidenceLedger.PrintConsoleSummary(suite);
 
-        // Persist canonical and timestamped reports in docs/reports
-        string reportsDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "docs", "reports"));
+        // Persist transient claim reports in artifacts/claim_reports
+        string reportsDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "artifacts", "claim_reports"));
         try
         {
             await EvidenceLedger.SaveReportsAsync(suite, reportsDir);
-            Console.WriteLine($"[LEDGER SAVED] Evidence reports updated in docs/reports/ (Canonical: LATEST_CLAIM_VERIFICATION.md)\n");
+            Console.WriteLine($"[LEDGER SAVED] Transient evidence reports saved in artifacts/claim_reports/\n");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[LEDGER WARN] Could not write to docs/reports: {ex.Message}\n");
+            Console.WriteLine($"[LEDGER WARN] Could not write to artifacts/claim_reports: {ex.Message}\n");
         }
 
         if (driver is IDisposable d) d.Dispose();
