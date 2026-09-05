@@ -9,8 +9,8 @@
 
 > **Suite:** Ground-Truth Claim Verification Suite
 > **Driver Mode:** `Synthetic Headless Mock Driver`
-> **Timestamp:** 2026-09-05 15:54:02 UTC
-> **Total Duration:** 632.17 ms
+> **Timestamp:** 2026-09-05 16:04:15 UTC
+> **Total Duration:** 1259.02 ms
 > **Verdict:** **✅ ALL CLAIMS VERIFIED (PASS)** (6 Passed, 0 Failed, 0 Skipped)
 
 ---
@@ -19,12 +19,12 @@
 
 | Claim ID | Claim Scenario | Status | Latency | Telemetry Summary |
 | :--- | :--- | :---: | :---: | :--- |
-| **CLM_001** | Global Focus Bleed Prevention | ✅ **PASS** | 0.71 ms | HWND: 0x001A00F4, Process: pwsh (PID 4812), FocusZone: Unknown |
+| **CLM_001** | Global Focus Bleed Prevention | ✅ **PASS** | 0.78 ms | HWND: 0x001A00F4, Process: pwsh (PID 4812), FocusZone: Unknown |
 | **CLM_002** | Child HWND Normalization | ✅ **PASS** | 0.00 ms | ChildHwnd: 0x00A50088 -> RootHwnd: 0x00A50020, Title: 'active-desktop-context-engine - Antigravity IDE' |
-| **CLM_003** | IDE Semantic Zone Resolution | ✅ **PASS** | 0.95 ms | 5 IDE Zones Verified: Monaco=EditorBuffer, Terminal=Terminal, Git=GitCommitBox, Chat=ChatPrompt, Sidebar=SidebarExplorer |
+| **CLM_003** | IDE Semantic Zone Resolution | ✅ **PASS** | 1.09 ms | 5 IDE Zones Verified: Monaco=EditorBuffer, Terminal=Terminal, Git=GitCommitBox, Chat=ChatPrompt, Sidebar=SidebarExplorer |
 | **CLM_004** | Browser Tab Sidebar vs. IDE Explorer | ✅ **PASS** | 0.01 ms | Gecko Sidebar Tab: TabBar, Gecko Sidebar Doc: WebDocument, IDE Sidebar: SidebarExplorer |
-| **CLM_005** | Burst Typing Debounce Clamping (WP 3.4) | ✅ **PASS** | 408.23 ms | RawEvents: 20, Triggered: 5, Committed: 1 |
-| **CLM_006** | Zero-Allocation Deduplication | ✅ **PASS** | 214.44 ms | Raw: 5, Committed: 1, Suppressed: 4 |
+| **CLM_005** | Burst Typing Debounce Clamping (WP 3.4) | ✅ **PASS** | 421.21 ms | RawEvents: 20, Triggered: 4, Committed: 1 |
+| **CLM_006** | Zero-Allocation Deduplication | ✅ **PASS** | 224.33 ms | Raw: 5, Committed: 1, Suppressed: 4 |
 
 ---
 
@@ -32,7 +32,7 @@
 
 ### CLM_001: Global Focus Bleed Prevention
 - **Status:** `Passed`
-- **Execution Duration:** `0.71 ms`
+- **Execution Duration:** `0.78 ms`
 - **Telemetry Summary:** `HWND: 0x001A00F4, Process: pwsh (PID 4812), FocusZone: Unknown`
 - **Assertions Verified:**
   - [x] Window PID (4812) equals Target PID (4812): True
@@ -40,9 +40,9 @@
 
 ```json
 {
-  "timestamp": "2026-09-05T15:54:02.3504949+00:00",
+  "timestamp": "2026-09-05T16:04:15.2831574+00:00",
   "workspace": {
-    "virtual_desktop_id": "12182644-5625-47c4-af8d-e4ea4a9fbd92",
+    "virtual_desktop_id": "fdedeccd-1587-40a7-8a0e-2908b436be79",
     "desktop_index": 0,
     "virtual_desktop_name": "Primary",
     "monitor_index": 0,
@@ -110,9 +110,9 @@
 
 ```json
 {
-  "timestamp": "2026-09-05T15:54:02.3537969+00:00",
+  "timestamp": "2026-09-05T16:04:15.2864859+00:00",
   "workspace": {
-    "virtual_desktop_id": "6c141a33-7b39-495a-8170-1fb2a6bb15ba",
+    "virtual_desktop_id": "cc02b661-5074-4d9f-bb72-da7d3da0e981",
     "desktop_index": 0,
     "virtual_desktop_name": "Primary",
     "monitor_index": 0,
@@ -172,7 +172,7 @@
 
 ### CLM_003: IDE Semantic Zone Resolution
 - **Status:** `Passed`
-- **Execution Duration:** `0.95 ms`
+- **Execution Duration:** `1.09 ms`
 - **Telemetry Summary:** `5 IDE Zones Verified: Monaco=EditorBuffer, Terminal=Terminal, Git=GitCommitBox, Chat=ChatPrompt, Sidebar=SidebarExplorer`
 - **Assertions Verified:**
   - [x] Monaco Editor Class -> EditorBuffer (Resolved: EditorBuffer): True
@@ -192,15 +192,15 @@
 
 ### CLM_005: Burst Typing Debounce Clamping (WP 3.4)
 - **Status:** `Passed`
-- **Execution Duration:** `408.23 ms`
-- **Telemetry Summary:** `RawEvents: 20, Triggered: 5, Committed: 1`
+- **Execution Duration:** `421.21 ms`
+- **Telemetry Summary:** `RawEvents: 20, Triggered: 4, Committed: 1`
 - **Assertions Verified:**
   - [x] Raw WinEvents Ingested: 20 (Expected >= 20): True
-  - [x] Debounced Extractions Triggered: 5 (>= 2 due to 250ms clamp + trailing edge): True
+  - [x] Debounced Extractions Triggered: 4 (>= 2 due to 250ms clamp + trailing edge): True
 
 ### CLM_006: Zero-Allocation Deduplication
 - **Status:** `Passed`
-- **Execution Duration:** `214.44 ms`
+- **Execution Duration:** `224.33 ms`
 - **Telemetry Summary:** `Raw: 5, Committed: 1, Suppressed: 4`
 - **Assertions Verified:**
   - [x] Single Initial Snapshot Committed: 1 == 1: True

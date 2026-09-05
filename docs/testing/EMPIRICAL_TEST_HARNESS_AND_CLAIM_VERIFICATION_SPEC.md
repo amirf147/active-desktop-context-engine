@@ -7,12 +7,12 @@
 
 # Empirical Test Harness & Claim Verification Specification
 
-> **Document Status:** Active Testing Specification / Verification Protocol
-> **Epistemic Authority:** Tier 5 (Empirical Testing Specification — Subordinate to Tier 1 Code & Tier 2 Specs)
+> **Document Status:** [DEPRECATED / HISTORICAL MILESTONE 4.5 ARTIFACT]
+> **Epistemic Authority:** Tier 5 (Historical Research Specification — Non-Normative)
 > **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
-> **Target Systems:** `ADCE.Spikes`, `ADCE.Extraction`, `ADCE.Storage` (.NET 10 / C# 14 / FlaUI 5)
-> **Date:** August 2026
-> **Core Objective:** Eliminate manual testing ambiguities, retrospective post-hoc rationalization, and ungrounded architectural claims by implementing a deterministic **Stimulus-Response UI Test Harness**.
+> **Deprecation Notice:** The bespoke Claim Verification Matrix (`CLM-001` through `CLM-006`), custom runner (`ClaimVerificationRunner`), and markdown ledger (`EvidenceLedger`) have been formally deprecated as redundant meta-tooling. For the architectural postmortem and analysis of the tautological self-confirmation loop, see [`docs/postmortems/CLAIM_VERIFIER_DEPRECATION_AND_SELF_CONFIRMATION_LOOP_POSTMORTEM.md`](../postmortems/CLAIM_VERIFIER_DEPRECATION_AND_SELF_CONFIRMATION_LOOP_POSTMORTEM.md). Real regression assertions are maintained exclusively in standard xUnit unit tests (`tests/ADCE.Extraction.Tests/Verification/ClaimVerificationTests.cs`).
+> **Target Systems:** `ADCE.Spikes` (Legacy), `ADCE.Extraction.Tests` (.NET 10 / C# 14 / xUnit)
+> **Date:** August 2026 (Deprecated September 2026)
 
 ---
 

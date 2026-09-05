@@ -12,9 +12,10 @@ using ADCE.Spikes.Verification.Models;
 namespace ADCE.Spikes.Verification;
 
 /// <summary>
-/// Orchestrates execution of the Claim Verification Matrix (CLM-001 through CLM-006)
-/// against either live Windows targets or synthetic mock drivers.
+/// [DEPRECATED] Orchestrates execution of the legacy Claim Verification Matrix (CLM-001 through CLM-006).
+/// Real-world regression testing has transitioned to standard xUnit tests in tests/ADCE.Extraction.Tests.
 /// </summary>
+[Obsolete("ClaimVerificationRunner is deprecated as legacy meta-tooling. Active testing is performed via standard xUnit test suites ('dotnet test').")]
 public sealed class ClaimVerificationRunner
 {
     private readonly IReadOnlyList<ClaimScenario> _scenarios;

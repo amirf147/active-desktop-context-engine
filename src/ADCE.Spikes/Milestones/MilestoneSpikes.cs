@@ -810,9 +810,11 @@ internal static class MilestoneSpikes
         await pipeline.StopAsync();
     }
 
+#pragma warning disable CS0618 // Type or member is obsolete (retained for legacy CLI compatibility)
     public static async Task RunClaimVerificationSuiteAsync(bool liveMode, string? singleClaim = null)
     {
         var runner = new ClaimVerificationRunner();
+#pragma warning restore CS0618
         IStimulusDriver driver;
 
         if (liveMode)

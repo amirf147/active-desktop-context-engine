@@ -109,10 +109,13 @@ public static class Program
             await AntigravityProfileRunner.RunAntigravityEmpiricalStudyAsync(args);
         }
 
-        // 3. Claim Verification Matrix
+        // 3. Claim Verification Matrix [Legacy / Deprecated]
         else if (args.Any(a => a.Equals("--verify-mocks", StringComparison.OrdinalIgnoreCase) ||
                                a.Equals("--mock-verify", StringComparison.OrdinalIgnoreCase)))
         {
+            Console.ForegroundColor = ConsoleColor.DarkYellow;
+            Console.WriteLine("[LEGACY] Claim Verification Matrix is deprecated meta-tooling. Active testing lives in: 'dotnet test'\n");
+            Console.ResetColor();
             int vIdx = Array.FindIndex(args, a => a.Equals("--verify", StringComparison.OrdinalIgnoreCase) || a.Equals("-v", StringComparison.OrdinalIgnoreCase));
             string? singleClaim = (vIdx >= 0 && vIdx + 1 < args.Length && !args[vIdx + 1].StartsWith("-")) ? args[vIdx + 1] : null;
             await MilestoneSpikes.RunClaimVerificationSuiteAsync(liveMode: false, singleClaim);
@@ -121,6 +124,9 @@ public static class Program
                                a.Equals("--verify", StringComparison.OrdinalIgnoreCase) ||
                                a.Equals("-v", StringComparison.OrdinalIgnoreCase)))
         {
+            Console.ForegroundColor = ConsoleColor.DarkYellow;
+            Console.WriteLine("[LEGACY] Claim Verification Matrix is deprecated meta-tooling. Active testing lives in: 'dotnet test'\n");
+            Console.ResetColor();
             int vIdx = Array.FindIndex(args, a => a.Equals("--verify", StringComparison.OrdinalIgnoreCase) || a.Equals("-v", StringComparison.OrdinalIgnoreCase));
             string? singleClaim = (vIdx >= 0 && vIdx + 1 < args.Length && !args[vIdx + 1].StartsWith("-")) ? args[vIdx + 1] : null;
             await MilestoneSpikes.RunClaimVerificationSuiteAsync(liveMode: true, singleClaim);
@@ -129,6 +135,9 @@ public static class Program
                                a.Equals("--spike4.5", StringComparison.OrdinalIgnoreCase) ||
                                a.Equals("--spike45", StringComparison.OrdinalIgnoreCase)))
         {
+            Console.ForegroundColor = ConsoleColor.DarkYellow;
+            Console.WriteLine("[LEGACY] Milestone 4.5 stimulus-response spike is a historical research artifact.\n");
+            Console.ResetColor();
             await MilestoneSpikes.RunGate3EmpiricalMicroSpikeAsync();
         }
 
@@ -213,13 +222,13 @@ public static class Program
         Console.WriteLine("  --waterfox-study             Run Gecko 9-stop study and update 01_waterfox.md");
         Console.WriteLine("  --antigravity-study          Run Monaco 9-stop study and update telemetry.json\n");
 
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine("CLAIM VERIFICATION MATRIX:");
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.WriteLine("CLAIM VERIFICATION [LEGACY / DEPRECATED]:");
         Console.ResetColor();
-        Console.WriteLine("  --verify-all                 Run live interactive claim verification (CLM-001..CLM-006)");
-        Console.WriteLine("  --verify [CLM-xxx]           Run single claim test against live OS");
-        Console.WriteLine("  --verify-mocks               Run claim tests with mock stimulus driver");
-        Console.WriteLine("  --verify-spike               Run Gate 3 stimulus-response micro-spike\n");
+        Console.WriteLine("  --verify-mocks               [Legacy] Run mock claim suite (Note: use 'dotnet test')");
+        Console.WriteLine("  --verify-all                 [Legacy] Run live interactive claim verification (CLM-001..CLM-006)");
+        Console.WriteLine("  --verify [CLM-xxx]           [Legacy] Run single claim test against live OS");
+        Console.WriteLine("  --verify-spike               [Legacy] Run Gate 3 stimulus-response micro-spike\n");
 
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine("MODEL CONTEXT PROTOCOL (MCP):");

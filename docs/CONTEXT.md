@@ -142,8 +142,9 @@ To ensure consistency and ground human developers and local AI agents in verifie
 | 🔬 [`postmortems/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_4.md`](postmortems/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_4.md) | Physical analysis of child HWNDs in Electron, desktop-wide global UIA focus bleeding, and archetype-scoped zone isolation. |
 | 🔬 [`postmortems/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_4_5.md`](postmortems/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_4_5.md) | Ground-Truth stimulus test harness findings, automated assertion engines, and empirical evidence logging. |
 | 🔬 [`postmortems/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_6.md`](postmortems/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_6.md) | Milestone 6 verification, System Tray lifecycle integration, non-activating DevTools HUD overlay mechanics. |
+| 🔬 [`postmortems/CLAIM_VERIFIER_DEPRECATION_AND_SELF_CONFIRMATION_LOOP_POSTMORTEM.md`](postmortems/CLAIM_VERIFIER_DEPRECATION_AND_SELF_CONFIRMATION_LOOP_POSTMORTEM.md) | Architectural deprecation of bespoke Claim Verifier; analysis of tautological mock loops and replacement with standard xUnit. |
 | 📋 [`reports/AUDIT_STAGE_1_GROUND_TRUTH_BASELINE.md`](reports/AUDIT_STAGE_1_GROUND_TRUTH_BASELINE.md) | Canonical Ground-Truth Baseline extracting executable contracts, 19 zones, and 263 passed tests. |
-| 📋 [`reports/LATEST_CLAIM_VERIFICATION.md`](reports/LATEST_CLAIM_VERIFICATION.md) | Canonical Ground-Truth Claim Evidence Matrix (CLM-001 through CLM-006). |
+| 📋 [`reports/LATEST_CLAIM_VERIFICATION.md`](reports/LATEST_CLAIM_VERIFICATION.md) | [Legacy] Milestone 4.5 Claim Evidence Matrix (retained as historical reference; active testing via `dotnet test`). |
 | 📊 [`benchmarks/`](benchmarks/) | Empirical Telemetry Benchmarks ([FlaUI UIA3](benchmarks/001_micro_spike_1_flaui_telemetry.md) / [Win32 Shallow](benchmarks/002_micro_spike_2_python_shallow_telemetry.md)). |
 
 ### 🔬 Tier 6: External Research & Upstream Lineage

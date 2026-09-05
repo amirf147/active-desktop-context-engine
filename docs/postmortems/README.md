@@ -28,6 +28,7 @@ This directory contains retrospective postmortems and lessons learned generated 
 | [Unbounded DOM Traversal & Logging](./UNBOUNDED_DOM_TRAVERSAL_AND_DIAGNOSTIC_LOGGING_POSTMORTEM.md) | Web Document Traversal | Bounding recursion depth when walking rich client browser DOMs to preserve sub-15ms latency. |
 | [Spikes Program Sprawl & Scratchpad Audit](./SPIKES_PROGRAM_SPRAWL_AND_SCRATCHPAD_AUDIT.md) | Architecture & Spikes Monolith | Quantitative audit of 3,600-line monolithic `Program.cs`, 19-commit churn, and scratchpad anti-pattern. |
 | [Heuristic Name Matching & Menu Misclassification](./HEURISTIC_NAME_MATCHING_AND_MENU_ITEM_MISCLASSIFICATION.md) | Heuristic Classification & UIA Models | Evaluates why leaf-level name substring matching creates action-invoker collisions, misclassifying menu items as destination modal overlays. |
+| [Claim Verifier Deprecation & Self-Confirmation Loop](./CLAIM_VERIFIER_DEPRECATION_AND_SELF_CONFIRMATION_LOOP_POSTMORTEM.md) | Verification Subsystem & Meta-Tooling | Deprecation of Milestone 4.5 claim harness; root-cause analysis of tautological mock loops and replacement with standard xUnit tests. |
 
 ---
 

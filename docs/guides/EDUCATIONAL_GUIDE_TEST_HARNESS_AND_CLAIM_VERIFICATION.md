@@ -9,13 +9,13 @@ Copyright (c) 2026 Amir Farhadi
 
 # ADCE Educational Guide: Ground-Truth Test Harness & Claim Verification
 
-> **Document Status:** Active Educational Guide
+> **Document Status:** [LEGACY PEDAGOGICAL GUIDE / HISTORICAL RETROSPECTIVE]
 > **Epistemic Authority:** Tier 4 (Pedagogical Overview — Subordinate to Tier 1 Code & Tier 2 Specs)
 > **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
+> **Pedagogical Notice:** The custom Claim Verification Matrix (`CLM-001` through `CLM-006`) described herein has been deprecated as redundant meta-tooling. For analysis of the tautological self-confirmation loop anti-pattern, consult [`docs/postmortems/CLAIM_VERIFIER_DEPRECATION_AND_SELF_CONFIRMATION_LOOP_POSTMORTEM.md`](../postmortems/CLAIM_VERIFIER_DEPRECATION_AND_SELF_CONFIRMATION_LOOP_POSTMORTEM.md). Real-world regression coverage lives in standard xUnit unit tests (`tests/ADCE.Extraction.Tests/Verification/ClaimVerificationTests.cs`).
 > **Target Audience:** Developers, systems engineers, and AI pair programmers
-> **Purpose:** Plain-English, comprehensive breakdown of how ADCE programmatically stimulates, observes, and mathematically verifies Windows OS UI interactions without manual human testing.
+> **Purpose:** Plain-English, comprehensive breakdown of how ADCE historically approached closed-loop UI testing and lessons learned from custom verification harnesses.
 > **Parent Context:** [`docs/CONTEXT.md`](../CONTEXT.md) | [`docs/testing/EMPIRICAL_TEST_HARNESS_AND_CLAIM_VERIFICATION_SPEC.md`](../testing/EMPIRICAL_TEST_HARNESS_AND_CLAIM_VERIFICATION_SPEC.md)
-> **Verification Evidence Ledger:** [`docs/reports/LATEST_CLAIM_VERIFICATION.md`](../reports/LATEST_CLAIM_VERIFICATION.md)
 
 ---
 
