@@ -108,6 +108,12 @@ public static class Program
         {
             await AntigravityProfileRunner.RunAntigravityEmpiricalStudyAsync(args);
         }
+        else if (args.Any(a => a.Equals("--terminal-study", StringComparison.OrdinalIgnoreCase) ||
+                               a.Equals("--terminal", StringComparison.OrdinalIgnoreCase) ||
+                               a.Equals("--wt", StringComparison.OrdinalIgnoreCase)))
+        {
+            await TerminalProfileRunner.RunTerminalEmpiricalStudyAsync(args);
+        }
 
         // 3. Claim Verification Matrix [Legacy / Deprecated]
         else if (args.Any(a => a.Equals("--verify-mocks", StringComparison.OrdinalIgnoreCase) ||

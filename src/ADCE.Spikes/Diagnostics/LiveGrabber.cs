@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using ADCE.Core.Models;
 using ADCE.Core.Serialization;
 using ADCE.Extraction.Engine;
+using ADCE.Extraction.Win32;
 using ADCE.Spikes.Models;
 using ADCE.Spikes.Native;
 
@@ -71,7 +72,9 @@ internal static class LiveGrabber
         {
             selectedTargets = targets.Where(t => t.Title.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
                                                  t.ClassName.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
-                                                 t.Pid.ToString() == filter).ToList();
+                                                 t.Pid.ToString() == filter ||
+                                                 (Win32Gating.GetWindowIdentityFast(t.Hwnd, out _, out _, out _, out var pname) &&
+                                                  pname.Contains(filter, StringComparison.OrdinalIgnoreCase))).ToList();
         }
         else if (filter?.Equals("all", StringComparison.OrdinalIgnoreCase) == true)
         {

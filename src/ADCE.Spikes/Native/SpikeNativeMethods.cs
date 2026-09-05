@@ -95,18 +95,24 @@ internal static class SpikeNativeMethods
     public const byte VK_1 = 0x31;
     public const byte VK_E = 0x45;
     public const byte VK_J = 0x4A;
+    public const byte VK_P = 0x50;
+    public const byte VK_T = 0x54;
+    public const byte VK_W = 0x57;
     public const byte VK_OEM_1 = 0xBA;
+    public const byte VK_OEM_COMMA = 0xBC;
     public const byte VK_OEM_3 = 0xC0;
+    public const byte VK_ESCAPE = 0x1B;
     public const int SW_RESTORE = 9;
     public const uint PW_CLIENTONLY = 0x00000001;
     public const uint PW_RENDERFULLCONTENT = 0x00000002;
 
-    public static void SendKey(byte vk, bool ctrl = false, bool shift = false)
+    public static void SendKey(byte vk, bool ctrl = false, bool shift = false, int holdMs = 50)
     {
         if (ctrl) keybd_event(VK_CONTROL, 0, 0, UIntPtr.Zero);
         if (shift) keybd_event(VK_SHIFT, 0, 0, UIntPtr.Zero);
 
         keybd_event(vk, 0, 0, UIntPtr.Zero);
+        if (holdMs > 0) System.Threading.Thread.Sleep(holdMs);
         keybd_event(vk, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
 
         if (shift) keybd_event(VK_SHIFT, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
@@ -116,7 +122,10 @@ internal static class SpikeNativeMethods
     public static void ForceForegroundWindow(IntPtr hWnd)
     {
         if (hWnd == IntPtr.Zero) return;
-        ShowWindow(hWnd, SW_RESTORE);
+        if (IsIconic(hWnd))
+        {
+            ShowWindow(hWnd, SW_RESTORE);
+        }
         IntPtr foreWnd = GetForegroundWindow();
         uint foreThread = GetWindowThreadProcessId(foreWnd, out _);
         uint appThread = GetCurrentThreadId();

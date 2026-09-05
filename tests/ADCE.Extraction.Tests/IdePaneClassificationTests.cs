@@ -34,4 +34,15 @@ public class IdePaneClassificationTests
         var view = UiaExtractionEngine.InferViewFromZone(zone);
         Assert.Equal(expectedView, view);
     }
+
+    [Theory]
+    [InlineData("MenuItem", "Command Palette...  Ctrl+Shift+P", "", "action-item", DesktopSemanticZone.NavigationPanel)]
+    [InlineData("MenuItem", "Terminal: New Terminal", "", "action-item", DesktopSemanticZone.NavigationPanel)]
+    [InlineData("Menu", "View", "", "monaco-menu", DesktopSemanticZone.NavigationPanel)]
+    public void ActionInvokerMenuItems_DoNotMatchDestinationZones(
+        string cType, string name, string autoId, string className, DesktopSemanticZone expectedZone)
+    {
+        var zone = UiaExtractionEngine.ResolveSemanticZone(cType, name, autoId, className, DesktopAppArchetype.ChromiumElectron);
+        Assert.Equal(expectedZone, zone);
+    }
 }

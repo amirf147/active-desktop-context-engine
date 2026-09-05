@@ -159,13 +159,35 @@ internal static class PaneInspector
                 var tabView = window.FindFirstDescendant(cf.ByAutomationId("TabView"));
                 if (tabView != null)
                 {
-                    Console.WriteLine($"  [CASCADIA PART] TabView | Bounds: {tabView.BoundingRectangle}");
+                    Console.WriteLine($"  [CASCADIA PART] TabView | Bounds: {SafeBounds(tabView)}");
+                    var tabChildren = tabView.FindAllDescendants();
+                    Console.WriteLine($"  [CASCADIA PART] TabView descendants count: {tabChildren.Length}");
+                    foreach (var tc in tabChildren)
+                    {
+                        Console.WriteLine($"    -> [{SafeControlType(tc)}] '{SafeName(tc)}' | AutoId='{SafeAutoId(tc)}' | Cls='{SafeClass(tc)}' | Bounds={SafeBounds(tc)}");
+                    }
                 }
                 var termControls = window.FindAllDescendants(cf.ByClassName("TermControl"));
                 Console.WriteLine($"  [CASCADIA] TermControl count: {termControls.Length}");
                 foreach (var tc in termControls)
                 {
-                    Console.WriteLine($"    -> TermControl: '{tc.Name}' | AutoId='{tc.AutomationId}' | Bounds: {tc.BoundingRectangle}");
+                    var tcBounds = SafeBounds(tc);
+                    Console.WriteLine($"    -> TermControl: '{SafeName(tc)}' | AutoId='{SafeAutoId(tc)}' | Bounds: {tcBounds}");
+                }
+
+                // Scan all descendants with non-empty AutomationId or specific types
+                Console.WriteLine("  [CASCADIA] Scanning all labeled descendants:");
+                var allDesc = window.FindAllDescendants();
+                foreach (var d in allDesc)
+                {
+                    var id = SafeAutoId(d);
+                    var name = SafeName(d);
+                    var cls = SafeClass(d);
+                    var ct = SafeControlType(d);
+                    if (!string.IsNullOrEmpty(id) || cls.Contains("Palette") || cls.Contains("Flyout") || cls.Contains("Popup") || name.Contains("Palette") || name.Contains("Settings"))
+                    {
+                        Console.WriteLine($"    * [{ct}] '{name}' | AutoId='{id}' | Cls='{cls}' | Bounds={SafeBounds(d)}");
+                    }
                 }
             }
         }
@@ -182,8 +204,8 @@ internal static class PaneInspector
                 Console.WriteLine("--------------------------------------------------------------------------");
                 Console.ResetColor();
 
-                var fb = focused.BoundingRectangle;
-                Console.WriteLine($"Focused: [{focused.ControlType}] '{focused.Name}' | AutoId='{focused.AutomationId}' | Cls='{focused.ClassName}' | Bounds=[X={fb.X}, Y={fb.Y}, W={fb.Width}, H={fb.Height}]");
+                var fb = SafeBounds(focused);
+                Console.WriteLine($"Focused: [{SafeControlType(focused)}] '{SafeName(focused)}' | AutoId='{SafeAutoId(focused)}' | Cls='{SafeClass(focused)}' | Bounds=[X={fb.X}, Y={fb.Y}, W={fb.Width}, H={fb.Height}]");
 
                 var walker = automation.TreeWalkerFactory.GetRawViewWalker();
                 var curr = focused;
@@ -192,8 +214,8 @@ internal static class PaneInspector
                 {
                     var parent = walker.GetParent(curr);
                     if (parent == null) break;
-                    var pb = parent.BoundingRectangle;
-                    Console.WriteLine($"  ^ Parent [{depth}]: [{parent.ControlType}] '{parent.Name}' | AutoId='{parent.AutomationId}' | Cls='{parent.ClassName}' | Bounds=[X={pb.X}, Y={pb.Y}, W={pb.Width}, H={pb.Height}]");
+                    var pb = SafeBounds(parent);
+                    Console.WriteLine($"  ^ Parent [{depth}]: [{SafeControlType(parent)}] '{SafeName(parent)}' | AutoId='{SafeAutoId(parent)}' | Cls='{SafeClass(parent)}' | Bounds=[X={pb.X}, Y={pb.Y}, W={pb.Width}, H={pb.Height}]");
                     curr = parent;
                     depth++;
                 }
@@ -203,5 +225,40 @@ internal static class PaneInspector
         {
             Console.WriteLine($"Focus extraction error: {ex.Message}");
         }
+    }
+
+    private static string SafeAutoId(AutomationElement? el)
+    {
+        if (el == null) return string.Empty;
+        try { return el.Properties.AutomationId.ValueOrDefault ?? string.Empty; }
+        catch { return string.Empty; }
+    }
+
+    private static string SafeName(AutomationElement? el)
+    {
+        if (el == null) return string.Empty;
+        try { return el.Properties.Name.ValueOrDefault ?? string.Empty; }
+        catch { return string.Empty; }
+    }
+
+    private static string SafeClass(AutomationElement? el)
+    {
+        if (el == null) return string.Empty;
+        try { return el.Properties.ClassName.ValueOrDefault ?? string.Empty; }
+        catch { return string.Empty; }
+    }
+
+    private static string SafeControlType(AutomationElement? el)
+    {
+        if (el == null) return string.Empty;
+        try { return el.Properties.ControlType.ValueOrDefault.ToString(); }
+        catch { return string.Empty; }
+    }
+
+    private static System.Drawing.Rectangle SafeBounds(AutomationElement? el)
+    {
+        if (el == null) return System.Drawing.Rectangle.Empty;
+        try { return el.Properties.BoundingRectangle.ValueOrDefault; }
+        catch { return System.Drawing.Rectangle.Empty; }
     }
 }

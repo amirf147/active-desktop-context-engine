@@ -118,9 +118,10 @@ SEED_RULES = [
         "ruleId": "seed_windows_terminal",
         "targetZone": "Terminal",
         "processPattern": "windowsterminal",
+        "classNamePattern": "TermControl",
         "priority": 50,
         "isUserOverride": False,
-        "comment": "Windows Terminal container",
+        "comment": "Windows Terminal active console viewport",
     },
     {
         "ruleId": "seed_ide_chat_input",

@@ -28,7 +28,7 @@ Instead, every application architecture partitions its interface into two fundam
 | :---: | :--- | :--- | :--- | :--- | :--- |
 | **01** | **Waterfox / Firefox** | Gecko | `MozillaWindowClass` | [`01_waterfox.md`](./01_waterfox.md) | ✅ Verified Ground Truth |
 | **02** | **Antigravity IDE / VS Code** | Chromium / Electron | `Chrome_WidgetWin_1` | [`02_antigravity_ide.md`](./02_antigravity_ide.md) | ✅ Verified Ground Truth |
-| **03** | **Windows Terminal** | WinUI 3 / XAML | `CASCADIA_HOSTING_WINDOW_CLASS` | `03_windows_terminal.md` | 📋 Scheduled |
+| **03** | **Windows Terminal** | WinUI 3 / XAML | `CASCADIA_HOSTING_WINDOW_CLASS` | [`03_windows_terminal.md`](./03_windows_terminal.md) | ✅ Verified Ground Truth |
 | **04** | **Windows Settings** | WinUI 3 / CoreWindow | `ApplicationFrameWindow` | `04_windows_settings.md` | 📋 Scheduled |
 | **05** | **File Explorer** | WinUI 3 Shell | `CabinetWClass` | `05_file_explorer.md` | 📋 Scheduled |
 | **06** | **Notepad** | Modern WinUI / Win32 | `Notepad` | `06_notepad.md` | 📋 Scheduled |
