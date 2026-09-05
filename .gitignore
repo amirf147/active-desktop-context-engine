@@ -45,3 +45,7 @@ external/
 # Transient empirical test harness reports (canonical summary is docs/reports/LATEST_CLAIM_VERIFICATION.md)
 docs/reports/claim_verification_*.md
 docs/reports/claim_verification_*.json
+
+# Empirical telemetry captures and visual screenshots
+docs/media/
+artifacts/screenshots/

@@ -15,8 +15,10 @@
 ---
 
 > [!NOTE]
-> **Hierarchical Model Supercedence:**
+> **Hierarchical Model Supercedence & Application Profiles:**
 > The flat single-zone model in earlier revisions has been augmented by the 3-level hierarchical model detailed in [`APPLICATION_PANE_AND_HIERARCHY_STRUCTURES_RESEARCH.md`](./APPLICATION_PANE_AND_HIERARCHY_STRUCTURES_RESEARCH.md). Macro window regions are classified under `WindowPaneLocation` (`ActivityBar`, `PrimarySidebar`, `MainContent`, `AuxiliarySidebar`, `BottomPanel`), logical containers under `ActiveView` and `SectionName`, and leaf typing targets under `SemanticZone`.
+>
+> Concrete, empirically verified per-application profiles documenting full ancestor parent trees and visual telemetry are located in the [`docs/app_hierarchies/`](../app_hierarchies/README.md) catalog (e.g. [`01_waterfox.md`](../app_hierarchies/01_waterfox.md)).
 
 ---
 

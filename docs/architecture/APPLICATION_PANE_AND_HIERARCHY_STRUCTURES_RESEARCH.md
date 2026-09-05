@@ -121,6 +121,10 @@ File Tree Item: [TreeItem] 'JsonSerializationTests.cs'
 
 ### 2.2 Waterfox / Firefox (`MozillaWindowClass`)
 
+> [!TIP]
+> **Complete Empirical Ground-Truth Profile:**
+> For the comprehensive 9-stop physical dissection, full leaf-to-root ancestor chains, viewport isolation rules, and visual screenshot telemetry, see the dedicated profile: [`docs/app_hierarchies/01_waterfox.md`](../app_hierarchies/01_waterfox.md).
+
 #### Macro Browser Layout (`Window Bounds: [X=0, Y=0, W=1920, H=1168]`)
 Waterfox exposes a clean two-tier layout hierarchy:
 1. **Navigation Toolbar (`#nav-bar`):**

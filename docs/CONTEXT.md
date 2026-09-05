@@ -101,6 +101,8 @@ To ensure consistency and ground human developers and local AI agents in verifie
 | 📋 [`architecture/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md`](architecture/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md) | 5 Desktop Framework Archetypes, dynamic heuristic discovery pipeline, database tradeoffs, and performance targets. |
 | 🔌 [`architecture/MCP_SCHEMA_SPEC.md`](architecture/MCP_SCHEMA_SPEC.md) | Evolving JSON schema specifications, decoupled envelope definitions, and MCP tool endpoint definitions. |
 | 📑 [`architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md`](architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md) | Definitive structural map of UIA node hierarchies, class names, and target zones across major applications. |
+| 📚 [`app_hierarchies/README.md`](app_hierarchies/README.md) | Application UI Automation Layout Hierarchies, Container Anatomy, and Empirical Semantic Profiles. |
+| 🌐 [`app_hierarchies/01_waterfox.md`](app_hierarchies/01_waterfox.md) | Verified Ground-Truth Profile: Waterfox (Gecko) window chrome, viewport isolation, and telemetry matrix. |
 | ⚔️ [`architecture/HOSTILE_ARCHITECTURE_REVIEW.md`](architecture/HOSTILE_ARCHITECTURE_REVIEW.md) | Adversarial systems review evaluating COM apartment deadlocks, GC allocation churn, UIPI barriers, and race conditions. |
 
 ### 🧠 Tier 3: Subsystem Architectural Deep Dives
@@ -128,6 +130,8 @@ To ensure consistency and ground human developers and local AI agents in verifie
 | :--- | :--- |
 | 🧪 [`testing/EMPIRICAL_TEST_HARNESS_AND_CLAIM_VERIFICATION_SPEC.md`](testing/EMPIRICAL_TEST_HARNESS_AND_CLAIM_VERIFICATION_SPEC.md) | Deterministic stimulus-response testing framework, ground-truth verification matrix, and empirical protocols. |
 | 🛡️ [`testing/REVIEWER_OBSERVATIONS_AND_HARDENING_ROADMAP.md`](testing/REVIEWER_OBSERVATIONS_AND_HARDENING_ROADMAP.md) | Physical observations from live verification and scheduled hardening across future work packages. |
+| 📚 [`postmortems/README.md`](postmortems/README.md) | Master Index of ADCE Subsystem Postmortems, Spikes, and Epistemic Retrospectives. |
+| 🔬 [`postmortems/LESSONS_LEARNED_HARDWARE_ACCELERATED_SCREENSHOTS_AND_UIA.md`](postmortems/LESSONS_LEARNED_HARDWARE_ACCELERATED_SCREENSHOTS_AND_UIA.md) | DirectComposition & GDI clipping breakdown, `PrintWindow` dual-mode capture, and UIA semantic immunity. |
 | 🔬 [`postmortems/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_2.md`](postmortems/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_2.md) | Dissecting empty snapshot failures, Win32 desktop sessions, compound class names, and architectural hardening. |
 | 🔬 [`postmortems/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_4.md`](postmortems/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_4.md) | Physical analysis of child HWNDs in Electron, desktop-wide global UIA focus bleeding, and archetype-scoped zone isolation. |
 | 🔬 [`postmortems/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_4_5.md`](postmortems/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_4_5.md) | Ground-Truth stimulus test harness findings, automated assertion engines, and empirical evidence logging. |
