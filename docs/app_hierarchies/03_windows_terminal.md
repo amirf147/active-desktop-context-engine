@@ -7,10 +7,11 @@
 
 # Windows Terminal (WinUI 3 / Cascadia) UI Automation Hierarchy and Semantic Profile
 
-> **Document Status:** Active / Verified Ground Truth Specification
+> **Document Status:** Active / Partial Resting-State Baseline (3 of 7 Surfaces Harvested)
 > **Target Engine:** WinUI 3 / XAML Islands / Cascadia (`CASCADIA_HOSTING_WINDOW_CLASS`)
 > **Verification Date:** 2026-09-06 01:24:30 UTC
 > **Target HWND:** `0x00010726` | **PID:** `26984` | **Window Title:** `Windows PowerShell`
+> **Methodology Notice:** Steps 1 through 3 were physically harvested from the live UI tree. Steps 4 through 6 (Caret dropdown menu, Settings workspace, Command Palette overlay) were not captured during the initial run due to UIPI blocking synthetic keystrokes.
 
 ---
 
@@ -31,15 +32,31 @@ Windows Terminal uses modern WinUI 3 hosted within a Win32 top-level envelope vi
 
 ---
 
-## 2. Structural Container Anatomy
+## 2. Pre-Profiling Surface Inventory
+
+Before claiming complete profile coverage, the target application state space must be enumerated across five UI categories:
+
+| ID | Surface Category | Target Controls & UI Patterns | Expected Pane / Zone | Activation Mechanism | Physical Capture Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **S1** | Primary Window Chrome | `TabView`, `TabListView`, `ListViewItem`, `CloseButton` | `TopBar` / `TabBar` | Resting window state | **Verified Live** (Step 1) |
+| **S2** | Active Console Buffer | `TermControl`, `ScrollBar`, `RepeatButton` | `MainContent` / `Terminal` | Resting window state | **Verified Live** (Step 2) |
+| **S3** | Tab Launcher Primary | `NewTabButton` (`SplitButton` primary action) | `TopBar` / `TabBar` | Resting window state | **Verified Live** (Step 3) |
+| **S4** | Tab Launcher Caret Menu | `MenuFlyout`, Profile items, `Command Palette`, `Settings` | `OverlayModal` / `NavigationPanel` | Click caret toggle on `NewTabButton` | **Pending Live Capture** |
+| **S5** | Settings Workspace | `NavigationView`, Navigation rail, Settings pages | `MainContent` / `NavigationPanel` | Caret menu -> Settings (`Ctrl+,`) | **Pending Live Capture** |
+| **S6** | Command Palette Overlay | `AutoSuggestBox`, `FilteredCommandList` | `OverlayModal` / `CommandPalette` | Caret menu -> Command Palette (`Ctrl+Shift+P`) | **Pending Live Capture** |
+| **S7** | Notification Infobar | `CloseOnExitInfoBar` (`InfoBar`), `StandardIcon`, `Message` | `TopBar` / `StatusBar` | Process exit with error | **Verified Live** (Inspector trace) |
+
+---
+
+## 3. Structural Container Anatomy
 
 The Windows Terminal interface is organized into distinct structural tiers:
 
 1. **Top Bar TabView (`TabView`):** Hosts the tab list view (`TabListView`), tab items, close buttons, and the new tab launcher (`NewTabButton`).
 2. **Terminal Console Buffer (`TermControl`):** High-speed DirectX terminal canvas displaying text, cursor, and shell state.
 3. **Notification Infobars (`CloseOnExitInfoBar`):** Transient status and configuration notices pinned between tabs and the viewport.
-4. **Command Palette Overlay (`CommandPaletteControl`):** Quick open action search palette activated via keyboard shortcuts or settings.
-5. **Settings Configuration Panel (`SettingsControl`):** Full-page configuration workspace with sidebar navigation items and profile settings.
+4. **Command Palette Overlay:** Quick open action search palette activated via keyboard shortcuts or settings.
+5. **Settings Configuration Panel:** Full-page configuration workspace with sidebar navigation items and profile settings.
 
 ```mermaid
 graph TD
@@ -144,23 +161,30 @@ The telemetry below was harvested directly from live execution using `TerminalPr
 
 ---
 
-### Step 4: CommandPalette (Command Palette Overlay)
+### Step 4: Tab Launcher Caret Dropdown Menu [UNOBSERVED / PENDING LIVE CAPTURE]
 
-- **Stimulus:** `Open Command Palette (Ctrl+Shift+P)`
-- **Target Controls:** `CommandPaletteControl`, `FilteredCommandList`, `SearchBox`
-- **UIA Peer Attributes:** ControlType=`Edit` or `Group` | ClassName=`PaletteControl` or `CommandPalette`
-- **ADCE Classification:** Zone=`CommandPalette`, Pane=`OverlayModal`, ActiveView=`CommandPalette`, Section=`null`
-- **Semantic Path:** `[OverlayModal > CommandPalette]`
+- **Status:** `Pending Live Capture`
+- **Target Surface:** Dropdown menu flyout containing profiles, Command Palette, Settings, and About.
+- **Activation Mechanism:** Actuate secondary dropdown button on `NewTabButton` (`SplitButton`).
+- **Telemetry Note:** Not captured in initial automated pass because focus remained on the primary split button.
 
 ---
 
-### Step 5: Settings (Terminal Settings View)
+### Step 5: Command Palette Overlay [UNOBSERVED / PENDING LIVE CAPTURE]
 
-- **Stimulus:** `Open Settings (Ctrl+,)`
-- **Target Controls:** `SettingsControl`, `SettingsPage`, `NavigationView`
-- **UIA Peer Attributes:** ControlType=`Custom` or `Pane` | ClassName=`SettingsControl`
-- **ADCE Classification:** Zone=`NavigationPanel`, Pane=`MainContent`, ActiveView=`Settings`, Section=`null`
-- **Semantic Path:** `[MainContent > Settings]`
+- **Status:** `Pending Live Capture`
+- **Target Surface:** Floating search input overlay (`AutoSuggestBox` and command list).
+- **Activation Mechanism:** Caret menu -> `Command Palette` or `Ctrl+Shift+P`.
+- **Telemetry Note:** Synthetic keystroke was silently dropped by Windows UIPI because the target process was elevated.
+
+---
+
+### Step 6: Settings Workspace [UNOBSERVED / PENDING LIVE CAPTURE]
+
+- **Status:** `Pending Live Capture`
+- **Target Surface:** Configuration tab with `NavigationView` sidebar rail and settings detail pages.
+- **Activation Mechanism:** Caret menu -> `Settings` or `Ctrl+,`.
+- **Telemetry Note:** Synthetic keystroke was silently dropped by Windows UIPI because the target process was elevated.
 
 ---
 

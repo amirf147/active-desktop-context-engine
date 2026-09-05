@@ -7,10 +7,11 @@
 
 # Waterfox Browser (Gecko Engine) UI Automation Hierarchy & Semantic Mapping Profile
 
-> **Document Status:** Active / Verified Ground Truth Specification
+> **Document Status:** Active / Partial Resting-State Baseline (9 of 14 Surfaces Harvested)
 > **Target Engine:** Mozilla Gecko (`MozillaWindowClass`)
 > **Verification Date:** 2026-09-05 06:05:12 UTC
 > **Target HWND:** `0x000205B0` | **PID:** `12136` | **Window Title:** `Cloud Infrastructure Console — Waterfox`
+> **Methodology Notice:** Physical controls in Steps 1 through 9 represent resting window chrome and active web document DOM elements harvested live. Auxiliary browser pages (about:preferences), application menus, downloads popups, and Developer Tools remain unobserved.
 
 ---
 
@@ -27,7 +28,30 @@
 
 ---
 
-## 2. Structural Container Anatomy
+## 2. Pre-Profiling Surface Inventory
+
+Before claiming complete profile coverage, the target browser state space is cataloged across five UI categories:
+
+| ID | Surface Category | Target Controls & UI Patterns | Expected Pane / Zone | Activation Mechanism | Physical Capture Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **S1** | Address & Search Bar | `#urlbar`, `#urlbar-input` | `TopBar` / `AddressBar` | Resting window state | **Verified Live** (Step 1) |
+| **S2** | Navigation Toolbar | `#back-button`, `#forward-button`, `#reload-button` | `TopBar` / `NavigationPanel` | Resting window state | **Verified Live** (Step 2) |
+| **S3** | Tab Strip Container | `#tabbrowser-tabs`, `.tabbrowser-tab` | `TopBar` / `TabBar` | Resting window state | **Verified Live** (Step 3) |
+| **S4** | Bookmarks Toolbar | `#PersonalToolbar`, `.bookmark-item` | `TopBar` / `NavigationPanel` | Resting window state | **Verified Live** (Step 4) |
+| **S5** | Browser Sidebar | `#sidebar-box`, `#sidebar` | `PrimarySidebar` / `SidebarExplorer` | `Ctrl+B` / Menu toggle | **Verified Live** (Step 5) |
+| **S6** | Document Viewport | `#appcontent`, `Document` | `MainContent` / `WebDocument` | Resting tab state | **Verified Live** (Step 6) |
+| **S7** | In-Page DOM Elements | Links, Buttons, Inputs inside web document | `MainContent` / `WebDocument` | Tab navigation / pointer click | **Verified Live** (Steps 7-9) |
+| **S8** | Preferences / Settings | `about:preferences`, Category sidebar | `MainContent` / `NavigationPanel` | Settings tab / menu action | **Pending Live Capture** |
+| **S9** | Hamburger Application Menu | `#PanelUI-menu-button`, Menu popup | `OverlayModal` / `NavigationPanel` | Click hamburger button | **Pending Live Capture** |
+| **S10** | Downloads / Library | `#downloads-button`, Panel flyout | `OverlayModal` / `NavigationPanel` | Click downloads indicator | **Pending Live Capture** |
+| **S11** | Developer Tools Panel | Inspector, Console, Debugger docked frames | `BottomPanel` / `MainContent` | F12 / `Ctrl+Shift+I` | **Pending Live Capture** |
+| **S12** | In-Page Find Bar | `#findbar`, Search input, Next/Previous | `BottomPanel` / `NavigationPanel` | `Ctrl+F` | **Pending Live Capture** |
+| **S13** | Tab Overflow Dropdown | `#alltabs-button`, Tab list | `OverlayModal` / `TabBar` | Open >15 tabs to overflow | **Pending Live Capture** |
+| **S14** | Identity & Permissions | `#identity-box`, Permission popups | `OverlayModal` / `NavigationPanel` | Click padlock icon | **Pending Live Capture** |
+
+---
+
+## 3. Structural Container Anatomy
 
 The Waterfox interface is organized as a hierarchical XUL/HTML shell containing two distinct zones:
 1. **Host Window Chrome (`#navigator-toolbox` and `#sidebar-box`):** Desktop application controls for tabs, navigation, bookmarks, and sidebars.

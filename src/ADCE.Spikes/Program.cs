@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using ADCE.Core.Enums;
 using ADCE.Spikes.Diagnostics;
 using ADCE.Spikes.Milestones;
 using ADCE.Spikes.Profiling;
@@ -113,6 +114,41 @@ public static class Program
                                a.Equals("--wt", StringComparison.OrdinalIgnoreCase)))
         {
             await TerminalProfileRunner.RunTerminalEmpiricalStudyAsync(args);
+        }
+        else if (args.Any(a => a.Equals("--sample-surface", StringComparison.OrdinalIgnoreCase) ||
+                               a.Equals("--sample", StringComparison.OrdinalIgnoreCase)))
+        {
+            int sIdx = Array.FindIndex(args, a => a.Equals("--sample-surface", StringComparison.OrdinalIgnoreCase) ||
+                                                  a.Equals("--sample", StringComparison.OrdinalIgnoreCase));
+            int step = (sIdx >= 0 && sIdx + 1 < args.Length && int.TryParse(args[sIdx + 1], out int sVal)) ? sVal : 4;
+            int delay = (sIdx >= 0 && sIdx + 2 < args.Length && int.TryParse(args[sIdx + 2], out int dVal)) ? dVal : 3;
+
+            string mediaDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "docs", "media", "terminal_telemetry"));
+            string zoneTag = step switch
+            {
+                4 => "CaretMenu",
+                5 => "Settings",
+                6 => "CommandPalette",
+                _ => $"Surface{step}"
+            };
+            string desc = step switch
+            {
+                4 => "Dropdown Profile & Actions Flyout",
+                5 => "Terminal Settings & Configuration Workspace",
+                6 => "Command Palette & Action Filter Overlay",
+                _ => $"Surface {step}"
+            };
+            string stimulus = step switch
+            {
+                4 => "Click Caret Button",
+                5 => "Open Settings (Ctrl+,)",
+                6 => "Open Command Palette (Ctrl+Shift+P)",
+                _ => "Interactive Focus"
+            };
+            string outPath = Path.Combine(mediaDir, $"step_{step:D2}_{zoneTag.ToLowerInvariant()}.png");
+
+            await InteractiveSurfaceSampler.SampleActiveFocusAsync(
+                delay, step, zoneTag, desc, stimulus, outPath, DesktopAppArchetype.WinUI3Xaml);
         }
 
         // 3. Claim Verification Matrix [Legacy / Deprecated]

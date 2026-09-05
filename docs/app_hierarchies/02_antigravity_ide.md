@@ -7,10 +7,11 @@
 
 # Antigravity IDE / VS Code (Monaco/Electron) UI Automation Hierarchy & Semantic Profile
 
-> **Document Status:** Active / Verified Ground Truth Specification
+> **Document Status:** Active / Partial Resting-State Baseline (10 of 16 Surfaces Harvested)
 > **Target Engine:** Chromium / Electron / Monaco (`Chrome_WidgetWin_1`)
 > **Verification Date:** 2026-09-05 06:39:45 UTC
 > **Target HWND:** `0x0001076E` | **PID:** `1180` | **Window Title:** `active-desktop-context-engine - Antigravity IDE`
+> **Methodology Notice:** Physical controls in Steps 1 through 10 represent resting workbench zones harvested live. Modal overlays (Command Palette input widget, Find/Replace, Quick Open) and secondary configuration workspaces (Settings editor, Extensions view) remain unobserved.
 
 ---
 
@@ -27,7 +28,32 @@
 
 ---
 
-## 2. Structural Container Anatomy
+## 2. Pre-Profiling Surface Inventory
+
+Before claiming complete profile coverage, the target workbench state space is cataloged across five UI categories:
+
+| ID | Surface Category | Target Controls & UI Patterns | Expected Pane / Zone | Activation Mechanism | Physical Capture Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **S1** | Activity Bar Switcher | `workbench.parts.activitybar`, Action items | `ActivityBar` / `TabBar` | Resting window state | **Verified Live** (Step 1) |
+| **S2** | Primary Sidebar Explorer | `workbench.parts.sidebar`, `monaco-list-row` | `PrimarySidebar` / `SidebarExplorer` | Resting window state | **Verified Live** (Step 2) |
+| **S3** | Editor Tab Strip | `workbench.parts.editor`, `tabs-container`, Tab items | `MainContent` / `TabBar` | Resting window state | **Verified Live** (Step 3) |
+| **S4** | Monaco Code Buffer | `native-edit-context`, `monaco-editor` | `MainContent` / `EditorBuffer` | Resting window state | **Verified Live** (Step 4) |
+| **S5** | Editor Breadcrumbs | `monaco-breadcrumb-item` | `MainContent` / `NavigationPanel` | Resting window state | **Verified Live** (Step 5) |
+| **S6** | Auxiliary Sidebar Toggle | `workbench.parts.auxiliarybar`, CheckBox | `AuxiliarySidebar` / `ChatConversation` | Resting window state | **Verified Live** (Step 6) |
+| **S7** | Artifact Viewer Panel | Artifact header group | `MainContent` / `TabBar` | Resting window state | **Verified Live** (Step 7) |
+| **S8** | Integrated Terminal | `workbench.parts.panel`, `xterm` | `BottomPanel` / `Terminal` | Resting window state | **Verified Live** (Step 8) |
+| **S9** | Status Bar Indicators | `workbench.parts.statusbar`, Status items | `StatusBar` / `StatusBar` | Resting window state | **Verified Live** (Step 9) |
+| **S10** | Top Bar Menu Action | `monaco-menu`, `MenuItem` | `TopBar` / `NavigationPanel` | Alt key / View menu click | **Verified Live** (Step 10) |
+| **S11** | Command Palette Overlay | `quickInputWidget`, Filtered input | `OverlayModal` / `CommandPalette` | `Ctrl+Shift+P` | **Pending Live Capture** |
+| **S12** | Settings Editor | `workbench.settings.editor`, Search, Categories | `MainContent` / `NavigationPanel` | `Ctrl+,` | **Pending Live Capture** |
+| **S13** | In-Editor Find / Replace | `find-widget`, Replace toggle | `MainContent` / `NavigationPanel` | `Ctrl+F` | **Pending Live Capture** |
+| **S14** | Source Control Staging | `workbench.view.scm`, Diff list | `PrimarySidebar` / `SidebarExplorer` | `Ctrl+Shift+G` | **Pending Live Capture** |
+| **S15** | Extensions Marketplace | `workbench.view.extensions`, Search bar | `PrimarySidebar` / `NavigationPanel` | `Ctrl+Shift+X` | **Pending Live Capture** |
+| **S16** | Notification Toasts | `notifications-toasts`, Action buttons | `OverlayModal` / `StatusBar` | System notice / error trigger | **Pending Live Capture** |
+
+---
+
+## 3. Structural Container Anatomy
 
 The Antigravity IDE interface is organized as a multi-pane Monaco/Electron workbench partitioned into five primary layout zones:
 1. **Activity Bar (`workbench.parts.activitybar`):** Activity switcher for Explorer, Search, Source Control, and Agent.
