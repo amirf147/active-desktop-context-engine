@@ -5,6 +5,10 @@ Copyright (c) 2026 Amir Farhadi
 
 # ADCE Milestone 5 & 6 Empirical Verification Findings & Systems Diagnostic Report
 
+> [!NOTE]
+> **Historical Milestone Report:**
+> This document records empirical findings and diagnostics captured during Milestone 5 & 6 verification. All findings (F-01 through F-05) have been incorporated into production code in `ADCE.Daemon`, `ADCE.Extraction`, and `ADCE.Mcp`. For current active specifications, see [`docs/CONTEXT.md`](../CONTEXT.md).
+
 > **Target Systems:** `ADCE.Daemon`, `ADCE.Mcp`, `ADCE.Extraction`, `ADCE.Spikes` (.NET 10 / C# 14 / FlaUI 5)
 > **Date:** August 25, 2026
 > **Scope:** Live Desktop Telemetry, System Tray Daemon Diagnostics, Threading Apartments, Shell Hover Effects, and Purpose Verification.
