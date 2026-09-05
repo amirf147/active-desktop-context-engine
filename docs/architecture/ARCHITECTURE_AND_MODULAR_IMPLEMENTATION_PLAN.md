@@ -155,7 +155,7 @@ The repository solution (`ADCE.slnx`) is organized into 5 decoupled projects wit
 │ • Build verified empirical ground-truth profiles across desktop application archetypes.│
 │ • Establish docs/app_hierarchies/ catalog with leaf-to-root ancestor chains & visual proof.│
 │ • Lock viewport boundaries (ControlType.Document) inhibiting chrome rules from DOM leaks.│
-│ • [Verification]: Waterfox profile (01_waterfox.md) verified with dual-mode capture.   │
+│ • [Verification]: Waterfox (01_waterfox.md) & Antigravity IDE (02_antigravity_ide.md) verified. │
 │ • [Documentation]: docs/app_hierarchies/ & LESSONS_LEARNED_HARDWARE_ACCELERATED_SCREENSHOTS_AND_UIA.md. │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
 │ Milestone 8: Declarative App Definitions & Self-Healing Telemetry [UPCOMING]           │

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Copyright (c) 2026 Amir Farhadi -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antigravity IDE - Structural Container Anatomy &amp; Hierarchy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+    <style>
+        :root {
+            --paper: #141414;
+            --paper-2: #1b1b1b;
+            --ink: #f5f5f5;
+            --muted: #9a9a9a;
+            --soft: #5c5c5c;
+            --accent: #ff5a36;
+            --border: #2b2b2b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--paper);
+            color: var(--ink);
+            font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            background-color: var(--paper-2);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        .title-group h1 {
+            font-family: 'Instrument Serif', serif;
+            font-size: 1.5rem;
+            font-weight: 400;
+            letter-spacing: 0.02em;
+            color: var(--ink);
+        }
+
+        .title-group p {
+            font-family: 'Geist Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn {
+            background: var(--paper);
+            border: 1px solid var(--border);
+            color: var(--ink);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-family: 'Geist Mono', monospace;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        #diagram-container {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            background-color: var(--paper);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #svg-wrapper {
+            width: 100%;
+            height: 100%;
+        }
+
+        #svg-wrapper svg {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .hint-bar {
+            position: absolute;
+            bottom: 16px;
+            right: 20px;
+            background: rgba(27, 27, 27, 0.85);
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-family: 'Geist Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--muted);
+            pointer-events: none;
+            backdrop-filter: blur(4px);
+        }
+
+        .loading-state {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            font-family: 'Geist Mono', monospace;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="title-group">
+        <h1>Antigravity IDE Structural Container Anatomy</h1>
+        <p>Active Desktop Context Engine // Application Profile 02 // Monaco &amp; Electron // Chrome_WidgetWin_1</p>
+    </div>
+    <div class="controls">
+        <button class="btn" onclick="zoomIn()" title="Zoom In">+</button>
+        <button class="btn" onclick="zoomOut()" title="Zoom Out">-</button>
+        <button class="btn" onclick="resetZoom()" title="Reset View">Reset</button>
+        <button class="btn" onclick="toggleFullscreen()" title="Toggle Fullscreen">Fullscreen</button>
+        <a class="btn" href="../app_hierarchies/02_antigravity_ide.md" title="Back to Markdown Document">Back to Doc</a>
+    </div>
+</header>
+
+<main id="diagram-container">
+    <div id="svg-wrapper">
+        <div class="loading-state">Rendering container anatomy diagram...</div>
+    </div>
+    <div class="hint-bar">Scroll to Zoom // Click &amp; Drag to Pan</div>
+</main>
+
+<script>
+    const diagramCode = `
+graph TD
+    Root["Window: Chrome_WidgetWin_1"] --> Workbench["Container: workbench.main.container"]
+
+    Workbench --> TitleBar["TitleBar: workbench.parts.titlebar"]
+    Workbench --> ActivityBar["ActivityBar: workbench.parts.activitybar"]
+    Workbench --> Sidebar["PrimarySidebar: workbench.parts.sidebar"]
+    Workbench --> EditorArea["EditorArea: workbench.parts.editor"]
+    Workbench --> AuxBar["AuxiliaryBar: workbench.parts.auxiliarybar"]
+    Workbench --> Panel["Panel: workbench.parts.panel"]
+    Workbench --> StatusBar["StatusBar: workbench.parts.statusbar"]
+
+    ActivityBar --> ActButtons["Launcher: Explorer, SCM, Agent"]
+    Sidebar --> FileTree["Tree: File Explorer (.agents, docs)"]
+
+    EditorArea --> TabStrip["TabStrip: TabItem README.md"]
+    EditorArea --> Breadcrumbs["Navigation: monaco-breadcrumbs"]
+    EditorArea --> MonacoEditor["EditorBuffer: Monaco Code Editor"]
+
+    AuxBar --> AgentChat["Chat: Conversation & Prompt Input"]
+    AuxBar --> ArtifactView["ArtifactViewer: Header & Preview"]
+
+    Panel --> Terminal["IntegratedTerminal: xterm / pwsh"]
+    StatusBar --> StatusItems["Status: Remote, Git Branch, UTF-8"]
+`;
+
+    mermaid.initialize({
+        startOnLoad: false,
+        theme: 'dark',
+        themeVariables: {
+            darkMode: true,
+            background: '#141414',
+            primaryColor: '#1b1b1b',
+            primaryTextColor: '#f5f5f5',
+            primaryBorderColor: '#ff5a36',
+            lineColor: '#9a9a9a',
+            secondaryColor: '#2b2b2b',
+            tertiaryColor: '#141414',
+            fontFamily: 'Geist, sans-serif'
+        }
+    });
+
+    let panZoomInstance = null;
+
+    async function renderDiagram() {
+        try {
+            const { svg } = await mermaid.render('antigravity-mermaid-svg', diagramCode);
+            const wrapper = document.getElementById('svg-wrapper');
+            wrapper.innerHTML = svg;
+
+            const svgElement = wrapper.querySelector('svg');
+            if (svgElement) {
+                panZoomInstance = svgPanZoom(svgElement, {
+                    zoomEnabled: true,
+                    controlIconsEnabled: false,
+                    fit: true,
+                    center: true,
+                    minZoom: 0.1,
+                    maxZoom: 12,
+                    zoomScaleSensitivity: 0.25
+                });
+            }
+        } catch (err) {
+            console.error('Mermaid render error:', err);
+            document.getElementById('svg-wrapper').innerHTML = '<div style="color:#ff5a36;padding:24px;font-family:monospace;">Render Error: ' + err.message + '</div>';
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', renderDiagram);
+
+    function zoomIn() { if (panZoomInstance) panZoomInstance.zoomIn(); }
+    function zoomOut() { if (panZoomInstance) panZoomInstance.zoomOut(); }
+    function resetZoom() { if (panZoomInstance) { panZoomInstance.reset(); panZoomInstance.center(); } }
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+    }
+</script>
+
+</body>
+</html>

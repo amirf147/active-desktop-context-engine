@@ -1,4 +1,4 @@
-﻿<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
 <!-- Copyright (c) 2026 Amir Farhadi -->
 
 [ 🏠 ADCE Home ](../../README.md) › [ 📚 App Hierarchies ](./README.md) › **01. Waterfox Browser Profile**
@@ -32,6 +32,9 @@
 The Waterfox interface is organized as a hierarchical XUL/HTML shell containing two distinct zones:
 1. **Host Window Chrome (`#navigator-toolbox` and `#sidebar-box`):** Desktop application controls for tabs, navigation, bookmarks, and sidebars.
 2. **Client Document Viewport (`#appcontent` -> `Document`):** Rendered web content canvas hosted in an out-of-process tab.
+
+> [!TIP]
+> **Wide Diagram View:** For fluid zooming, panning, and fullscreen exploration, open the [Interactive HTML Diagram](../diagrams/waterfox_hierarchy_diagram.html).
 
 ```mermaid
 graph TD

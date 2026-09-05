@@ -372,12 +372,41 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
                 zone = DesktopSemanticZone.SidebarExplorer;
             }
         }
+        else if (name.Contains("Toggle Agent", StringComparison.OrdinalIgnoreCase) ||
+                 cls.Contains("codicon-layout-sidebar-right", StringComparison.OrdinalIgnoreCase) ||
+                 cls.Contains("antigravity-agent-side-panel", StringComparison.OrdinalIgnoreCase) ||
+                 autoId.Contains("antigravity.agentSidePanelInputBox", StringComparison.OrdinalIgnoreCase))
+        {
+            pane = WindowPaneLocation.AuxiliarySidebar;
+            activeView = "Chat";
+            zone = DesktopSemanticZone.ChatConversation;
+        }
         else if (cls.Contains("activitybar", StringComparison.OrdinalIgnoreCase) ||
-                 autoId.Contains("workbench.parts.activitybar", StringComparison.OrdinalIgnoreCase))
+                 autoId.Contains("workbench.parts.activitybar", StringComparison.OrdinalIgnoreCase) ||
+                 cls.Contains("codicon-explorer-view-icon", StringComparison.OrdinalIgnoreCase) ||
+                 name.Contains("Explorer (Ctrl+Shift+E)", StringComparison.OrdinalIgnoreCase))
         {
             pane = WindowPaneLocation.ActivityBar;
             activeView = "ActivityBar";
             zone = DesktopSemanticZone.ActivityBar;
+        }
+        else if (cls.Contains("monaco-breadcrumbs", StringComparison.OrdinalIgnoreCase) ||
+                 autoId.Contains("breadcrumbs", StringComparison.OrdinalIgnoreCase))
+        {
+            pane = WindowPaneLocation.MainContent;
+            activeView = "Editor";
+            sectionName = "Breadcrumbs";
+            zone = DesktopSemanticZone.NavigationPanel;
+        }
+        else if (cls.Contains("single-terminal-tab", StringComparison.OrdinalIgnoreCase) ||
+                 cls.Contains("xterm", StringComparison.OrdinalIgnoreCase) ||
+                 autoId.Contains("terminal", StringComparison.OrdinalIgnoreCase) ||
+                 name.Contains("Focus Terminal", StringComparison.OrdinalIgnoreCase) ||
+                 (cType.Equals("TabItem", StringComparison.OrdinalIgnoreCase) && name.Equals("Terminal", StringComparison.OrdinalIgnoreCase)))
+        {
+            pane = WindowPaneLocation.BottomPanel;
+            activeView = "Terminal";
+            zone = DesktopSemanticZone.Terminal;
         }
         else if (archetype == DesktopAppArchetype.Gecko)
         {
@@ -737,10 +766,14 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
                 }
                 else if (autoId.Contains("antigravity.agentSidePanelInputBox", StringComparison.OrdinalIgnoreCase) ||
                          cls.Contains("antigravity-agent-side-panel", StringComparison.OrdinalIgnoreCase) ||
-                         autoId.Contains("workbench.parts.auxiliarybar", StringComparison.OrdinalIgnoreCase))
+                         autoId.Contains("workbench.parts.auxiliarybar", StringComparison.OrdinalIgnoreCase) ||
+                         name.Contains("Toggle Agent", StringComparison.OrdinalIgnoreCase) ||
+                         cls.Contains("codicon-layout-sidebar-right", StringComparison.OrdinalIgnoreCase))
                 {
                     if (resolvedPane == WindowPaneLocation.Unknown) resolvedPane = WindowPaneLocation.AuxiliarySidebar;
                     resolvedView ??= "Chat";
+                    if (enableSemanticZones && resolvedZone == DesktopSemanticZone.Unknown)
+                        resolvedZone = DesktopSemanticZone.ChatConversation;
                 }
                 else if (autoId.Equals("conversation", StringComparison.OrdinalIgnoreCase) ||
                          name.Equals("Agent Conversation", StringComparison.OrdinalIgnoreCase))
@@ -793,7 +826,9 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
                     }
                 }
                 else if (autoId.Contains("workbench.parts.activitybar", StringComparison.OrdinalIgnoreCase) ||
-                         cls.Contains("activitybar", StringComparison.OrdinalIgnoreCase))
+                         cls.Contains("activitybar", StringComparison.OrdinalIgnoreCase) ||
+                         cls.Contains("codicon-explorer-view-icon", StringComparison.OrdinalIgnoreCase) ||
+                         name.Contains("Explorer (Ctrl+Shift+E)", StringComparison.OrdinalIgnoreCase))
                 {
                     if (resolvedPane == WindowPaneLocation.Unknown) resolvedPane = WindowPaneLocation.ActivityBar;
                     resolvedView ??= "ActivityBar";
@@ -802,16 +837,27 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
                 }
                 else if (autoId.Contains("workbench.parts.editor", StringComparison.OrdinalIgnoreCase) ||
                          cls.Contains("monaco-editor", StringComparison.OrdinalIgnoreCase) ||
-                         cls.Contains("tabs-container", StringComparison.OrdinalIgnoreCase))
+                         cls.Contains("tabs-container", StringComparison.OrdinalIgnoreCase) ||
+                         cls.Contains("monaco-breadcrumbs", StringComparison.OrdinalIgnoreCase) ||
+                         cls.Contains("codicon-jetski-artifacts", StringComparison.OrdinalIgnoreCase))
                 {
                     if (resolvedPane == WindowPaneLocation.Unknown) resolvedPane = WindowPaneLocation.MainContent;
                     resolvedView ??= "Editor";
                     if (enableSemanticZones && resolvedZone == DesktopSemanticZone.Unknown && !cls.Contains("scm-editor", StringComparison.OrdinalIgnoreCase))
-                        resolvedZone = DesktopSemanticZone.EditorBuffer;
+                    {
+                        if (cls.Contains("monaco-breadcrumbs", StringComparison.OrdinalIgnoreCase))
+                            resolvedZone = DesktopSemanticZone.NavigationPanel;
+                        else if (cls.Contains("tab", StringComparison.OrdinalIgnoreCase) || cls.Contains("tabs-container", StringComparison.OrdinalIgnoreCase))
+                            resolvedZone = DesktopSemanticZone.TabBar;
+                        else
+                            resolvedZone = DesktopSemanticZone.EditorBuffer;
+                    }
                 }
                 else if (autoId.Contains("workbench.parts.panel", StringComparison.OrdinalIgnoreCase) ||
                          autoId.Contains("terminal", StringComparison.OrdinalIgnoreCase) ||
                          cls.Contains("terminal", StringComparison.OrdinalIgnoreCase) ||
+                         cls.Contains("single-terminal-tab", StringComparison.OrdinalIgnoreCase) ||
+                         name.Contains("Focus Terminal", StringComparison.OrdinalIgnoreCase) ||
                          cls.Contains("xterm", StringComparison.OrdinalIgnoreCase))
                 {
                     if (resolvedPane == WindowPaneLocation.Unknown) resolvedPane = WindowPaneLocation.BottomPanel;
