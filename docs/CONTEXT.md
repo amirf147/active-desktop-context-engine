@@ -94,6 +94,7 @@ Documentation is structured into strict tiers to keep human developers and AI as
 | [`architecture/EXTRACTION_PIPELINE.md`](architecture/EXTRACTION_PIPELINE.md) | `ADCE.Extraction` | Win32 shallow gating (< 0.5 ms), UIPI privilege boundary checks, single-roundtrip `FlaUI.UIA3` batch caching, zero-unbounded DOM crawling invariant, dynamic JSON rules. |
 | [`architecture/STORAGE_ARCHITECTURE.md`](architecture/STORAGE_ARCHITECTURE.md) | `ADCE.Storage` | Sub-microsecond L1 atomic memory cache, channel-decoupled SQLite WAL time-series store (`desktop_snapshots`), automated retention pruning. |
 | [`architecture/DAEMON_AND_CONSUMER_INTEGRATION.md`](architecture/DAEMON_AND_CONSUMER_INTEGRATION.md) | `ADCE.Daemon`, `ADCE.Mcp` | STA WinEvent hook pump, single-instance mutex, non-activating floating HUD overlay, JSON-RPC 2.0 endpoints (`get_current_snapshot`), Caster dynamic voice grammars. |
+| [`architecture/SECURITY_AND_HYGIENE_AUDIT_2026.md`](architecture/SECURITY_AND_HYGIENE_AUDIT_2026.md) | Whole Solution | Master security, privacy, and hygiene audit covering MCP CORS/auth hardening, live privacy sanitizer integration, tool contracts, and COM RCW management. |
 
 ### 3.2 Application Hierarchies & Layouts
 | Profile | Target Application | Documented Automation Structure |
