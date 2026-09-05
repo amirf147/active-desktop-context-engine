@@ -9,6 +9,10 @@ Copyright (c) 2026 Amir Farhadi
 
 # Architectural Synthesis & Wheel Reinvention Audit: Roemer & Simon Mourier Ecosystems
 
+> **Document Status:** Historical Research Synthesis / Justification Audit
+> **Epistemic Authority:** Tier 6 (External Research & Upstream Lineage — Non-Normative Background Context)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
+
 ## 1. Problem Framing & Strategic Objective
 
 Before committing code to the Active Desktop Context Engine (ADCE), we performed an adversarial research investigation into the bodies of work authored by **Simon Mourier** (`github.com/smourier`, Windows systems/COM architect) and **Roman Baeriswyl** (`github.com/Roemer`, architect of `FlaUI` & `FlaUInspect`).

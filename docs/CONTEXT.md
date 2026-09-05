@@ -58,10 +58,12 @@ To ensure consistency and ground human developers and local AI agents in verifie
 ├────────────────────────────────────────────────────────────────────────────────────────┤
 │ TIER 1: EMPIRICAL GROUND TRUTH & EXECUTABLE CODE (Supreme Authority)                   │
 │ • Active C# Solution: src/ (ADCE.Core, Extraction, Storage, Mcp, Daemon, Spikes)       │
-│ • Automated Test Suite: tests/ (136 unit tests)                                        │
+│ • Automated Test Suite: tests/ (263 passing unit tests across 5 test suites)           │
 │ • Verified Telemetry: docs/reports/LATEST_CLAIM_VERIFICATION.md                        │
+│ • Ground-Truth Baseline: docs/reports/AUDIT_STAGE_1_GROUND_TRUTH_BASELINE.md           │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
 │ TIER 2: ARCHITECTURAL SSOT & STRUCTURAL SPECIFICATIONS (Active Master Blueprints)      │
+│ • docs/reports/AUDIT_STAGE_2_SPECIFICATION_DRIFT.md (Specification Drift Ledger)       │
 │ • docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md (Target node SSOT)          │
 │ • docs/architecture/ARCHITECTURE_AND_MODULAR_IMPLEMENTATION_PLAN.md (Work Package SSOT)│
 │ • docs/architecture/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md (Archetype Spec)        │
@@ -97,6 +99,7 @@ To ensure consistency and ground human developers and local AI agents in verifie
 ### 🏛️ Tier 2: Architecture & System Specifications
 | Document | Description |
 | :--- | :--- |
+| 📋 [`reports/AUDIT_STAGE_2_SPECIFICATION_DRIFT.md`](reports/AUDIT_STAGE_2_SPECIFICATION_DRIFT.md) | Canonical drift analysis reconciling Tier 2 master blueprints with Tier 1 compiled code. |
 | 🏗️ [`architecture/ARCHITECTURE_AND_MODULAR_IMPLEMENTATION_PLAN.md`](architecture/ARCHITECTURE_AND_MODULAR_IMPLEMENTATION_PLAN.md) | 5-project solution architecture, decoupled work packages, and phased execution milestones. |
 | 📋 [`architecture/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md`](architecture/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md) | 5 Desktop Framework Archetypes, dynamic heuristic discovery pipeline, database tradeoffs, and performance targets. |
 | 🔌 [`architecture/MCP_SCHEMA_SPEC.md`](architecture/MCP_SCHEMA_SPEC.md) | Evolving JSON schema specifications, decoupled envelope definitions, and MCP tool endpoint definitions. |
@@ -136,6 +139,7 @@ To ensure consistency and ground human developers and local AI agents in verifie
 | 🔬 [`postmortems/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_4.md`](postmortems/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_4.md) | Physical analysis of child HWNDs in Electron, desktop-wide global UIA focus bleeding, and archetype-scoped zone isolation. |
 | 🔬 [`postmortems/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_4_5.md`](postmortems/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_4_5.md) | Ground-Truth stimulus test harness findings, automated assertion engines, and empirical evidence logging. |
 | 🔬 [`postmortems/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_6.md`](postmortems/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_6.md) | Milestone 6 verification, System Tray lifecycle integration, non-activating DevTools HUD overlay mechanics. |
+| 📋 [`reports/AUDIT_STAGE_1_GROUND_TRUTH_BASELINE.md`](reports/AUDIT_STAGE_1_GROUND_TRUTH_BASELINE.md) | Canonical Ground-Truth Baseline extracting executable contracts, 19 zones, and 263 passed tests. |
 | 📋 [`reports/LATEST_CLAIM_VERIFICATION.md`](reports/LATEST_CLAIM_VERIFICATION.md) | Canonical Ground-Truth Claim Evidence Matrix (CLM-001 through CLM-006). |
 | 📊 [`benchmarks/`](benchmarks/) | Empirical Telemetry Benchmarks ([FlaUI UIA3](benchmarks/001_micro_spike_1_flaui_telemetry.md) / [Win32 Shallow](benchmarks/002_micro_spike_2_python_shallow_telemetry.md)). |
 

@@ -22,7 +22,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\ADCE.Core\ADCE.Core.csproj" />
     <ProjectReference Include="..\..\src\ADCE.Extraction\ADCE.Extraction.csproj" />
-    <ProjectReference Include="..\..\src\ADCE.Spikes\ADCE.Spikes.csproj" />
   </ItemGroup>
 
 </Project>

@@ -9,6 +9,10 @@ Copyright (c) 2026 Amir Farhadi
 
 # Codebase Deep Dive: Roman Baeriswyl (`Roemer`) & The FlaUI Ecosystem
 
+> **Document Status:** Historical Research Archive / Ecosystem Audit
+> **Epistemic Authority:** Tier 6 (External Research & Upstream Lineage — Non-Normative Background Context)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
+
 ## Executive Summary
 
 **Roman Baeriswyl** (`github.com/Roemer`) is the architect and maintainer of **[FlaUI](https://github.com/FlaUI/FlaUI)** (3.1k+ stars) and **[FlaUInspect](https://github.com/FlaUI/FlaUInspect)** (620+ stars), the definitive modern UI Automation library and inspection tool suite for the .NET ecosystem.

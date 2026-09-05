@@ -7,7 +7,9 @@
 
 # ADCE.Spikes Program.cs Architectural Sprawl & Scratchpad Anti-Pattern Audit
 
-> **Document Type:** Technical Debt Audit & Workflow Retrospective
+> **Document Status:** Active Technical Debt Audit / Workflow Retrospective
+> **Epistemic Authority:** Tier 5 (Historical Subsystem Audit & Anti-Pattern Ledger — Non-Normative)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
 > **Target Component:** `src/ADCE.Spikes/Program.cs`
 > **Current Size:** 3,617 lines | 23 methods | 25 CLI flags | 19 Git commits
 > **Scope:** Information gathering, quantitative inventory, and root-cause analysis

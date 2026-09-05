@@ -7,10 +7,13 @@
 
 # Milestone 4 Engineering Postmortem & Systems Analysis
 
+> **Document Status:** Historical Postmortem / Superseded by Milestone 6 Production Pipeline
+> **Epistemic Authority:** Tier 5 (Historical Milestone Ledger & Retrospective Analysis — Non-Normative)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
 > **Target Systems:** `ADCE.Extraction`, `ADCE.Storage`, `ADCE.Spikes` (.NET 10 / C# 14)
 > **Date:** August 2026
 > **Physical Verification Focus:** Multi-Window Focus Transitions, Child HWNDs in Electron, Global UIA Focus Bleeding, and Archetype-Scoped Classification.
-> **Parent Documents:** [`docs/ADCE_STORAGE_DEEP_DIVE.md`](../deep_dives/ADCE_STORAGE_DEEP_DIVE.md) | [`docs/REVIEWER_OBSERVATIONS_AND_HARDENING_ROADMAP.md`](../testing/REVIEWER_OBSERVATIONS_AND_HARDENING_ROADMAP.md)
+> **Parent Documents:** [`docs/deep_dives/ADCE_STORAGE_DEEP_DIVE.md`](../deep_dives/ADCE_STORAGE_DEEP_DIVE.md) | [`docs/testing/REVIEWER_OBSERVATIONS_AND_HARDENING_ROADMAP.md`](../testing/REVIEWER_OBSERVATIONS_AND_HARDENING_ROADMAP.md)
 
 ---
 

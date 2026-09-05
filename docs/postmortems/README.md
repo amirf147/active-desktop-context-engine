@@ -7,6 +7,10 @@
 
 # ADCE Architecture & Implementation Postmortems
 
+> **Document Status:** Active Index / Master Ledger of Milestone Postmortems
+> **Epistemic Authority:** Tier 5 (Historical Milestone Ledgers & Empirical Retrospectives — Non-Normative)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
+
 This directory contains retrospective postmortems and lessons learned generated across the milestone verification spikes and production integration phases of the **Active Desktop Context Engine (ADCE)**.
 
 ---

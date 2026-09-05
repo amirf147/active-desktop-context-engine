@@ -9,9 +9,12 @@ Copyright (c) 2026 Amir Farhadi
 
 # ADCE Educational Guide: Ground-Truth Test Harness & Claim Verification
 
+> **Document Status:** Active Educational Guide
+> **Epistemic Authority:** Tier 4 (Pedagogical Overview — Subordinate to Tier 1 Code & Tier 2 Specs)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
 > **Target Audience:** Developers, systems engineers, and AI pair programmers
 > **Purpose:** Plain-English, comprehensive breakdown of how ADCE programmatically stimulates, observes, and mathematically verifies Windows OS UI interactions without manual human testing.
-> **Parent Context:** [`docs/CONTEXT.md`](../CONTEXT.md) | [`docs/EMPIRICAL_TEST_HARNESS_AND_CLAIM_VERIFICATION_SPEC.md`](../testing/EMPIRICAL_TEST_HARNESS_AND_CLAIM_VERIFICATION_SPEC.md)
+> **Parent Context:** [`docs/CONTEXT.md`](../CONTEXT.md) | [`docs/testing/EMPIRICAL_TEST_HARNESS_AND_CLAIM_VERIFICATION_SPEC.md`](../testing/EMPIRICAL_TEST_HARNESS_AND_CLAIM_VERIFICATION_SPEC.md)
 > **Verification Evidence Ledger:** [`docs/reports/LATEST_CLAIM_VERIFICATION.md`](../reports/LATEST_CLAIM_VERIFICATION.md)
 
 ---

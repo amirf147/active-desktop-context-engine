@@ -7,6 +7,9 @@
 
 # ADCE Focus & Semantic Zone Detection: Plain-English Guide
 
+> **Document Status:** Active Educational Guide
+> **Epistemic Authority:** Tier 4 (Pedagogical Overview — Subordinate to Tier 1 Code & Tier 2 Specs)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
 > **Purpose:** A visual, step-by-step explanation of how Windows focus works, what was happening in the baseline, and how ADCE detects whether you are in a Code Editor, Terminal, Search Box, or Web Document.
 
 ---

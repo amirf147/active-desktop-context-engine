@@ -9,6 +9,10 @@ Copyright (c) 2026 Amir Farhadi
 
 # Codebase Deep Dive: Interop, Telemetry & Input Tools
 
+> **Document Status:** Historical Research Archive / Ecosystem Audit
+> **Epistemic Authority:** Tier 6 (External Research & Upstream Lineage — Non-Normative Background Context)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
+
 This document analyzes Simon Mourier's specialized Windows systems tooling:
 1. [`smourier/Win32InteropBuilder`](https://github.com/smourier/Win32InteropBuilder)
 2. [`smourier/TraceSpy`](https://github.com/smourier/TraceSpy)

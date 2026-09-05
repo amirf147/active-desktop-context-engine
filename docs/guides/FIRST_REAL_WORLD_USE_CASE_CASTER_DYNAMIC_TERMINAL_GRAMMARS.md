@@ -7,6 +7,9 @@
 
 # First Real-World Downstream Use Case: Caster Dynamic IDE Terminal Grammars
 
+> **Document Status:** Active Educational Demonstration / Integration Case Study
+> **Epistemic Authority:** Tier 4 (Pedagogical Overview — Subordinate to Tier 1 Code & Tier 2 Specs)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
 > **Status:** Verified Production Integration & Empirical Demonstration
 > **Host Repository:** [caster-user-directory-and-notes](https://github.com/amirf147/caster-user-directory-and-notes)
 > **Downstream Commits:** [`95c7805`](https://github.com/amirf147/caster-user-directory-and-notes/commit/95c7805d796bfe1642f07be2cec31d5c83093b63) (Feature Implementation) & [`ea60cf0`](https://github.com/amirf147/caster-user-directory-and-notes/commit/ea60cf07c48846ae79a67372677775a07a27aeea) (Empirical Verification)

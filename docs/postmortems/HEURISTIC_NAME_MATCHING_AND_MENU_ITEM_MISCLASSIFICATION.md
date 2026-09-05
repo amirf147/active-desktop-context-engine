@@ -7,6 +7,9 @@
 
 # Engineering Retrospective: Heuristic Name-Matching Collisions and Action-Invoker Misclassification
 
+> **Document Status:** Active Engineering Retrospective / Heuristic Analysis
+> **Epistemic Authority:** Tier 5 (Historical Empirical Retrospective — Non-Normative)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
 > **Target Systems:** `ADCE.Extraction`, `ADCE.Daemon`, `ADCE.Core` (.NET 10 / C# 14 / FlaUI 5)
 > **Incident Verification Date:** 2026-09-05
 > **Target Process:** Antigravity IDE / Electron (`PID 1180`)

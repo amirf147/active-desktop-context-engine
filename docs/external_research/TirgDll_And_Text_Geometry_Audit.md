@@ -7,6 +7,9 @@
 
 # External Research: `TIRG-DLL`, Text Geometry & Spatial Voice Navigation
 
+> **Document Status:** Historical Research Archive / Computer Vision Audit
+> **Epistemic Authority:** Tier 6 (External Research & Upstream Lineage — Non-Normative Background Context)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
 > **Scope:** Technical audit of [LexiconCode/tirg-dll](https://github.com/LexiconCode/tirg-dll/tree/CMake) (Text Information Retrieval and Geometry DLL) and the core TRG computer-vision algorithm.
 > **Key Premise:** Analyzing why bounding boxes with text coordinates are fundamental accessibility primitives, and how fast spatial segmentation bridges gaps where standard UI Automation trees are missing or non-functional.
 

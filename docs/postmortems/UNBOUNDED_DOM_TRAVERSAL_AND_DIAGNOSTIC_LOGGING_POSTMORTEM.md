@@ -7,6 +7,9 @@
 
 # Engineering Postmortem: Unbounded DOM Traversal and Diagnostic Telemetry
 
+> **Document Status:** Historical Postmortem / Invariant Root-Cause Analysis
+> **Epistemic Authority:** Tier 5 (Historical Subsystem Retrospective — Non-Normative)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
 > **Target Subsystems:** `ADCE.Extraction`, `ADCE.Daemon`, `ADCE.Core`
 > **Topic:** Dissecting the 100% CPU Fan Spin Regression, Spike vs Daemon Load Discrepancies, and Automated Architectural Invariant Enforcement
 > **Related Docs:** [`docs/postmortems/LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_2.md`](LESSONS_LEARNED_AND_SPIKE_POSTMORTEM_MILESTONE_2.md) | [`docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md`](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md)

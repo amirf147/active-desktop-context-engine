@@ -7,6 +7,9 @@
 
 # Micro-Spike 1: FlaUI 5 / .NET 10 UIA3 Tab Extraction Empirical Telemetry
 
+> **Document Status:** Historical Benchmark Ledger / Micro-Spike 1
+> **Epistemic Authority:** Tier 5 (Empirical Micro-Spike Telemetry — Non-Normative)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
 > **Gate:** Gate 3 (Empirical Micro-Spikes)
 > **Date:** 2026-08-24 02:35:34 UTC
 > **Runtime:** .NET 10.0.8 (64-bit)

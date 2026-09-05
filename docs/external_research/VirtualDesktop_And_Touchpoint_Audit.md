@@ -7,6 +7,9 @@
 
 # External Research: VirtualDesktop Implementations & Touchpoint MCP Audit
 
+> **Document Status:** Historical Research Archive / API Ecosystem Audit
+> **Epistemic Authority:** Tier 6 (External Research & Upstream Lineage — Non-Normative Background Context)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
 > **Scope:** Comparative audit of Windows Virtual Desktop libraries (`Slion` vs. `MSCholtes` vs. `pyvda`) and the `Touchpoint` cross-platform accessibility MCP server.
 > **Context:** Architectural integration into ADCE's **Workspace Envelope** and MCP schema endpoints.
 

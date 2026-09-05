@@ -3,10 +3,13 @@
 
 # Milestone 6 Engineering Postmortem & Systems Verification Ledger
 
+> **Document Status:** Historical Postmortem / Superseded by Milestone 6.2 Production Pipeline
+> **Epistemic Authority:** Tier 5 (Historical Milestone Ledger & Retrospective Analysis — Non-Normative)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
 > **Milestone:** Milestone 6, 6.1 & 6.2: System Tray Background Daemon (`ADCE.Daemon`), Non-Activating HUD & Event Pipeline Hardening
 > **Runtime:** .NET 10 (`net10.0-windows`) / C# 14 / `FlaUI.UIA3 5.0.0`
 > **Date:** August 2026
-> **Verification Status:** `[PASSED]` (136/136 Unit Tests Passing + Gate 3 Spikes 1–6 Verified)
+> **Verification Status:** `[PASSED]` (136/136 Unit Tests Passing at time of writing; 263/263 active)
 
 ---
 

@@ -7,11 +7,14 @@
 
 # Milestone 4.5 Engineering Postmortem: Ground-Truth Verification & Stimulus Test Harness
 
+> **Document Status:** Historical Postmortem / Superseded by Milestone 6 Production Pipeline
+> **Epistemic Authority:** Tier 5 (Historical Milestone Ledger & Retrospective Analysis — Non-Normative)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
 > **Target Systems:** `ADCE.Spikes`, `ADCE.Extraction`, `ADCE.Storage` (.NET 10 / C# 14 / FlaUI 5)
 > **Status:** Completed & Empirically Verified
 > **Date:** August 2026
 > **Core Deliverable:** Deterministic Stimulus-Response UI Test Harness and Automated Claim Verification Matrix (CLM-001 through CLM-006).
-> **Parent Documents:** [`docs/EMPIRICAL_TEST_HARNESS_AND_CLAIM_VERIFICATION_SPEC.md`](../testing/EMPIRICAL_TEST_HARNESS_AND_CLAIM_VERIFICATION_SPEC.md) | [`docs/reports/LATEST_CLAIM_VERIFICATION.md`](../reports/LATEST_CLAIM_VERIFICATION.md)
+> **Parent Documents:** [`docs/testing/EMPIRICAL_TEST_HARNESS_AND_CLAIM_VERIFICATION_SPEC.md`](../testing/EMPIRICAL_TEST_HARNESS_AND_CLAIM_VERIFICATION_SPEC.md) | [`docs/reports/LATEST_CLAIM_VERIFICATION.md`](../reports/LATEST_CLAIM_VERIFICATION.md)
 
 ---
 

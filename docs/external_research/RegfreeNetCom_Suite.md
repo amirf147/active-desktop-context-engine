@@ -9,6 +9,10 @@ Copyright (c) 2026 Amir Farhadi
 
 # Codebase Deep Dive: Registration-Free COM & NativeAOT Suite
 
+> **Document Status:** Historical Research Archive / Architecture Audit
+> **Epistemic Authority:** Tier 6 (External Research & Upstream Lineage — Non-Normative Background Context)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
+
 This document analyzes the collection of COM server architectures authored by Simon Mourier:
 1. [`smourier/RegfreeNetComServer`](https://github.com/smourier/RegfreeNetComServer)
 2. [`smourier/RefreeNetCom`](https://github.com/smourier/RefreeNetCom)

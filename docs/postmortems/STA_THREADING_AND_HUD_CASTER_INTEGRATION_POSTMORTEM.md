@@ -11,6 +11,13 @@
 
 # Architectural Postmortem: Windows OLE STA Threading & Downstream Caster Integration
 
+> **Document Status:** Historical Postmortem / Systems Architecture Analysis
+> **Epistemic Authority:** Tier 5 (Historical Subsystem Retrospective — Non-Normative)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
+> **Subsystems:** `ADCE.Daemon`, `ADCE.Extraction`, `ADCE.Mcp`, `caster_user_content (adce_bridge.py / ide_terminal.py)`
+> **Environment:** .NET 10 (`net10.0-windows`), C# 14, FlaUI 5.0.0, Python 3.10 / Dragonfly
+> **Date:** August 2026
+
 ---
 
 ## 1. Executive Summary & Self-Audit

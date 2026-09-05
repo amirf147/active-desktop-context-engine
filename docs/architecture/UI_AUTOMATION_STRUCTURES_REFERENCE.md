@@ -7,16 +7,20 @@
 
 # Single Source of Truth: UI Automation Tree Structures & Target Zones Reference (017)
 
-> **Document Status:** Active / Master Architecture Reference (Augmented with Hierarchical Research)
+> **Document Status:** Active / Master Architecture Reference (SSOT)
+> **Epistemic Authority:** Tier 2 (Normative Architectural Blueprint — Subordinate to Tier 1 Code)
 > **Target Systems:** Active Desktop Context Engine (ADCE) & Caster Accessibility Engine
 > **Engines Tested:** C# .NET 10 (`FlaUI.UIA3 5.0.0`) & Python 3.10 (`uiautomation` / `ctypes`)
-> **Related Documents:** [`APPLICATION_PANE_AND_HIERARCHY_STRUCTURES_RESEARCH.md`](./APPLICATION_PANE_AND_HIERARCHY_STRUCTURES_RESEARCH.md) | [010: Traversal Telemetry](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/010_telemetry_benchmarks_and_live_findings.md) | [014: C# Daemon Handover](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/014_csharp_daemon_handover_and_skill_spec.md) | [015: Epistemic Recalibration](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/015_recalibration_and_adversarial_architecture_review.md) | [016: Micro-Spike 2 Telemetry](../benchmarks/002_micro_spike_2_python_shallow_telemetry.md) | [FlaUI & Roemer Ecosystem](../external_research/FlaUI_And_Roemer_Ecosystem.md)
+> **Related Documents:** [Stage 1 Ground-Truth Baseline](../reports/AUDIT_STAGE_1_GROUND_TRUTH_BASELINE.md) | [Stage 2 Drift Audit](../reports/AUDIT_STAGE_2_SPECIFICATION_DRIFT.md) | [`APPLICATION_PANE_AND_HIERARCHY_STRUCTURES_RESEARCH.md`](./APPLICATION_PANE_AND_HIERARCHY_STRUCTURES_RESEARCH.md)
 
 ---
 
 > [!NOTE]
 > **Hierarchical Model Supercedence & Application Profiles:**
-> The flat single-zone model in earlier revisions has been augmented by the 3-level hierarchical model detailed in [`APPLICATION_PANE_AND_HIERARCHY_STRUCTURES_RESEARCH.md`](./APPLICATION_PANE_AND_HIERARCHY_STRUCTURES_RESEARCH.md). Macro window regions are classified under `WindowPaneLocation` (`ActivityBar`, `PrimarySidebar`, `MainContent`, `AuxiliarySidebar`, `BottomPanel`), logical containers under `ActiveView` and `SectionName`, and leaf typing targets under `SemanticZone`.
+> The flat single-zone model in earlier revisions has been superseded by the **3-level hierarchical model**:
+> 1. **Macro Window Panes (`WindowPaneLocation`):** `ActivityBar`, `PrimarySidebar`, `MainContent`, `AuxiliarySidebar`, `BottomPanel`, `TopBar`, `StatusBar`, `OverlayModal`.
+> 2. **Logical Containers & Views:** `ActiveView` and `SectionName` (e.g. `workbench.view.explorer` / `Timeline`).
+> 3. **Leaf Semantic Typing Anchors (`DesktopSemanticZone`):** 19 granular typing targets with `ToMacroZone()` projection.
 >
 > Concrete, empirically verified per-application profiles documenting full ancestor parent trees and visual telemetry are located in the [`docs/app_hierarchies/`](../app_hierarchies/README.md) catalog (e.g. [`01_waterfox.md`](../app_hierarchies/01_waterfox.md)).
 
@@ -54,6 +58,30 @@ This single source of truth details the exact UIA3 accessibility node hierarchie
 │ **& Command Prompt** │ `ConsoleWindowClass` │ **Active Buffer**       │ `ControlType:Document│ D1 – D2 │ **< 1 ms**    │
 └──────────────────────┴──────────────────────┴─────────────────────────┴──────────────────────┴─────────┴───────────────┤
 ```
+
+### 1.1 Canonical Semantic Zones (`DesktopSemanticZone` — 19 Values)
+
+| ID | Enum Value | Description | Projected Macro Anchor (`ToMacroZone()`) |
+| :--- | :--- | :--- | :--- |
+| `0` | `Unknown` | Unrecognized or unmapped zone | `Unknown` |
+| `1` | `EditorBuffer` | Active code/text editor buffer | `EditorBuffer` |
+| `2` | `Terminal` | Command shell or terminal console | `Terminal` |
+| `3` | `GitCommitBox` | Source control commit input box | `EditorBuffer` |
+| `4` | `SidebarExplorer` | File navigation tree / explorer | `NavigationPanel` |
+| `5` | `AddressBar` | Browser URL bar or search field | `QuickOpen` |
+| `6` | `WebDocument` | Rendered web document viewport | `WebDocument` |
+| `7` | `ShellItemList` | Explorer folder items list view | `NavigationPanel` |
+| `8` | `TabBar` | Tabstrip container hosting tabs | `NavigationPanel` |
+| `9` | `StatusBar` | Application status / metadata strip | `NavigationPanel` |
+| `10` | `CommandPalette` | Quick switcher / command palette | `QuickOpen` |
+| `11` | `ChatPrompt` | AI conversational prompt input | `ChatPrompt` |
+| `12` | `QuickOpen` | File switcher modal search | `QuickOpen` |
+| `13` | `SystemDialog` | Modal dialog, file picker, alert | `SystemDialog` |
+| `14` | `NavigationPanel` | Tool panel or navigation dock | `NavigationPanel` |
+| `15` | `ActivityBar` | Primary activity bar icon strip | `NavigationPanel` |
+| `16` | `Timeline` | Version timeline / history item | `NavigationPanel` |
+| `17` | `Outline` | Document symbol outline tree | `NavigationPanel` |
+| `18` | `ChatConversation`| AI chat conversation history | `ChatPrompt` |
 
 ---
 

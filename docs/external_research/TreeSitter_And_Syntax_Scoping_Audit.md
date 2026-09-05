@@ -7,6 +7,9 @@
 
 # External Research: Tree-sitter, Incremental Parsing & Syntactic Voice Scoping
 
+> **Document Status:** Historical Research Archive / Syntactic Scoping Audit
+> **Epistemic Authority:** Tier 6 (External Research & Upstream Lineage — Non-Normative Background Context)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
 > **Scope:** Technical audit of [Tree-sitter](https://github.com/tree-sitter/tree-sitter) (C / Rust incremental parsing system) and its architectural applicability to the Active Desktop Context Engine (ADCE) and Caster / Dragonfly voice grammar systems.
 > **Key Premise:** Moving beyond top-level window envelopes and sub-window UI zones (`DesktopSemanticZone`) into **syntactic and semantic document micro-contexts** (AST nodes, function boundaries, docstrings, and expression scopes) to enable dynamic, context-aware voice grammars.
 

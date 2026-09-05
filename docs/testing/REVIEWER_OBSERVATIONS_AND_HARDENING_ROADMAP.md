@@ -3,6 +3,9 @@
 
 # Reviewer Observations & Systems Hardening Roadmap
 
+> **Document Status:** Historical Reviewer Ledger / Hardening Roadmap
+> **Epistemic Authority:** Tier 5 (Adversarial Review Ledger & Hardening Roadmap — Non-Normative)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
 > **Target Engine:** Active Desktop Context Engine (ADCE)
 > **Source:** Adversarial Peer Review following Milestone 3 Live Verification
 > **Date:** August 2026

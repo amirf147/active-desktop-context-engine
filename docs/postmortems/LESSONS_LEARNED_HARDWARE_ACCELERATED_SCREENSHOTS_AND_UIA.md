@@ -7,6 +7,9 @@
 
 # Lessons Learned: Hardware-Accelerated Screenshots, DirectComposition, and UIA Semantic Immunity
 
+> **Document Status:** Historical Postmortem / Systems Research Ledger
+> **Epistemic Authority:** Tier 5 (Historical Empirical Retrospective — Non-Normative)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
 > **Subsystem:** Empirical Telemetry Harness (`ADCE.Spikes`), Visual Evidence, and UIA Semantic Extraction
 > **Target Application:** Waterfox Browser (`Gecko` Engine / `MozillaWindowClass`)
 > **Date:** September 2026

@@ -7,9 +7,12 @@
 
 # Milestone 2 Engineering Postmortem & Systems Breakdown
 
+> **Document Status:** Historical Postmortem / Superseded by Milestone 6 Production Pipeline
+> **Epistemic Authority:** Tier 5 (Historical Milestone Ledger & Retrospective Analysis — Non-Normative)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
 > **Target Scope:** `ADCE.Extraction` Live Spike & UI Automation Physics
 > **Topic:** Dissecting the "Empty Snapshot" Failure, Win32 Desktop Sessions, Compound Class Name Matching, and Architectural Hardening
-> **Related Docs:** [`docs/ADCE_EXTRACTION_DEEP_DIVE.md`](../deep_dives/ADCE_EXTRACTION_DEEP_DIVE.md) | [`docs/UI_AUTOMATION_STRUCTURES_REFERENCE.md`](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md)
+> **Related Docs:** [`docs/deep_dives/ADCE_EXTRACTION_DEEP_DIVE.md`](../deep_dives/ADCE_EXTRACTION_DEEP_DIVE.md) | [`docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md`](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md)
 
 ---
 

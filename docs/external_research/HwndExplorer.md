@@ -9,6 +9,10 @@ Copyright (c) 2026 Amir Farhadi
 
 # Codebase Deep Dive: `smourier/HwndExplorer`
 
+> **Document Status:** Historical Research Archive / Tooling Analysis
+> **Epistemic Authority:** Tier 6 (External Research & Upstream Lineage — Non-Normative Background Context)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
+
 ## Executive Summary
 
 `HwndExplorer` is a native Win32 window exploration and diagnostic utility written in C#. It exposes the complete desktop window hierarchy, process mapping, extended window styles (`WS` / `WS_EX`), thread ownership, coordinates, and z-order relationships using high-performance Win32 P/Invokes.

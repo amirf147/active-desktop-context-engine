@@ -9,6 +9,10 @@ Copyright (c) 2026 Amir Farhadi
 
 # External Research: Windows Systems, COM & UI Automation Ecosystem
 
+> **Document Status:** Active Index / Historical Research Archive
+> **Epistemic Authority:** Tier 6 (External Research & Upstream Lineage — Non-Normative Background Context)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
+
 This directory contains technical audits, architectural analyses, and reverse-engineering notes across leading open-source Windows platform tooling, COM frameworks, and UI Automation implementations—specifically analyzing the bodies of work authored by **Simon Mourier** (`github.com/smourier`) and **Roman Baeriswyl** (`github.com/Roemer`, FlaUI).
 
 ## Analyzed Repositories & Tooling Ecosystems

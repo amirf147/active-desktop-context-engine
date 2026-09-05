@@ -7,6 +7,9 @@
 
 # External Research: `AccessKit`, Cross-Platform Accessibility Primitives & The Provider/Consumer Continuum
 
+> **Document Status:** Historical Research Archive / Architecture Evaluation
+> **Epistemic Authority:** Tier 6 (External Research & Upstream Lineage — Non-Normative Background Context)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
 > **Scope:** Technical audit of [AccessKit](https://github.com/AccessKit/accesskit) (Rust cross-platform accessibility abstraction layer) and its relationship to the Active Desktop Context Engine (ADCE), Windows UI Automation (UIA), and voice recognition architectures.
 > **Key Premise:** Evaluating AccessKit as the emerging standard for cross-platform accessibility primitives, dissecting the fundamental distinction between **Accessibility Providers** and **Accessibility Consumers**, and mapping AccessKit's trajectory for future ADCE cross-platform expansion.
 

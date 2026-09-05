@@ -9,6 +9,10 @@ Copyright (c) 2026 Amir Farhadi
 
 # Codebase Deep Dive: `smourier/UInspect`
 
+> **Document Status:** Historical Research Archive / UIA Tooling Audit
+> **Epistemic Authority:** Tier 6 (External Research & Upstream Lineage — Non-Normative Background Context)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
+
 ## Executive Summary
 
 `UInspect` is a pure C# .NET implementation and replacement for the classic Windows SDK `Inspect.exe` tool. It provides direct, low-level inspection of the Windows UI Automation (UIA) tree, element properties, supported control patterns, and live structure change event dispatching.

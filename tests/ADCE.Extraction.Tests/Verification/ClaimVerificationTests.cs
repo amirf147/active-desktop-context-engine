@@ -5,8 +5,7 @@ using System;
 using System.Threading.Tasks;
 using ADCE.Core.Enums;
 using ADCE.Extraction.Engine;
-using ADCE.Spikes.Verification.Drivers;
-using ADCE.Spikes.Verification.Models;
+using ADCE.Extraction.Tests.Verification.Mocks;
 using Xunit;
 
 namespace ADCE.Extraction.Tests.Verification;

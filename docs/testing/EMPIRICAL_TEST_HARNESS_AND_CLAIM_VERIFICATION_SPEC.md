@@ -7,8 +7,10 @@
 
 # Empirical Test Harness & Claim Verification Specification
 
+> **Document Status:** Active Testing Specification / Verification Protocol
+> **Epistemic Authority:** Tier 5 (Empirical Testing Specification — Subordinate to Tier 1 Code & Tier 2 Specs)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
 > **Target Systems:** `ADCE.Spikes`, `ADCE.Extraction`, `ADCE.Storage` (.NET 10 / C# 14 / FlaUI 5)
-> **Status:** Architectural Specification & Roadmap Directive
 > **Date:** August 2026
 > **Core Objective:** Eliminate manual testing ambiguities, retrospective post-hoc rationalization, and ungrounded architectural claims by implementing a deterministic **Stimulus-Response UI Test Harness**.
 

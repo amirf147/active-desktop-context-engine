@@ -7,98 +7,139 @@
 
 # Epistemic Gaps, Dynamic App Discovery & Engine Requirements Specification (018)
 
-> **Document Status:** Active / Epistemic Review & Product Requirements Specification
+> **Document Status:** Active / Master Architecture Specification (Reconciled with Milestone 6 Production Baseline)
+> **Epistemic Authority:** Tier 2 (Normative Architectural Blueprint — Subordinate to Tier 1 Code)
 > **Target System:** Active Desktop Context Engine (ADCE)
-> **Repository Boundary:** Final research handover document bridging `caster` and `active-desktop-context-engine`
-> **Related Documents:** [015: Epistemic Recalibration](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/015_recalibration_and_adversarial_architecture_review.md) | [016: Micro-Spike 2 Telemetry](../benchmarks/002_micro_spike_2_python_shallow_telemetry.md) | [017: UI Automation SSOT](UI_AUTOMATION_STRUCTURES_REFERENCE.md)
+> **Related Documents:** [Stage 1 Ground-Truth Baseline](../reports/AUDIT_STAGE_1_GROUND_TRUTH_BASELINE.md) | [Stage 2 Drift Audit](../reports/AUDIT_STAGE_2_SPECIFICATION_DRIFT.md) | [UI Automation SSOT](UI_AUTOMATION_STRUCTURES_REFERENCE.md)
 
 ---
 
 ## 1. Epistemic Pause: Interrogating Our Knowledge Gaps
 
-In accordance with our **4-Gate Epistemic Protocol**, before proceeding with full implementation of the C# `ADCE.Daemon`, we must apply a rigorous epistemic brake:
+In accordance with our **4-Gate Epistemic Protocol**, before scaling the C# `ADCE.Daemon`, we applied a rigorous epistemic brake:
 
 > [!WARNING]
-> **The Hardcoded Selector Trap:**
-> In Document `017`, we successfully mapped specific container selectors for Antigravity IDE (`tabs-container`), Waterfox (`tabs normal`), and Windows 11 File Explorer (`TabView`).
-> **The Epistemic Risk:** If `ADCE.Daemon` relies strictly on hardcoded class names and automation IDs, the engine is brittle. It will break when applications update their UI frameworks, and it will be completely blind to 95% of other software (Notion, Slack, Obsidian, JetBrains IDEs, Visual Studio, LibreOffice, CAD, terminal multiplexers).
+> **The Hardcoded Selector Trap (Mitigated in Milestone 4.5 & 5):**
+> If `ADCE.Daemon` relies strictly on hardcoded class names and automation IDs, the engine is brittle. It breaks when applications update their UI frameworks, and it is blind to arbitrary third-party software.
+> **Engineered Resolution:** ADCE implements a dual strategy: universal framework archetypes (`DesktopAppArchetype`) combined with dynamic declarative rule persistence (`ISemanticRuleEngine`).
 
-### Core Knowledge Gaps Identified:
+### Core Knowledge Gaps & Production Resolutions:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                              IDENTIFIED KNOWLEDGE GAPS                                 │
-├────────────────────┬──────────────────────────────────┬────────────────────────────────┤
-│ Gap Category       │ Open Question / Uncertainty      │ Risk Severity & Impact         │
-├────────────────────┼──────────────────────────────────┼────────────────────────────────┤
-│ **1. Dynamic App** │ How does ADCE introspect and     │ **CRITICAL**                   │
-│ **Discovery**      │ adapt to unseen apps without     │ Brittle hardcoding breaks on   │
-│                    │ human configuration?             │ app updates / new software.    │
-├────────────────────┼──────────────────────────────────┼────────────────────────────────┤
-│ **2. Historical**  │ How to store millions of window  │ **HIGH**                       │
-│ **Persistence**    │ & focus transitions without disk │ Unbounded growth, query lag    │
-│                    │ bloat or locking MCP queries?    │ during real-time speech.       │
-├────────────────────┼──────────────────────────────────┼────────────────────────────────┤
-│ **3. Multi-Window**│ When an app has multiple windows │ **MEDIUM**                     │
-│ **State Modeling** │ or tool palettes, how is active  │ Ambiguous context for AI       │
-│                    │ workspace state reconciled?      │ reasoning models.              │
-├────────────────────┼──────────────────────────────────┼────────────────────────────────┤
-│ **4. 24/7 Daemon** │ How does memory footprint behave │ **MEDIUM**                     │
-│ **Resiliency**     │ over days of continuous uptime   │ COM leaks / memory growth      │
-│                    │ with sleeping/resuming laptops?  │ requiring manual restarts.     │
-└────────────────────┴──────────────────────────────────┴────────────────────────────────┘
+│                        KNOWLEDGE GAPS & PRODUCTION RESOLUTION MATRIX                   │
+├────────────────────┬──────────────────────────────────┬─────────────┬──────────────────┤
+│ Gap Category       │ Open Question / Uncertainty      │ Severity    │ Resolution Status│
+├────────────────────┼──────────────────────────────────┼─────────────┼──────────────────┤
+│ **1. Dynamic App** │ How does ADCE introspect and     │ **CRITICAL**│ **RESOLVED**     │
+│ **Discovery**      │ adapt to unseen apps without     │             │ `SemanticRuleEng`│
+│                    │ human configuration?             │             │ + ArchetypeClass │
+├────────────────────┼──────────────────────────────────┼─────────────┼──────────────────┤
+│ **2. Historical**  │ How to store millions of window  │ **HIGH**    │ **RESOLVED**     │
+│ **Persistence**    │ & focus transitions without disk │             │ SQLite WAL +     │
+│                    │ bloat or locking MCP queries?    │             │ L1 Memory Cache  │
+├────────────────────┼──────────────────────────────────┼─────────────┼──────────────────┤
+│ **3. Multi-Window**│ When an app has multiple windows │ **MEDIUM**  │ **RESOLVED**     │
+│ **State Modeling** │ or tool palettes, how is active  │             │ `GA_ROOTOWNER` + │
+│                    │ workspace state reconciled?      │             │ 3-Level Hierarchy│
+├────────────────────┼──────────────────────────────────┼─────────────┼──────────────────┤
+│ **4. 24/7 Daemon** │ How does memory footprint behave │ **MEDIUM**  │ **RESOLVED**     │
+│ **Resiliency**     │ over days of continuous uptime   │             │ Named Mutex,     │
+│                    │ with sleeping/resuming laptops?  │             │ 50ms COM Timeout │
+└────────────────────┴──────────────────────────────────┴─────────────┴──────────────────┘
 ```
 
 ---
 
 ## 2. Desktop Framework Archetypes & Adaptive Discovery
 
-Rather than hardcoding string selectors for every application in existence, ADCE must classify active windows into **5 Universal Desktop Archetypes**:
+Rather than hardcoding string selectors for every application in existence, ADCE classifies active windows into universal structural archetypes:
 
 ```mermaid
 graph TD
     Root["Active Top-Level HWND"] --> Classify["Archetype Classifier (Win32 Class & Process)"]
 
-    Classify --> A1["Archetype 1: Chromium / Electron<br/>(VS Code, Antigravity, Slack, Teams)"]
+    Classify --> A1["Archetype 1: Chromium / Electron<br/>(VS Code, Antigravity, Slack, Chrome)"]
     Classify --> A2["Archetype 2: Gecko<br/>(Waterfox, Firefox, Thunderbird)"]
     Classify --> A3["Archetype 3: WinUI 3 / XAML<br/>(Win11 Explorer, Windows Terminal)"]
-    Classify --> A4["Archetype 4: Classic Win32 / Common Controls<br/>(Notepad, 7-Zip, Legacy Apps)"]
+    Classify --> A4["Archetype 4: Classic Win32 / Common Controls<br/>(Notepad, 7-Zip, Dialogs)"]
     Classify --> A5["Archetype 5: Non-Native Canvas / Toolkits<br/>(JetBrains/Swing, Qt, Flutter, WPF)"]
+    Classify --> A0["Archetype 0: Unknown / Unclassified"]
 
     A1 --> P1["Probe Pattern: tabs-container OR Document Tabstrip"]
     A2 --> P2["Probe Pattern: tabs normal OR tabbrowser-tabs"]
     A3 --> P3["Probe Pattern: TabView / TabListView"]
-    A4 --> P4["Probe Pattern: SysTabControl32 / MDI"]
+    A4 --> P4["Probe Pattern: SysTabControl32 / Edit / Dialog"]
     A5 --> P5["Probe Pattern: Universal SelectionItem Heuristic"]
 ```
 
-### The 4-Tier Self-Healing Extraction Pipeline (Dual-Engine Implementation):
+### The Canonical Archetype Enum (`ADCE.Core.Enums.DesktopAppArchetype`):
+* `Unknown = 0`: Unclassified window.
+* `ChromiumElectron = 1`: VS Code, Antigravity, Slack, Discord, Chrome, Edge.
+* `Gecko = 2`: Waterfox, Firefox, Thunderbird.
+* `WinUI3Xaml = 3`: Windows 11 Explorer (`CabinetWClass`), Windows Terminal (`CASCADIA_HOSTING_WINDOW_CLASS`).
+* `ClassicWin32 = 4`: Notepad, 7-Zip, Dialog boxes (`#32770`), `ConsoleWindowClass`.
+* `CanvasToolkit = 5`: JetBrains (`SunAwt`), Qt (`Qt5`/`Qt6`), Flutter, WPF (`HwndWrapper`).
 
-1. **Tier 1: Fast Win32 Envelope (< 0.5 ms — *from HwndExplorer*):**
+### The 4-Tier Self-Healing Extraction Pipeline:
+
+1. **Tier 1: Fast Win32 Envelope (< 0.5 ms — *`Win32Gating.cs`*):**
    * Instantly query HWND, Process Name, Window Title, and Window Rect via direct Win32 C-calls before entering the COM pipeline.
 2. **Tier 2: Universal Pattern Probing (1–3 ms — *via MTA Worker Queue*):**
-   * Query `GetFocusedControl()`. Probe for standard UIA patterns (`ValuePattern`, `TextPattern`, `SelectionItemPattern`) on a dedicated MTA thread (`SingleThreadTaskScheduler`).
-3. **Tier 3: Archetype Container Discovery & Batch Caching (5–15 ms — *via FlaUI.UIA3 CacheRequest*):**
-   * If the window matches a known archetype, use heuristic role-based probing and activate a scoped `CacheRequest.Activate()` (`AutomationElementMode.None`) to extract all child items in a single cross-process round-trip.
-4. **Tier 4: Declarative App Definition Overrides (JSON):**
-   * Maintain an extensible, user-editable `app_definitions.json` for complex edge cases (e.g. Tree Style Tab sidebar or custom multi-group IDEs) without requiring code recompilation.
+   * Query focused control. Probe for standard UIA patterns (`ValuePattern`, `TextPattern`, `SelectionItemPattern`) on a dedicated MTA thread.
+3. **Tier 3: Archetype Container Discovery & Batch Caching (5–15 ms — *via `FlaUI.UIA3 CacheRequest`*):**
+   * Scoped `CacheRequest.Activate()` (`AutomationElementMode.None`) fetches all child elements in 1 single cross-process round-trip.
+4. **Tier 4: Dynamic Declarative Rule Engine (`ISemanticRuleEngine`):**
+   * Thread-safe rule engine persisting dynamic user/agent overrides to `%LOCALAPPDATA%\ADCE\semantic_rules.json`, matching against Process, ControlType, ElementName, AutomationId, ClassName, and ContainerPath.
 
 ---
 
 ## 3. Historical Persistence: Storage Architecture Tradeoffs
 
-To enable temporal context (*"What did I edit 20 minutes ago?"*), ADCE requires an embedded time-series database.
+To enable temporal context (*"What did I edit 20 minutes ago?"*), ADCE implements a high-throughput dual-tier storage engine in `ADCE.Storage`.
 
 | Database Engine | Pros | Cons | Verdict |
 | :--- | :--- | :--- | :--- |
-| **SQLite (WAL mode)** | Ultra-lightweight, zero external dependencies, ubiquitous C# bindings (`Microsoft.Data.Sqlite`), instant indexed time-range queries. | Row-oriented; requires table pruning policies. | **Recommended for Primary Storage** |
-| **DuckDB** | Blazing columnar analytical queries over large history datasets; built-in Parquet export. | Slightly larger embedded binary footprint (~30MB). | **Strong Alternative for Long-Term Analytics** |
-| **LiteDB (Embedded NoSQL)** | Pure C# BSON document store; direct object mapping. | Slower time-series range index scans compared to SQLite. | **Not Recommended** |
+| **SQLite (WAL mode)** | Ultra-lightweight, zero external dependencies, ubiquitous C# bindings (`Microsoft.Data.Sqlite`), instant indexed time-range queries. | Row-oriented; requires pruning policies. | **Adopted for Production Storage** |
+| **DuckDB** | Columnar analytical queries over very large datasets. | ~30MB extra binary overhead. | Evaluated, deferred for future standalone analytics |
+| **LiteDB** | Pure C# BSON document store. | Slower range scans under load. | Rejected |
 
-### Database Schema Blueprint (SQLite):
-* **`window_sessions`**: `(session_id, hwnd, process_name, title, class_name, start_time, end_time, virtual_desktop_id)`
-* **`focus_transitions`**: `(transition_id, session_id, timestamp, control_type, element_name, automation_id, value_snippet)`
-* **`tab_snapshots`**: `(snapshot_id, session_id, timestamp, tab_count, active_tab_title, tab_items_json)`
+### Production Database Schema (`desktop_snapshots`):
+Rather than fragmenting high-frequency events across multiple normalized tables (which introduced transaction lock contention during rapid typing), production ADCE uses a single denormalized time-series WAL table:
+
+```sql
+CREATE TABLE IF NOT EXISTS desktop_snapshots (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp_utc TEXT NOT NULL,
+    timestamp_unix_ms INTEGER NOT NULL,
+    hwnd INTEGER NOT NULL,
+    window_title TEXT NOT NULL,
+    process_name TEXT NOT NULL,
+    class_name TEXT NOT NULL,
+    archetype INTEGER NOT NULL,
+    focus_control_type TEXT NOT NULL,
+    focus_element_name TEXT NOT NULL,
+    focus_semantic_zone INTEGER NOT NULL,
+    pane_location TEXT NOT NULL,
+    active_view TEXT NOT NULL,
+    section_name TEXT NOT NULL,
+    semantic_path TEXT NOT NULL,
+    active_file_or_tab TEXT NOT NULL,
+    container_path TEXT NOT NULL,
+    container_classes TEXT NOT NULL,
+    snapshot_json TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_snapshots_time ON desktop_snapshots(timestamp_unix_ms DESC);
+CREATE INDEX IF NOT EXISTS idx_snapshots_hwnd ON desktop_snapshots(hwnd);
+CREATE INDEX IF NOT EXISTS idx_snapshots_process ON desktop_snapshots(process_name);
+CREATE INDEX IF NOT EXISTS idx_snapshots_zone ON desktop_snapshots(focus_semantic_zone);
+CREATE INDEX IF NOT EXISTS idx_snapshots_pane ON desktop_snapshots(pane_location);
+```
+
+* **L1 In-Memory Atomic Cache:** Live queries bypass SQLite entirely and return in `< 0.001 ms`.
+* **Channel-Decoupled Asynchronous Writer:** Snapshots enqueue into a `Channel<DesktopContextSnapshot>` with `DropOldest` full mode, shielding UI threads from disk I/O.
+* **Automatic Maintenance:** Background vacuum/pruning executes periodically based on commit cadence.
 
 ---
 
@@ -106,10 +147,10 @@ To enable temporal context (*"What did I edit 20 minutes ago?"*), ADCE requires 
 
 ### A. Functional Requirements
 * **FR-1 (Event-Driven Hooking):** Listen to `EVENT_SYSTEM_FOREGROUND` and `EVENT_OBJECT_FOCUS` via `SetWinEventHook` with zero CPU polling when idle.
-* **FR-2 (Multi-Zone Extraction):** Extract top-level window metadata, active editor/browser tabs, file breadcrumbs, sidebar views, and focused input buffers.
+* **FR-2 (Multi-Zone Hierarchical Extraction):** Extract top-level window metadata, 3-level focus hierarchy (`PaneLocation`, `ActiveView`, `SectionName`, `SemanticZone`), active editor/browser tabs, and breadcrumbs.
 * **FR-3 (DOM Pruning):** Automatically isolate and prune browser content viewports (`ControlType.Document`) to guarantee zero IPC stalls.
 * **FR-4 (MCP Server Interface):** Expose JSON context snapshots and historical queries over Model Context Protocol via SSE, HTTP, and Stdio transports.
-* **FR-5 (System Tray Lifecycle):** Run silently in the Windows system tray with start-at-login support, status indicators, and pause/resume controls.
+* **FR-5 (System Tray Lifecycle):** Run silently in the Windows system tray with single-instance mutex, floating HUD overlay, and dynamic log streaming.
 
 ### B. Performance SLAs (Non-Functional Requirements)
 * **SLA-1 (Idle CPU):** `0.0%` sustained CPU usage while user is idle.

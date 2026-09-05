@@ -7,7 +7,9 @@
 
 # Micro-Spike 2: Win32 Shallow Python Telemetry & Comparative Analysis (016)
 
-> **Document Status:** Active / Gate 3 Empirical Benchmark Report
+> **Document Status:** Historical Benchmark Ledger / Micro-Spike 2
+> **Epistemic Authority:** Tier 5 (Empirical Micro-Spike Telemetry — Non-Normative)
+> **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
 > **Target System:** Active Desktop Context Engine (ADCE) & Gate 3 Empirical Micro-Spikes
 > **Related Documents:** [010: Traversal Telemetry](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/010_telemetry_benchmarks_and_live_findings.md) | [011: FlaUI Evaluation](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/011_flaui_evaluation_and_dual_plane_architecture.md) | [014: C# Daemon Handover](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/014_csharp_daemon_handover_and_skill_spec.md) | [015: Epistemic Recalibration](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/015_recalibration_and_adversarial_architecture_review.md)
 
