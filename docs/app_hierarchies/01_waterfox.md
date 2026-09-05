@@ -310,21 +310,95 @@ graph TD
 
 ---
 
-## 6. Actionable Implementation Changes for `ADCE.Extraction`
+## 6. Active Strategy Resolver Architecture (`GeckoZoneResolver`)
 
-The following changes will be applied to `UiaExtractionEngine.cs` in Gate 4:
+Following the Stage 1 architectural decomposition, Gecko semantic classification logic was decoupled from procedural engine code and relocated into the dedicated strategy resolver [`GeckoZoneResolver.cs`](../../src/ADCE.Extraction/Resolvers/GeckoZoneResolver.cs) implementing `IArchetypeZoneResolver`.
+
+### 6.1 Architectural Principle: Structural Ancestor Chains vs. Leaf String Heuristics
+
+Rather than relying on fragile string comparisons or substring matching on leaf control names (which break across locales and dynamic DOM page content), ADCE enforces **structural ancestor hierarchy resolution**:
+
+1. **The Viewport Boundary Invariant:**
+   When an element's parent container chain contains `ControlType.Document`, `MozillaContentWindowClass`, or `tabbrowser-tabpanels`, the control is definitively inside the web page canvas. All desktop window chrome rules and spatial geometry fallbacks are **strictly inhibited**. The element is locked to `WindowPaneLocation.MainContent` and `DesktopSemanticZone.WebDocument`.
+
+2. **Structural Container Anchors:**
+   Desktop chrome controls are resolved by matching known structural parents in the `AncestorChain`:
+   - `#urlbar` / `#urlbar-input` in ancestors → `TopBar` / `AddressBar`
+   - `#PersonalToolbar` / `#PlacesToolbar` in ancestors → `TopBar` / `NavigationPanel` (`BookmarksToolbar`)
+   - `#TabsToolbar` / `#tabbrowser-tabs` in ancestors → `TopBar` / `TabBar`
+   - `#sidebar-box` in ancestors → `PrimarySidebar` (`Sidebar` or `SidebarTabs`)
 
 ```csharp
-// 1. Strict Gecko Document Boundary Isolation
-bool isInsideWebDocument = containerClasses.Any(c => c.Contains("MozillaContentWindowClass", StringComparison.OrdinalIgnoreCase)) ||
-                           containerPath.Any(p => p.Equals("Document", StringComparison.OrdinalIgnoreCase));
-
-if (isInsideWebDocument)
+public sealed class GeckoZoneResolver : IArchetypeZoneResolver
 {
-    pane = WindowPaneLocation.MainContent;
-    zone = DesktopSemanticZone.WebDocument;
-    activeView = "WebDocument";
-    sectionName = null;
-    // Inhibit spatial bounding box fallbacks from overriding PaneLocation
+    public static readonly GeckoZoneResolver Instance = new();
+    public DesktopAppArchetype SupportedArchetype => DesktopAppArchetype.Gecko;
+
+    public bool TryResolve(
+        FocusedControlDescriptor control,
+        AncestorChain ancestors,
+        out SemanticResolution resolution)
+    {
+        // 1. Rendered Web Document Viewport Boundary (Structural Parent Check)
+        // If the element sits inside a Document or MozillaContentWindowClass container,
+        // it is strictly web content. Window chrome rules must never hijack it.
+        if (control.ControlType.Equals("Document", StringComparison.OrdinalIgnoreCase) ||
+            ancestors.HasClass("MozillaContentWindowClass") ||
+            ancestors.HasId("tabbrowser-tabpanels") ||
+            ancestors.HasId("appcontent"))
+        {
+            resolution = new SemanticResolution(
+                DesktopSemanticZone.WebDocument,
+                WindowPaneLocation.MainContent,
+                "WebDocument",
+                null);
+            return true;
+        }
+
+        // 2. In-Browser Sidebar Container (#sidebar-box)
+        if (ancestors.HasId("sidebar-box") || control.AutomationId.Equals("sidebar-box", StringComparison.OrdinalIgnoreCase))
+        {
+            if (control.ClassName.Contains("tab", StringComparison.OrdinalIgnoreCase) || control.AutomationId.Contains("tab", StringComparison.OrdinalIgnoreCase))
+            {
+                resolution = new SemanticResolution(DesktopSemanticZone.TabBar, WindowPaneLocation.PrimarySidebar, "SidebarTabs", null);
+                return true;
+            }
+
+            resolution = new SemanticResolution(DesktopSemanticZone.SidebarExplorer, WindowPaneLocation.PrimarySidebar, "Sidebar", null);
+            return true;
+        }
+
+        // 3. Browser Tab Strip (#TabsToolbar)
+        if (ancestors.HasId("TabsToolbar") || ancestors.HasId("tabbrowser-tabs") || control.ControlType.Equals("TabItem", StringComparison.OrdinalIgnoreCase))
+        {
+            resolution = new SemanticResolution(DesktopSemanticZone.TabBar, WindowPaneLocation.TopBar, "TabStrip", null);
+            return true;
+        }
+
+        // 4. Address Bar / URL Box (#urlbar)
+        if (control.AutomationId.Equals("urlbar-input", StringComparison.OrdinalIgnoreCase) ||
+            control.AutomationId.Equals("urlbar", StringComparison.OrdinalIgnoreCase) ||
+            ancestors.HasId("urlbar"))
+        {
+            resolution = new SemanticResolution(DesktopSemanticZone.AddressBar, WindowPaneLocation.TopBar, "NavigationBar", null);
+            return true;
+        }
+
+        // 5. Bookmarks & Navigation Toolbar (#PersonalToolbar, #nav-bar)
+        if (ancestors.HasId("PersonalToolbar") || ancestors.HasId("PlacesToolbar"))
+        {
+            resolution = new SemanticResolution(DesktopSemanticZone.NavigationPanel, WindowPaneLocation.TopBar, "BookmarksToolbar", null);
+            return true;
+        }
+
+        if (ancestors.HasId("nav-bar") || ancestors.HasId("navigator-toolbox"))
+        {
+            resolution = new SemanticResolution(DesktopSemanticZone.NavigationPanel, WindowPaneLocation.TopBar, "NavigationBar", null);
+            return true;
+        }
+
+        resolution = SemanticResolution.Unresolved;
+        return false;
+    }
 }
 ```

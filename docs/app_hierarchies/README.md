@@ -28,11 +28,26 @@ Instead, every application architecture partitions its interface into two fundam
 | :---: | :--- | :--- | :--- | :--- | :--- |
 | **01** | **Waterfox / Firefox** | Gecko | `MozillaWindowClass` | [`01_waterfox.md`](./01_waterfox.md) | ✅ Verified Ground Truth |
 | **02** | **Antigravity IDE / VS Code** | Chromium / Electron | `Chrome_WidgetWin_1` | [`02_antigravity_ide.md`](./02_antigravity_ide.md) | ✅ Verified Ground Truth |
-| **03** | **Windows Terminal** | WinUI 3 / XAML | `CASCADIA_HOSTING_WINDOW_CLASS` | [`03_windows_terminal.md`](./03_windows_terminal.md) | ✅ Verified Ground Truth |
-| **04** | **Windows Settings** | WinUI 3 / CoreWindow | `ApplicationFrameWindow` | `04_windows_settings.md` | 📋 Scheduled |
-| **05** | **File Explorer** | WinUI 3 Shell | `CabinetWClass` | `05_file_explorer.md` | 📋 Scheduled |
-| **06** | **Notepad** | Modern WinUI / Win32 | `Notepad` | `06_notepad.md` | 📋 Scheduled |
-| **07** | **Antigravity Standalone** | Chromium / Electron | `Chrome_WidgetWin_1` | `07_antigravity_standalone.md` | 📋 Scheduled |
+| **03** | **Windows Terminal** | WinUI 3 / XAML | `CASCADIA_HOSTING_WINDOW_CLASS` | [`03_windows_terminal.md`](./03_windows_terminal.md) | ⚡ Resting-State Baseline (3/7 Surfaces Verified; Modals Deferred) |
+| **04** | **Windows Settings** | WinUI 3 / CoreWindow | `ApplicationFrameWindow` | `04_windows_settings.md` | 📋 Scheduled (VM Harness) |
+| **05** | **File Explorer** | WinUI 3 Shell | `CabinetWClass` | `05_file_explorer.md` | 📋 Scheduled (VM Harness) |
+| **06** | **Notepad** | Modern WinUI / Win32 | `Notepad` | `06_notepad.md` | 📋 Scheduled (VM Harness) |
+| **07** | **Antigravity Standalone** | Chromium / Electron | `Chrome_WidgetWin_1` | `07_antigravity_standalone.md` | 📋 Scheduled (VM Harness) |
+
+---
+
+## Research Methodology & Isolated VM Profiling Strategy
+
+### The Limits of Host-Level Synthetic Drivers
+During initial research spikes, automated stimulus drivers attempted to inject synthetic keystrokes and mouse clicks directly on the developer's live workstation to trigger flyouts, command palettes, and configuration workspaces. This approach encountered key operating system barriers:
+- **Session Security & Privilege Barriers:** Background developer processes cannot reliably inject hardware events into interactive desktop applications across Windows session boundaries and integrity levels (UIPI).
+- **Focus Contention:** Automated drivers actively hijack the developer's foreground focus, mouse cursor, and active window state.
+
+### Next Steps: Shifting Deep Modal Exploration to an Isolated VM
+To maintain strict epistemic integrity without fighting the host operating system:
+1. **Host Workstation:** Restricted to passive resting-state observation and non-intrusive UIA tree sampling.
+2. **Dedicated Profiling VM / Windows Sandbox:** Deep interactive exploration (triggering complex flyouts, modal overlays, elevated settings workspaces, and multi-window state transitions) will be conducted in an isolated virtual machine or sandbox environment.
+3. **Current State:** Live host-level driver spikes are paused while the VM-based automated profiling harness and existing tooling options are evaluated.
 
 ---
 

@@ -145,7 +145,13 @@ public static class Program
                 6 => "Open Command Palette (Ctrl+Shift+P)",
                 _ => "Interactive Focus"
             };
-            string outPath = Path.Combine(mediaDir, $"step_{step:D2}_{zoneTag.ToLowerInvariant()}.png");
+            string outPath = step switch
+            {
+                4 => Path.Combine(mediaDir, "step_04_caret_menu.png"),
+                5 => Path.Combine(mediaDir, "step_05_settings_workspace.png"),
+                6 => Path.Combine(mediaDir, "step_06_command_palette.png"),
+                _ => Path.Combine(mediaDir, $"step_{step:D2}_{zoneTag.ToLowerInvariant()}.png")
+            };
 
             await InteractiveSurfaceSampler.SampleActiveFocusAsync(
                 delay, step, zoneTag, desc, stimulus, outPath, DesktopAppArchetype.WinUI3Xaml);

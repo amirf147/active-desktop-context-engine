@@ -388,34 +388,127 @@ Just as with Gecko web documents, Chromium / Monaco applications require strict 
 
 ---
 
-## 6. Actionable Implementation Changes for `ADCE.Extraction`
+## 6. Active Strategy Resolver Architecture (`ChromiumElectronZoneResolver`)
 
-The following structural rules in `UiaExtractionEngine.cs` ensure deterministic extraction for ChromiumElectron archetypes:
+Following the Stage 1 architectural decomposition, Chromium / Electron IDE classification logic was extracted from procedural engine code into the dedicated strategy resolver [`ChromiumElectronZoneResolver.cs`](../../src/ADCE.Extraction/Resolvers/ChromiumElectronZoneResolver.cs) implementing `IArchetypeZoneResolver`.
+
+### 6.1 Architectural Principle: Workbench Container Hierarchy & Action-Invoker Guard
+
+Rather than relying on fragile control names or text strings (which can collide with menu labels or file names), classification is driven by structural workbench containers and explicit control types:
+
+1. **Workbench Container Anchors:**
+   VS Code and Electron IDEs structure layout panels under explicit workbench container IDs:
+   - `workbench.parts.editor` in ancestors → `MainContent` / `EditorBuffer`
+   - `workbench.parts.auxiliarybar` in ancestors → `AuxiliarySidebar` / `ChatConversation`
+   - `workbench.parts.panel` in ancestors → `BottomPanel` / `Terminal`
+   - `workbench.parts.statusbar` in ancestors → `StatusBar` / `StatusBar`
+   - `workbench.parts.activitybar` in ancestors → `ActivityBar` / `ActivityBar`
+
+2. **Action-Invoker vs. Target Guard:**
+   Menu items (`ControlType.MenuItem`) spawned from `workbench.parts.titlebar` or context menus (`monaco-menu`, `context-view`) that invoke modal commands (e.g. `Command Palette...  Ctrl+Shift+P`) must resolve strictly to `TopBar` / `NavigationPanel`, preventing them from colliding with the target overlay modal (`OverlayModal` / `CommandPalette`).
 
 ```csharp
-// Chromium / Monaco / Antigravity IDE Boundary Isolation
-if (archetype == DesktopAppArchetype.ChromiumElectron)
+public sealed class ChromiumElectronZoneResolver : IArchetypeZoneResolver
 {
-    // Ephemeral Top Bar Menu & Context Menu Guard
-    if (controlType.Equals("MenuItem", StringComparison.OrdinalIgnoreCase) ||
-        controlType.Equals("Menu", StringComparison.OrdinalIgnoreCase) ||
-        containerClasses.Any(c => c.Contains("monaco-menu") || c.Contains("context-view")))
+    public static readonly ChromiumElectronZoneResolver Instance = new();
+    public DesktopAppArchetype SupportedArchetype => DesktopAppArchetype.ChromiumElectron;
+
+    public bool TryResolve(
+        FocusedControlDescriptor control,
+        AncestorChain ancestors,
+        out SemanticResolution resolution)
     {
-        pane = WindowPaneLocation.TopBar;
-        zone = DesktopSemanticZone.NavigationPanel;
-        activeView = "MenuBar";
-    }
-    else if (containerPath.Contains("workbench.parts.editor") || containerClasses.Any(c => c.Contains("monaco-editor")))
-    {
-        pane = WindowPaneLocation.MainContent;
-        zone = DesktopSemanticZone.EditorBuffer;
-        activeView = "Editor";
-    }
-    else if (containerPath.Contains("workbench.parts.auxiliarybar"))
-    {
-        pane = WindowPaneLocation.AuxiliarySidebar;
-        zone = DesktopSemanticZone.ChatConversation;
-        activeView = "Chat";
+        string cType = control.ControlType;
+        string name = control.Name;
+        string autoId = control.AutomationId;
+        string cls = control.ClassName;
+        var paths = ancestors.ContainerPaths;
+        var classes = ancestors.ContainerClasses;
+
+        // 1. Ephemeral Top Bar Menu Items & Dropdown Overlays (Action-Invoker Guard)
+        if (cType.Equals("MenuItem", StringComparison.OrdinalIgnoreCase) ||
+            cType.Equals("Menu", StringComparison.OrdinalIgnoreCase) ||
+            cls.Contains("monaco-menu", StringComparison.OrdinalIgnoreCase) ||
+            cls.Contains("context-view", StringComparison.OrdinalIgnoreCase) ||
+            classes.Any(c => c.Contains("monaco-menu", StringComparison.OrdinalIgnoreCase) || c.Contains("context-view", StringComparison.OrdinalIgnoreCase)))
+        {
+            resolution = new SemanticResolution(DesktopSemanticZone.NavigationPanel, WindowPaneLocation.TopBar, "MenuBar", "Menu");
+            return true;
+        }
+
+        // 2. Centered Modal Overlays (Command Palette / Quick Open)
+        if (control.IsOverlay ||
+            autoId.Contains("quickInput", StringComparison.OrdinalIgnoreCase) ||
+            cls.Contains("quick-input", StringComparison.OrdinalIgnoreCase) ||
+            classes.Any(c => c.Contains("quick-input", StringComparison.OrdinalIgnoreCase)))
+        {
+            var zone = autoId.Contains("command-palette", StringComparison.OrdinalIgnoreCase)
+                ? DesktopSemanticZone.CommandPalette
+                : DesktopSemanticZone.QuickOpen;
+
+            resolution = new SemanticResolution(zone, WindowPaneLocation.OverlayModal, "QuickOpen", null);
+            return true;
+        }
+
+        // 3. AI Agent Auxiliary Drawer (Chat Prompt & Conversation Stream)
+        if (autoId.Contains("antigravity.agentSidePanelInputBox", StringComparison.OrdinalIgnoreCase) ||
+            name.Equals("Message input", StringComparison.OrdinalIgnoreCase) ||
+            cls.Contains("chat-input", StringComparison.OrdinalIgnoreCase) ||
+            cls.Contains("interactive-session", StringComparison.OrdinalIgnoreCase))
+        {
+            resolution = new SemanticResolution(DesktopSemanticZone.ChatPrompt, WindowPaneLocation.AuxiliarySidebar, "Chat", "ChatPrompt");
+            return true;
+        }
+
+        if (autoId.Equals("conversation", StringComparison.OrdinalIgnoreCase) ||
+            name.Equals("Agent Conversation", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("Toggle Agent", StringComparison.OrdinalIgnoreCase) ||
+            cls.Contains("codicon-layout-sidebar-right", StringComparison.OrdinalIgnoreCase) ||
+            cls.Contains("antigravity-agent-side-panel", StringComparison.OrdinalIgnoreCase) ||
+            paths.Any(p => p.Contains("workbench.parts.auxiliarybar", StringComparison.OrdinalIgnoreCase)))
+        {
+            resolution = new SemanticResolution(DesktopSemanticZone.ChatConversation, WindowPaneLocation.AuxiliarySidebar, "Chat", "Conversation");
+            return true;
+        }
+
+        // 4. Activity Bar & Primary Sidebar
+        if (autoId.Contains("workbench.parts.activitybar", StringComparison.OrdinalIgnoreCase) ||
+            cls.Contains("activitybar", StringComparison.OrdinalIgnoreCase) ||
+            paths.Any(p => p.Contains("workbench.parts.activitybar", StringComparison.OrdinalIgnoreCase)))
+        {
+            resolution = new SemanticResolution(DesktopSemanticZone.ActivityBar, WindowPaneLocation.ActivityBar, "ActivityBar", null);
+            return true;
+        }
+
+        // 5. Monaco Editor Buffer & Document Viewport
+        if (paths.Contains("workbench.parts.editor") ||
+            classes.Any(c => c.Contains("monaco-editor")) ||
+            cls.Contains("monaco-editor", StringComparison.OrdinalIgnoreCase))
+        {
+            resolution = new SemanticResolution(DesktopSemanticZone.EditorBuffer, WindowPaneLocation.MainContent, "Editor", null);
+            return true;
+        }
+
+        // 6. Integrated Terminal Viewport
+        if (paths.Contains("workbench.parts.panel") ||
+            cls.Contains("terminal", StringComparison.OrdinalIgnoreCase) ||
+            classes.Any(c => c.Contains("terminal")))
+        {
+            resolution = new SemanticResolution(DesktopSemanticZone.Terminal, WindowPaneLocation.BottomPanel, "Terminal", null);
+            return true;
+        }
+
+        // 7. Status Bar Indicator
+        if (paths.Contains("workbench.parts.statusbar") ||
+            autoId.Contains("statusbar", StringComparison.OrdinalIgnoreCase) ||
+            cls.Contains("statusbar", StringComparison.OrdinalIgnoreCase))
+        {
+            resolution = new SemanticResolution(DesktopSemanticZone.StatusBar, WindowPaneLocation.StatusBar, "StatusBar", null);
+            return true;
+        }
+
+        resolution = SemanticResolution.Unresolved;
+        return false;
     }
 }
 ```

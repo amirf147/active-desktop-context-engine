@@ -190,19 +190,37 @@ The telemetry below was harvested directly from live execution using `TerminalPr
 
 ## 5. Taxonomy and Semantic Path Mappings
 
-| Control Identifier | Class / AutoId Pattern | Resolved Zone | Resolved Pane | Active View |
-| :--- | :--- | :--- | :--- | :--- |
-| `TabItem` / `HeaderTextBlock` | `ListViewItem`, `TabViewItem`, `TabListView` | `TabBar` | `TopBar` | `TabStrip` |
-| `NewTabButton` | `Microsoft.UI.Xaml.Controls.SplitButton` | `TabBar` | `TopBar` | `TabStrip` |
-| `TermControl` | `TermControl` | `Terminal` | `MainContent` / `BottomPanel` | `Terminal` |
-| `CommandPalette` | `CommandPaletteControl`, `PaletteControl` | `CommandPalette` | `OverlayModal` | `CommandPalette` |
-| `SettingsControl` | `SettingsControl`, `SettingsPage` | `NavigationPanel` | `MainContent` | `Settings` |
-| `CloseOnExitInfoBar` | `Microsoft.UI.Xaml.Controls.InfoBar` | `StatusBar` | `TopBar` | `StatusBar` |
+| Control Identifier | Class / AutoId Pattern | Resolved Zone | Resolved Pane | Active View | Verification Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `TabItem` / `HeaderTextBlock` | `ListViewItem`, `TabViewItem`, `TabListView` | `TabBar` | `TopBar` | `TabStrip` | **Verified Live** (Resting Baseline) |
+| `NewTabButton` | `Microsoft.UI.Xaml.Controls.SplitButton` | `TabBar` | `TopBar` | `TabStrip` | **Verified Live** (Resting Baseline) |
+| `TermControl` | `TermControl` | `Terminal` | `MainContent` / `BottomPanel` | `Terminal` | **Verified Live** (Resting Baseline) |
+| `CloseOnExitInfoBar` | `Microsoft.UI.Xaml.Controls.InfoBar` | `StatusBar` | `TopBar` | `StatusBar` | **Verified Live** (Inspector trace) |
+| `CaretMenu` (Flyout) | *Pending live VM capture* | `NavigationPanel` | `OverlayModal` | `ProfileMenu` | ⚠️ **Unobserved** (Pending VM Exploration) |
+| `CommandPalette` | *Pending live VM capture* | `CommandPalette` | `OverlayModal` | `CommandPalette` | ⚠️ **Unobserved** (Pending VM Exploration) |
+| `SettingsWorkspace` | *Pending live VM capture* | `NavigationPanel` | `MainContent` | `Settings` | ⚠️ **Unobserved** (Pending VM Exploration) |
+
+> [!CAUTION]
+> **Defect Correction Notice:** Earlier drafts of this profile included speculative class identifiers (`CommandPaletteControl`, `SettingsControl`). Because those controls were never physically captured on screen, those entries were hypothetical guesses. In accordance with ADCE zero-placeholder standards, they are formally flagged as unobserved pending dedicated VM exploration.
 
 ---
 
 ## 6. Verification and Invariant Summary
 
-1. **XAML Islands AutomationId Property Support:** Unlike traditional Win32 controls, certain WinUI 3 XAML peer elements (such as `TermControl`) throw `PropertyNotSupportedException` on direct `AutomationId` property access. The extraction engine and diagnostic inspectors must use `Properties.AutomationId.ValueOrDefault` or try-catch guards.
-2. **UIPI Isolation:** Running Windows Terminal elevated blocks synthetic window messages and `SendInput` from non-elevated developer shells. UIA operations must rely on passive observation or native UIA patterns (`SelectionItemPattern`, `InvokePattern`) rather than synthetic keyboard actuation.
-3. **Blanket Process Rule Removal:** Overbroad declarative rules (e.g. `processPattern: "windowsterminal"` with no control type or class filters) hijack chrome controls like `TabViewItem` and `NewTabButton`. Scoping rules strictly to `classNamePattern: "TermControl"` preserves granular zone resolution.
+### 6.1 Postmortem: Automated Host-Level Profiling vs. Isolated VM Research
+
+1. **Host-Level Synthetic Actuation Failure:**
+   Attempting to drive automated synthetic input (`SendInput`, `mouse_event`, `keybd_event`) from a background developer process into interactive desktop applications on a live workstation encounters severe OS barriers:
+   - Windows desktop session security restricts background processes from injecting hardware events into active user sessions.
+   - Privilege boundaries (UIPI) drop non-elevated synthetic input dispatched to elevated processes.
+   - Background runners fight with the developer's physical mouse and keyboard for foreground focus.
+2. **Epistemic Invariant:**
+   Application profile documentation must never label an unobserved surface as "Verified Ground Truth." Unit tests must not assert against fabricated control identifiers created to make tests pass in the absence of physical telemetry.
+3. **VM Profiling Architecture Mandate:**
+   Full modal exploration (triggering ephemeral flyouts, settings workspaces, command palettes, and transient dialogs) will be conducted in a **dedicated, isolated Virtual Machine / Windows Sandbox** where:
+   - The test harness runs with unified administrator privileges and no UIPI restrictions.
+   - The harness has exclusive ownership of the virtual display with zero focus contention against the developer.
+4. **XAML Islands AutomationId Property Support:**
+   Certain WinUI 3 XAML peer elements (such as `TermControl`) throw `PropertyNotSupportedException` on direct `AutomationId` property access. The extraction engine must use `Properties.AutomationId.ValueOrDefault` or try-catch guards.
+5. **Blanket Process Rule Removal:**
+   Overbroad declarative rules (e.g. `processPattern: "windowsterminal"` with no control type or class filters) hijack chrome controls like `TabViewItem` and `NewTabButton`. Scoping rules strictly to `classNamePattern: "TermControl"` preserves granular zone resolution.
