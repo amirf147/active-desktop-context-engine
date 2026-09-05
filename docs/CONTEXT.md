@@ -11,6 +11,7 @@
 > **Source Lineage:** Evolved from research in [caster-user-directory-and-notes](https://github.com/amirf147/caster-user-directory-and-notes/tree/master/docs/accessibility_mcp)
 > **Runtime:** .NET 10 (x64) + `FlaUI.UIA3 5.0.0`
 > **Architecture:** Decoupled Layered Pipeline (Win32 Event Hooks + FlaUI.UIA3 + SQLite WAL + MCP Server)
+> **Executive Brief:** 📑 [`reports/CODEBASE_AUDIT_EXECUTIVE_SUMMARY.md`](reports/CODEBASE_AUDIT_EXECUTIVE_SUMMARY.md) (Canonical State of the Engine)
 
 ---
 
@@ -63,6 +64,7 @@ To ensure consistency and ground human developers and local AI agents in verifie
 │ • Ground-Truth Baseline: docs/reports/AUDIT_STAGE_1_GROUND_TRUTH_BASELINE.md           │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
 │ TIER 2: ARCHITECTURAL SSOT & STRUCTURAL SPECIFICATIONS (Active Master Blueprints)      │
+│ • docs/reports/CODEBASE_AUDIT_EXECUTIVE_SUMMARY.md (Executive Architecture Brief)       │
 │ • docs/reports/AUDIT_STAGE_2_SPECIFICATION_DRIFT.md (Specification Drift Ledger)       │
 │ • docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md (Target node SSOT)          │
 │ • docs/architecture/ARCHITECTURE_AND_MODULAR_IMPLEMENTATION_PLAN.md (Work Package SSOT)│
@@ -99,9 +101,10 @@ To ensure consistency and ground human developers and local AI agents in verifie
 ### 🏛️ Tier 2: Architecture & System Specifications
 | Document | Description |
 | :--- | :--- |
+| 📑 [`reports/CODEBASE_AUDIT_EXECUTIVE_SUMMARY.md`](reports/CODEBASE_AUDIT_EXECUTIVE_SUMMARY.md) | High-level executive brief of active architecture, closed gaps, and system roadmap. |
 | 📋 [`reports/AUDIT_STAGE_2_SPECIFICATION_DRIFT.md`](reports/AUDIT_STAGE_2_SPECIFICATION_DRIFT.md) | Canonical drift analysis reconciling Tier 2 master blueprints with Tier 1 compiled code. |
 | 🏗️ [`architecture/ARCHITECTURE_AND_MODULAR_IMPLEMENTATION_PLAN.md`](architecture/ARCHITECTURE_AND_MODULAR_IMPLEMENTATION_PLAN.md) | 5-project solution architecture, decoupled work packages, and phased execution milestones. |
-| 📋 [`architecture/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md`](architecture/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md) | 5 Desktop Framework Archetypes, dynamic heuristic discovery pipeline, database tradeoffs, and performance targets. |
+| 📋 [`architecture/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md`](architecture/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md) | 6 Desktop Framework Archetypes, dynamic heuristic discovery pipeline, database tradeoffs, and performance targets. |
 | 🔌 [`architecture/MCP_SCHEMA_SPEC.md`](architecture/MCP_SCHEMA_SPEC.md) | Evolving JSON schema specifications, decoupled envelope definitions, and MCP tool endpoint definitions. |
 | 📑 [`architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md`](architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md) | Definitive structural map of UIA node hierarchies, class names, and target zones across major applications. |
 | 📚 [`app_hierarchies/README.md`](app_hierarchies/README.md) | Application UI Automation Layout Hierarchies, Container Anatomy, and Empirical Semantic Profiles. |

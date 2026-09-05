@@ -89,12 +89,14 @@ ADCE is structured as a high-performance, unidirectional 4-tier pipeline designe
 ADCE functions as both a production codebase and an evolving research ledger tracking low-level COM experiments, UI Automation benchmarks, and systems architecture.
 
 > 📚 **Central Documentation Entrypoint:** Explore the full documentation suite in **[`docs/CONTEXT.md`](docs/CONTEXT.md)**.
+> 📑 **Architecture & Codebase Audit Executive Summary:** Master synthesis of active architecture, closed technical debt, and roadmap in **[`docs/reports/CODEBASE_AUDIT_EXECUTIVE_SUMMARY.md`](docs/reports/CODEBASE_AUDIT_EXECUTIVE_SUMMARY.md)**.
 
 ### 🏛️ Architecture & System Specifications
 | Document | Description |
 | :--- | :--- |
+| 📑 [Architecture & Codebase Audit: Executive Summary](docs/reports/CODEBASE_AUDIT_EXECUTIVE_SUMMARY.md) | High-level synthesis of active architecture, closed technical debt, and roadmap. |
 | 🏗️ [Architecture & Modular Implementation Plan](docs/architecture/ARCHITECTURE_AND_MODULAR_IMPLEMENTATION_PLAN.md) | 5-project solution architecture, decoupled work packages, and phased execution milestones. |
-| 📋 [Requirements & Dynamic Discovery Specification](docs/architecture/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md) | 5 Desktop Framework Archetypes, dynamic heuristic discovery pipeline, and performance targets. |
+| 📋 [Requirements & Dynamic Discovery Specification](docs/architecture/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md) | 6 Desktop Framework Archetypes, dynamic heuristic discovery pipeline, and performance targets. |
 | 🔌 [Model Context Protocol (MCP) Schema Spec](docs/architecture/MCP_SCHEMA_SPEC.md) | JSON schema specifications, decoupled envelope definitions, and MCP tool endpoints. |
 | 📑 [UI Automation Structures Reference (SSOT)](docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md) | Definitive structural map of UIA node hierarchies and target zones across major applications. |
 | 📚 [Application Layout Hierarchies Catalog](docs/app_hierarchies/README.md) | Modular per-application empirical profiles, container anatomies, and visual telemetry evidence. |

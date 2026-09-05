@@ -9,6 +9,7 @@
 
 ### Documentation & Progressive Disclosure Hub
 - **Primary Domain Context Hub:** [`docs/CONTEXT.md`](../docs/CONTEXT.md)
+- **Executive Architecture Summary:** [`docs/reports/CODEBASE_AUDIT_EXECUTIVE_SUMMARY.md`](../docs/reports/CODEBASE_AUDIT_EXECUTIVE_SUMMARY.md)
 - **Educational Guide & Architecture Refresher:** [`docs/guides/EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md`](../docs/guides/EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md)
 - **UI Automation SSOT:** [`docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md`](../docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md)
 - **Requirements & Archetype Spec:** [`docs/architecture/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md`](../docs/architecture/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md)
