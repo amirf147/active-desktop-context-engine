@@ -13,7 +13,7 @@
 > **Target Systems:** `ADCE.Extraction`, `ADCE.Storage`, `ADCE.Spikes` (.NET 10 / C# 14)
 > **Date:** August 2026
 > **Physical Verification Focus:** Multi-Window Focus Transitions, Child HWNDs in Electron, Global UIA Focus Bleeding, and Archetype-Scoped Classification.
-> **Parent Documents:** [`docs/deep_dives/ADCE_STORAGE_DEEP_DIVE.md`](../deep_dives/ADCE_STORAGE_DEEP_DIVE.md) | [`docs/testing/REVIEWER_OBSERVATIONS_AND_HARDENING_ROADMAP.md`](../testing/REVIEWER_OBSERVATIONS_AND_HARDENING_ROADMAP.md)
+> **Parent Documents:** [`docs/architecture/STORAGE_ARCHITECTURE.md`](../architecture/STORAGE_ARCHITECTURE.md) | [`docs/testing/REVIEWER_OBSERVATIONS_AND_HARDENING_ROADMAP.md`](../testing/REVIEWER_OBSERVATIONS_AND_HARDENING_ROADMAP.md)
 
 ---
 

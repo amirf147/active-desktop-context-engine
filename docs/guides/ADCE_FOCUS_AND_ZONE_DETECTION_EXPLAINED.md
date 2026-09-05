@@ -44,12 +44,12 @@ Look at the 12 windows captured in your baseline `--grab all` test:
 │              │                                                                         │
 │              ▼ (Climb 1-2 Parent Steps in UIA Tree)                                    │
 │   ┌────────────────────────────────────────────────────────┐                           │
-│   │ Is Parent class "monaco-editor" or "editor-container"? │ ──> [EditorCodeBuffer]    │
-│   │ Is Parent class "terminal-wrapper" or "xterm"?         │ ──> [IntegratedTerminal]  │
+│   │ Is Parent class "monaco-editor" or "editor-container"? │ ──> [EditorBuffer]        │
+│   │ Is Parent class "terminal-wrapper" or "xterm"?         │ ──> [Terminal]            │
 │   │ Is Parent ID "workbench.view.explorer" (IDE)?          │ ──> [SidebarExplorer]     │
 │   │ Is Parent in Browser Sidebar (Tree Style Tab)?         │ ──> [TabBar]              │
 │   │ Is Parent ID "urlbar-input" or "address-bar"?          │ ──> [AddressBar]          │
-│   │ Is Control Type "Document" in a Web Browser?           │ ──> [DocumentContent]     │
+│   │ Is Control Type "Document" in a Web Browser?           │ ──> [WebDocument]         │
 │   └────────────────────────────────────────────────────────┘                           │
 │                                                                                        │
 └────────────────────────────────────────────────────────────────────────────────────────┘
@@ -130,4 +130,4 @@ Because Antigravity, VS Code, and Cursor all share the **Monaco / xterm containe
 1. **Window-Level Switching is Instant:** Windows OS kernel guarantees foreground switches.
 2. **Sub-Panel Switching is Debounced:** Intra-app clicks inside Electron are coalesced to prevent high-frequency UI jitter.
 3. **The Engine is Dynamic:** Universal Control Types + Framework Archetypes handle apps without rigid per-app hardcoding.
-4. **All Empirical Tests Verified:** Waterfox (`[DocumentContent]`), Monaco Editor (`[EditorCodeBuffer]`), Integrated Terminal (`[IntegratedTerminal]`), Chat Input (`[ChatAssistant]`), and PowerShell are all cleanly isolated with 0 cross-process bleed.
+4. **All Empirical Tests Verified:** Waterfox (`[WebDocument]`), Monaco Editor (`[EditorBuffer]`), Integrated Terminal (`[Terminal]`), Chat Input (`[ChatPrompt]`), and PowerShell are all cleanly isolated with 0 cross-process bleed.

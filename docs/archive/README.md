@@ -19,5 +19,6 @@ This directory stores superseded specifications, empirical spike ledgers, podcas
 | :--- | :--- |
 | `audiobooks/` | Audio scripts and binary documents (`.docx`, `.pdf`) covering early Win32 and UIA investigations. |
 | `external_research/` | Upstream exploratory surveys of external accessibility libraries (AccessKit, TirgDll, TreeSitter) conducted prior to selecting the `FlaUI.UIA3` stack. |
-| `deprecated_specs/` | Exhaustive specifications for the legacy Claim Verification Matrix and custom stimulus drivers superseded by standard xUnit testing. |
+| `deprecated_specs/` | Superseded specifications including the legacy Claim Verification Matrix, custom stimulus drivers, and the initial Milestone 0 modular implementation plan. |
+| `deep_dives/` | Early subsystem deep-dive references covering Milestones 1 to 3, superseded by Tier 1 specifications in `docs/architecture/`. |
 | `audit_artifacts/` | Interim working notes from early audit stages prior to full codebase consolidation. |

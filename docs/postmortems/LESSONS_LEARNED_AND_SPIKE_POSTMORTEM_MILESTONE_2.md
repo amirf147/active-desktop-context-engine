@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <!-- Copyright (c) 2026 Amir Farhadi -->
 
-[ 🏠 ADCE Home ](../../README.md) › [ 📚 Documentation Hub ](../CONTEXT.md) › [ 🎯 ADCE.Extraction Deep-Dive ](../deep_dives/ADCE_EXTRACTION_DEEP_DIVE.md) › **Milestone 2 Postmortem & Edge-Case Engineering Analysis**
+[ 🏠 ADCE Home ](../../README.md) › [ 📚 Documentation Hub ](../CONTEXT.md) › [ 🎯 Extraction Pipeline ](../architecture/EXTRACTION_PIPELINE.md) › **Milestone 2 Postmortem & Edge-Case Engineering Analysis**
 
 ---
 
@@ -12,7 +12,7 @@
 > **Normative Baseline:** For active architectural contracts, consult [docs/CONTEXT.md](../CONTEXT.md) and [docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md).
 > **Target Scope:** `ADCE.Extraction` Live Spike & UI Automation Physics
 > **Topic:** Dissecting the "Empty Snapshot" Failure, Win32 Desktop Sessions, Compound Class Name Matching, and Architectural Hardening
-> **Related Docs:** [`docs/deep_dives/ADCE_EXTRACTION_DEEP_DIVE.md`](../deep_dives/ADCE_EXTRACTION_DEEP_DIVE.md) | [`docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md`](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md)
+> **Related Docs:** [`docs/architecture/EXTRACTION_PIPELINE.md`](../architecture/EXTRACTION_PIPELINE.md) | [`docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md`](../architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md)
 
 ---
 

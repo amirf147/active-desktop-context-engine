@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <!-- Copyright (c) 2026 Amir Farhadi -->
 
-[ 🏠 ADCE Home ](../../README.md) › [ 📚 Documentation Hub ](../CONTEXT.md) › [ 🎯 ADCE.Extraction Deep-Dive ](../deep_dives/ADCE_EXTRACTION_DEEP_DIVE.md) › **Postmortem: Unbounded DOM Traversal, Continuous Ingestion Load, and Diagnostic Logging**
+[ 🏠 ADCE Home ](../../README.md) › [ 📚 Documentation Hub ](../CONTEXT.md) › [ 🎯 Extraction Pipeline ](../architecture/EXTRACTION_PIPELINE.md) › **Postmortem: Unbounded DOM Traversal, Continuous Ingestion Load, and Diagnostic Logging**
 
 ---
 

@@ -9,7 +9,7 @@
 > **Target Engine:** Active Desktop Context Engine (ADCE)
 > **Source:** Adversarial Peer Review following Milestone 3 Live Verification
 > **Date:** August 2026
-> **Status:** Scheduled across Work Packages in `ARCHITECTURE_AND_MODULAR_IMPLEMENTATION_PLAN.md`
+> **Status:** Resolved across Milestones 4 through 6; Milestone 7 items active in [`docs/CONTEXT.md`](../CONTEXT.md)
 
 ---
 

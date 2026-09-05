@@ -12,7 +12,7 @@
 
 ## 1. System Topology
 
-`ADCE.Daemon` hosts the WinEvent pump and extraction engine as a Windows background system tray application. It exposes context to AI agents and voice interfaces via `ADCE.Mcp`.
+`ADCE.Daemon` hosts the WinEvent pump and extraction engine as a Windows background system tray application. It exposes desktop context to AI agents and voice interfaces via `ADCE.Mcp`.
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
@@ -22,7 +22,7 @@
 │   │ SetWinEventHook (EVENT_SYSTEM_FOREGROUND, EVENT_OBJECT_FOCUS)      │
 │   ▼                                                                    │
 │ [ ADCE.Daemon (STA Thread) ]                                           │
-│   ├── TrayIconFactory: System tray icon & context menu                 │
+│   ├── TrayIconFactory: System tray icon and context menu               │
 │   ├── FloatingHudForm: Optional non-activating transparent HUD overlay │
 │   ├── SingleInstanceMutex: Enforces single running process instance    │
 │   └── DaemonHost: Orchestrates pipeline, cache, and MCP listener       │
@@ -60,14 +60,23 @@
 
 ## 3. Model Context Protocol (MCP) Endpoints
 
-`ADCE.Mcp` implements standard JSON-RPC 2.0 endpoints for live tool calls:
+`ADCE.Mcp` implements standard JSON-RPC 2.0 endpoints for live tool calls and resource subscription:
+
+### 3.1 Implemented Tools
 
 | Tool Endpoint | Parameters | Returns | Description |
 | :--- | :--- | :--- | :--- |
-| `get_current_snapshot` | None | `DesktopContextSnapshot` | Fetches the latest point-in-time desktop state from L1 cache (< 1 µs). |
-| `get_active_control_hierarchy` | `includeAncestors: bool` | `ControlHierarchyResult` | Returns focused control details and parent breadcrumb chain. |
-| `tag_active_control` | `zone: string, ruleName: string` | `TagResult` | Adds or updates a dynamic rule in `%LOCALAPPDATA%\ADCE\semantic_rules.json`. |
-| `get_recent_snapshots` | `limit: int, processFilter: string?` | `List<DesktopContextSnapshot>` | Queries historical snapshots from SQLite WAL time-series storage. |
+| `get_desktop_context` | `process_filter: string?`, `projection: string?` | `DesktopContextSnapshot` | Returns live desktop context with container hierarchy, optional process filtering, and projection modes (`full`, `compact`, `ide`, `terminal`). |
+| `get_active_context` | `process_filter: string?`, `projection: string?` | `DesktopContextSnapshot` | Canonical alias for `get_desktop_context`. |
+| `search_desktop_history` | `query: string` (required), `limit: int` (default 20, max 100) | `List<DesktopContextSnapshot>` | Searches past desktop history in SQLite WAL storage matching keywords in titles, tabs, or file paths. |
+| `tag_active_control` | `target_zone: string` (required), `target_pane: string?`, `target_view: string?`, `target_section: string?`, `scope: string?`, `comment: string?` | `TagResult` | Creates a persistent semantic rule for the active control in `%LOCALAPPDATA%\ADCE\semantic_rules.json` and updates live context immediately. |
+
+### 3.2 Implemented Resources
+
+| Resource URI | MimeType | Description | SLA |
+| :--- | :--- | :--- | :--- |
+| `desktop://current` | `application/json` | Live point-in-time snapshot from L1 atomic cache. | `< 1 µs` |
+| `desktop://history` | `application/json` | Time-series query of recent focus transitions (supports `?minutes=15` and `?limit=50`). | `< 5 ms` |
 
 ---
 
@@ -80,6 +89,6 @@ Traditional voice coding grammars must manually track active applications using 
 
 ### 4.2 Dynamic Grammar Activation
 By querying `http://localhost:8424/messages` or subscribing to `/sse`:
-1. When `Focus.SemanticZone == DesktopSemanticZone.Terminal`, Caster activates shell grammars (e.g. `git status`, `cargo run`, `dotnet test`).
+1. When `Focus.SemanticZone == DesktopSemanticZone.Terminal`, Caster activates shell grammars (`git status`, `cargo run`, `dotnet test`).
 2. When `Focus.SemanticZone == DesktopSemanticZone.EditorBuffer`, Caster switches to language-specific navigation and syntax grammars.
 3. When `Focus.SemanticZone == DesktopSemanticZone.GitCommitBox`, Caster switches to conventional commit voice templates.
