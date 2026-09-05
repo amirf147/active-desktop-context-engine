@@ -81,6 +81,7 @@ graph TD
 | 7 | **ArtifactViewerHeader** | `Focus Artifact Viewer Panel Header` | [Group] (Artifact Viewer header) | `[-11351, 35, 154, 30]` | Zone: `TabBar`<br>Pane: `MainContent`<br>Path: `[MainContent, Editor]` | ✅ | [`step_07_artifact_header.png`](../media/antigravity_telemetry/step_07_artifact_header.png) |
 | 8 | **IntegratedTerminal** | `Focus Terminal Viewport (Ctrl+J)` | [Group] () | `[715, 584, 564, 170]` | Zone: `Terminal`<br>Pane: `BottomPanel`<br>Path: `[BottomPanel, Terminal]` | ✅ | [`step_08_terminal_panel.png`](../media/antigravity_telemetry/step_08_terminal_panel.png) |
 | 9 | **StatusBar** | `Focus Status Bar Indicator` | [Group] `status.host` (remote) | `[715, 562, 39, 22]` | Zone: `StatusBar`<br>Pane: `StatusBar`<br>Path: `[StatusBar, StatusBar]` | ✅ | [`step_09_statusbar.png`](../media/antigravity_telemetry/step_09_statusbar.png) |
+| 10 | **TopBarMenuItem** | `Focus View Menu -> Command Palette...` | [MenuItem] "Command Palette... Ctrl+Shift+P" | `[0, 35, 260, 26]` | Zone: `CommandPalette`<br>Pane: `OverlayModal`<br>Path: `[OverlayModal, QuickOpen]` | ❌ | [`step_10_topbar_menuitem_misclassification.png`](../media/antigravity_telemetry/step_10_topbar_menuitem_misclassification.png) |
 
 ---
 
@@ -320,6 +321,33 @@ graph TD
 
 ![StatusBar](../media/antigravity_telemetry/step_09_statusbar.png)
 
+### Step 10: TopBarMenuItem (Misclassification Analysis & Action-Invoker Collision)
+
+- **Stimulus:** `Focus View Menu -> Command Palette...`
+- **Physical Focus:** `[MenuItem]` Name='`Command Palette...  Ctrl+Shift+P`' AutoId='' Class='`action-item`'
+- **Observed HUD Output:**
+  - `Focus: [MenuItem] "Command Palette... Ctrl+Shift+P"`
+  - `Zone: [CommandPalette] | Pane: [OverlayModal]`
+  - `Hierarchy: OverlayModal > QuickOpen`
+- **Correct Target Semantics:**
+  - `Zone: DesktopSemanticZone.NavigationPanel`
+  - `Pane: WindowPaneLocation.TopBar`
+  - `SemanticPath: [TopBar, MenuBar]`
+- **Root Cause Dissection:**
+  The engine evaluated `ResolveSemanticZone` in `UiaExtractionEngine.cs`:
+  ```csharp
+  if (autoId.Contains("command-palette", StringComparison.OrdinalIgnoreCase) ||
+      name.Contains("Command Palette", StringComparison.OrdinalIgnoreCase))
+  {
+      return DesktopSemanticZone.CommandPalette;
+  }
+  ```
+  The condition matched on `name.Contains("Command Palette")` without verifying `ControlType`.
+  Because the returned zone was `DesktopSemanticZone.CommandPalette`, `InferPaneFromZone` mapped the pane to `WindowPaneLocation.OverlayModal` and `InferViewFromZone` mapped the view to `QuickOpen`.
+  The menu item names the command to execute, but the active interaction surface is an ephemeral dropdown menu attached to the titlebar, not the command palette modal overlay.
+
+![TopBarMenuItem](../media/antigravity_telemetry/step_10_topbar_menuitem_misclassification.png)
+
 ---
 
 ## 5. Viewport Boundary & In-Content Semantics
@@ -330,18 +358,28 @@ Just as with Gecko web documents, Chromium / Monaco applications require strict 
 2. **Auxiliary Agent Chat Isolation:** The AI chat panel and Artifact Viewer inside `workbench.parts.auxiliarybar` contain arbitrary HTML elements (buttons, inputs, lists). They must map to `WindowPaneLocation.AuxiliarySidebar` and `DesktopSemanticZone.ChatConversation` or `DesktopSemanticZone.AuxiliaryToolPanel`, never leaking into `MainContent`.
 3. **Integrated Terminal Isolation:** The terminal pane inside `workbench.parts.panel` must resolve to `WindowPaneLocation.BottomPanel` and `DesktopSemanticZone.Terminal`.
 4. **Activity Bar & Primary Sidebar:** Launcher buttons in `workbench.parts.activitybar` map to `WindowPaneLocation.ActivityBar`, while the tree items in `workbench.parts.sidebar` map to `WindowPaneLocation.PrimarySidebar` and `DesktopSemanticZone.SidebarExplorer`.
+5. **Top Bar Menu & Command Invoker Isolation:** Menu items (`ControlType.MenuItem`) and dropdown menus (`monaco-menu`, `context-view`) spawned from `workbench.parts.titlebar` must map to `WindowPaneLocation.TopBar` and `DesktopSemanticZone.NavigationPanel`. They must never be classified as the target zone or modal dialog they invoke.
 
 ---
 
 ## 6. Actionable Implementation Changes for `ADCE.Extraction`
 
-The following rules in `UiaExtractionEngine.cs` ensure seamless extraction for ChromiumElectron archetypes:
+The following structural rules in `UiaExtractionEngine.cs` ensure deterministic extraction for ChromiumElectron archetypes:
 
 ```csharp
 // Chromium / Monaco / Antigravity IDE Boundary Isolation
 if (archetype == DesktopAppArchetype.ChromiumElectron)
 {
-    if (containerPath.Contains("workbench.parts.editor") || containerClasses.Any(c => c.Contains("monaco-editor")))
+    // Ephemeral Top Bar Menu & Context Menu Guard
+    if (controlType.Equals("MenuItem", StringComparison.OrdinalIgnoreCase) ||
+        controlType.Equals("Menu", StringComparison.OrdinalIgnoreCase) ||
+        containerClasses.Any(c => c.Contains("monaco-menu") || c.Contains("context-view")))
+    {
+        pane = WindowPaneLocation.TopBar;
+        zone = DesktopSemanticZone.NavigationPanel;
+        activeView = "MenuBar";
+    }
+    else if (containerPath.Contains("workbench.parts.editor") || containerClasses.Any(c => c.Contains("monaco-editor")))
     {
         pane = WindowPaneLocation.MainContent;
         zone = DesktopSemanticZone.EditorBuffer;

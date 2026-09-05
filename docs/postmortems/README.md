@@ -23,6 +23,7 @@ This directory contains retrospective postmortems and lessons learned generated 
 | [STA Threading & Caster HUD Integration](./STA_THREADING_AND_HUD_CASTER_INTEGRATION_POSTMORTEM.md) | COM Apartment State & Voice HUD | Resolving `MTA` vs `STA` threading deadlocks when integrating with Python/Qt Caster HUD. |
 | [Unbounded DOM Traversal & Logging](./UNBOUNDED_DOM_TRAVERSAL_AND_DIAGNOSTIC_LOGGING_POSTMORTEM.md) | Web Document Traversal | Bounding recursion depth when walking rich client browser DOMs to preserve sub-15ms latency. |
 | [Spikes Program Sprawl & Scratchpad Audit](./SPIKES_PROGRAM_SPRAWL_AND_SCRATCHPAD_AUDIT.md) | Architecture & Spikes Monolith | Quantitative audit of 3,600-line monolithic `Program.cs`, 19-commit churn, and scratchpad anti-pattern. |
+| [Heuristic Name Matching & Menu Misclassification](./HEURISTIC_NAME_MATCHING_AND_MENU_ITEM_MISCLASSIFICATION.md) | Heuristic Classification & UIA Models | Evaluates why leaf-level name substring matching creates action-invoker collisions, misclassifying menu items as destination modal overlays. |
 
 ---
 
