@@ -97,6 +97,7 @@ Documentation is structured into strict tiers to keep human developers and AI as
 | [`architecture/SECURITY_AND_HYGIENE_AUDIT_2026.md`](architecture/SECURITY_AND_HYGIENE_AUDIT_2026.md) | Whole Solution | Master security, privacy, and hygiene audit covering MCP CORS/auth hardening, live privacy sanitizer integration, tool contracts, and COM RCW management. |
 | [`architecture/SEMANTIC_CLASSIFICATION_AND_INTERACTION_GRAPH_SPEC.md`](architecture/SEMANTIC_CLASSIFICATION_AND_INTERACTION_GRAPH_SPEC.md) | `ADCE.Extraction`, `ADCE.Mcp` | Closed structural archetype resolution (zero spatial math), fine-grained sub-zones & control roles, and ephemeral UI interaction state graph trajectories. |
 | [`architecture/ADCE_PHILOSOPHY_AND_SCOPE_BOUNDARIES.md`](architecture/ADCE_PHILOSOPHY_AND_SCOPE_BOUNDARIES.md) | System Philosophy | Canonical scope boundary definition: ADCE as a high-speed passive perception sensor vs. downstream action/automation actors. |
+| [`architecture/PERCEPTION_PURITY_AND_ONTOLOGY_STRATEGY.md`](architecture/PERCEPTION_PURITY_AND_ONTOLOGY_STRATEGY.md) | System Architecture & Strategy | Architectural assessment on perception purity vs prescriptive ontology, boundary layers, and repository/branching strategy. |
 
 ### 3.2 Application Hierarchies & Layouts
 | Profile | Target Application | Documented Automation Structure |
