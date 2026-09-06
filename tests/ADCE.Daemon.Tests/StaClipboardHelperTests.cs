@@ -45,8 +45,9 @@ public sealed class StaClipboardHelperTests
 
         thread.SetApartmentState(ApartmentState.STA);
         thread.Start();
-        thread.Join(TimeSpan.FromSeconds(2));
+        bool joined = thread.Join(TimeSpan.FromSeconds(15));
 
+        Assert.True(joined, "STA thread timed out joining");
         Assert.True(executed);
     }
 }

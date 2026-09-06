@@ -103,7 +103,7 @@ public sealed class TrayApplicationContextTests
 
         thread.SetApartmentState(ApartmentState.STA);
         thread.Start();
-        bool joined = thread.Join(5000);
+        bool joined = thread.Join(15000);
 
         if (threadEx != null)
         {

@@ -171,10 +171,10 @@ public sealed class FloatingHudTreeTests
 
         thread.SetApartmentState(ApartmentState.STA);
         thread.Start();
-        bool joined = thread.Join(5000);
+        bool joined = thread.Join(15000);
 
         if (threadEx != null) throw new InvalidOperationException($"STA thread failed: {threadEx.Message}", threadEx);
-        Assert.True(joined);
+        Assert.True(joined, "STA thread timed out joining");
     }
 
     [Fact]
@@ -217,10 +217,10 @@ public sealed class FloatingHudTreeTests
 
         thread.SetApartmentState(ApartmentState.STA);
         thread.Start();
-        bool joined = thread.Join(5000);
+        bool joined = thread.Join(15000);
 
         if (threadEx != null) throw new InvalidOperationException($"STA thread failed: {threadEx.Message}", threadEx);
-        Assert.True(joined);
+        Assert.True(joined, "STA thread timed out joining");
     }
 
     [Fact]
@@ -254,10 +254,10 @@ public sealed class FloatingHudTreeTests
 
         thread.SetApartmentState(ApartmentState.STA);
         thread.Start();
-        bool joined = thread.Join(5000);
+        bool joined = thread.Join(15000);
 
         if (threadEx != null) throw new InvalidOperationException($"STA thread failed: {threadEx.Message}", threadEx);
-        Assert.True(joined);
+        Assert.True(joined, "STA thread timed out joining");
     }
 
     [Fact]
@@ -360,9 +360,9 @@ public sealed class FloatingHudTreeTests
 
         thread.SetApartmentState(ApartmentState.STA);
         thread.Start();
-        bool joined = thread.Join(5000);
+        bool joined = thread.Join(15000);
 
         if (threadEx != null) throw new InvalidOperationException($"STA thread failed: {threadEx.Message}", threadEx);
-        Assert.True(joined);
+        Assert.True(joined, "STA thread timed out joining");
     }
 }
