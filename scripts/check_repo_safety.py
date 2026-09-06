@@ -45,6 +45,12 @@ IGNORED_EXTENSIONS = {
     ".pyo",
 }
 
+IGNORED_FILES = {
+    ".test_cache.json",
+}
+
+
+
 # Regex patterns for private path hygiene (Windows user directories, Unix home directories, personal profiles)
 # Standard public paths (e.g., C:\Program Files\, C:\Windows\) are allowed across the repo.
 WINDOWS_USER_PATH_RE = re.compile(
@@ -145,6 +151,9 @@ def main() -> int:
         dirs[:] = [d for d in dirs if d not in IGNORED_DIRS]
 
         for file in files:
+            if file in IGNORED_FILES:
+                continue
+
             ext = os.path.splitext(file)[1].lower()
             if ext in IGNORED_EXTENSIONS:
                 continue

@@ -83,10 +83,9 @@ Conduct a hostile review using the 3 specialized reviewer personas:
 ## Step 4: Gate 4 — Production Implementation & Documentation
 1. Scaffold or implement the modular project in `src/`.
 2. Add comprehensive automated unit tests in `tests/`.
-3. Verify test pass rate:
+3. Verify test pass rate, safety, and markdown links via change-aware test runner:
    ```powershell
-   dotnet test
-   python scripts/check_repo_safety.py
+   python scripts/test_runner.py
    ```
 4. Create/update architectural blueprints with Mermaid diagrams in `docs/`.
 5. Format commit message with `/commit` for user review.

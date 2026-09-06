@@ -9,20 +9,12 @@ description: Generates a copy-paste ready conventional commit message from stage
 Follow this deterministic 5-step sequence whenever generating commit messages:
 
 ## Step 1: Pre-Flight Safety & Path Validation
-Run the automated repository validation checks:
-1. Execute repository safety, secret detection, and path hygiene check:
+Run the automated repository validation checks via the intelligent change-aware test runner:
+1. Execute repository safety, markdown link validation, and affected .NET unit test suites:
    ```pwsh
-   python scripts/check_repo_safety.py
+   python scripts/test_runner.py
    ```
-2. Execute markdown link validation:
-   ```pwsh
-   python scripts/verify_markdown_links.py
-   ```
-3. Execute unit tests (.NET 10):
-   ```pwsh
-   dotnet test --configuration Release
-   ```
-4. **Gate**: If any check fails or reports absolute user path leaks or broken links, STOP immediately. Fix the violations and re-run until all checks pass with exit code 0.
+2. **Gate**: If any check fails or reports absolute user path leaks, broken links, or failing tests, STOP immediately. Fix the violations and re-run until all checks pass with exit code 0.
 
 ## Step 2: Stage Verified Changes
 Stage only verified repository files:

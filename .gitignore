@@ -62,6 +62,8 @@ TestResults/
 *.coverage
 *.coveragexml
 coverage/
+.test_cache.json
+
 
 # Crash dumps & Windows minidumps
 *.dmp
