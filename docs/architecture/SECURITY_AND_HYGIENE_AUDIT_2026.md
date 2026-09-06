@@ -314,6 +314,86 @@ if (_ruleEngine == null)
 
 ---
 
+## 5.3 ARCH-1: Closed Structural Archetype Resolution Model (Deprecating Spatial Guessing)
+
+### The Structural Failure of Spatial Pixel Math
+`SpatialPaneResolver.InferPaneFromGeometry` relied on relative window coordinate percentages ($\text{RelY} \ge 0.75 \implies \text{BottomPanel}$, $\text{RelX} < 0.30 \implies \text{PrimarySidebar}$).
+This created severe semantic bugs:
+1. **Conflating In-Page Web Layouts with Window Chrome:** In web browsers (Waterfox, Chrome), interactive DOM elements located near the bottom of a web page (footers, sign-in buttons) were misclassified as `BottomPanel` or `PrimarySidebar`.
+2. **Resolution & Split-View Instability:** Snapping an application or splitting editors invalidates global percentage assumptions.
+
+### The Closed Structural Solution
+Every desktop application window is a closed finite partition of structural layout compartments. Each `IArchetypeZoneResolver` provides an **exhaustive, closed topology**:
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                        CLOSED STRUCTURAL ARCHETYPE RESOLUTION                          │
+├────────────────────────┬───────────────────────────────────────┬───────────────────────┤
+│ Archetype              │ Explicit Structural Containers        │ Closed Default Canvas │
+├────────────────────────┼───────────────────────────────────────┼───────────────────────┤
+│ Gecko / Browsers       │ TopBar: #navigator-toolbox            │ MainContent /         │
+│ (Waterfox, Chrome)     │ Sidebar: #sidebar-box                 │ WebDocument           │
+│                        │ BottomPanel: #devtools-toolbox,       │ (Never BottomPanel    │
+│                        │             #findbar                  │  or PrimarySidebar!)  │
+├────────────────────────┼───────────────────────────────────────┼───────────────────────┤
+│ ChromiumElectron       │ ActivityBar: workbench.parts.act..    │ MainContent /         │
+│ (VS Code, Antigravity) │ PrimarySidebar: workbench.parts.side..│ EditorBuffer          │
+│                        │ AuxSidebar: workbench.parts.aux..     │ (Monaco workspace)    │
+│                        │ BottomPanel: workbench.parts.panel    │                       │
+│                        │ StatusBar: workbench.parts.statusbar  │                       │
+│                        │ TopBar: workbench.parts.titlebar      │                       │
+├────────────────────────┼───────────────────────────────────────┼───────────────────────┤
+│ WinUi3Xaml             │ TopBar: TabRow / TabBarStrip          │ MainContent /         │
+│ (Windows Terminal)     │ Settings: SettingsPage (XAML Island)  │ Terminal              │
+│                        │ (No sidebars or bottom drawers!)      │ (TermControl buffer)  │
+├────────────────────────┼───────────────────────────────────────┼───────────────────────┤
+│ ClassicWin32           │ TopBar: ShellTabWindowClass           │ MainContent /         │
+│ (Explorer, Notepad)    │ Sidebar: DirectUIHWND TreeControl     │ DocumentContent       │
+│                        │ StatusBar: msctls_statusbar32         │                       │
+└────────────────────────┴───────────────────────────────────────┴───────────────────────┘
+```
+
+### Architectural Policy: Spatial Coordinates as Passive Telemetry Only
+1. `SpatialPaneResolver.InferPaneFromGeometry` is **strictly eliminated** from semantic zone and pane resolution.
+2. If an archetype resolver does not match an explicit chrome container (e.g. TopBar or Sidebar in Gecko), it **must resolve directly to the archetype's default workspace canvas** (`MainContent` / `WebDocument` for browsers, `MainContent` / `EditorBuffer` for IDEs).
+3. `BoundingRectangle` is preserved on `FocusedControlInfo` and `WindowEnvelope` solely as passive spatial telemetry for HUD rendering, click targets, and screen geometry inspection.
+
+---
+
+## 5.4 ARCH-2: Hamburger / Application Dropdown Menus (`#PanelUI-popup`)
+
+### The Flaw
+When opening the browser application menu (the hamburger button on the far right), the menu sits at $X \ge 65\%$. Because `GeckoZoneResolver` lacked explicit popup menu container anchors, the unmapped element fell through to `SpatialPaneResolver`, which saw $X \ge 65\%$ and erroneously categorized the hamburger menu as `WindowPaneLocation.AuxiliarySidebar` with `Zone: Unknown`.
+
+### The Structural Anchor Fix
+Popup menus, dropdown panels, and overflow drawers belong to the **Application Chrome / Modal Overlay layer**, not a sidebar.
+* In Gecko/Waterfox: Ancestors containing `#appMenu-popup`, `#PanelUI-popup`, `#PanelUI-menu-button`, or `#mainPopupSet` $\implies$
+  $$\text{Pane} = \text{WindowPaneLocation.OverlayModal} \text{ (or TopBar)}, \quad \text{Zone} = \text{NavigationPanel}, \quad \text{ActiveView} = \text{"AppMenu"}, \quad \text{Section} = \text{"Menu"}$$
+* In Chromium/Electron: Ancestors containing `monaco-menu`, `context-view`, or `action-bar` $\implies$
+  $$\text{Pane} = \text{WindowPaneLocation.TopBar} \text{ (or OverlayModal)}, \quad \text{Zone} = \text{NavigationPanel}, \quad \text{ActiveView} = \text{"MenuBar"}$$
+
+---
+
+## 5.5 ARCH-3: Fine-Grained In-Document Semantic Roles (`Settings`, Search Inputs, Controls)
+
+### The Flaw
+Currently, when focus enters a web document (such as browser `about:preferences` / Settings or a documentation site), the engine stamps the entire viewport as a monolithic `MainContent` / `WebDocument` with `Section = null`. It does not expose whether the user is focused on a search filter box (`Find in Settings`), a category navigation tab, or an interactive button.
+
+### The Fine-Grained Structural Solution
+The semantic path must reflect functional sub-zones and control roles without inventing fake desktop window panes:
+1. **Settings / Preferences Document Detection:**
+   * In Gecko: URL containing `about:preferences`, `about:addons`, `about:config`, or document name `Settings` / `Preferences` $\implies \text{ActiveView} = \text{"Settings"}$.
+   * In Chromium: URL containing `chrome://settings` or title `Settings` $\implies \text{ActiveView} = \text{"Settings"}$.
+2. **In-Page Search & Filter Inputs:**
+   * Control has `ControlType == "Edit"` or `AutomationId` containing `search-input` / `searchInput` / `filter` $\implies$
+     $$\text{Zone} = \text{EditorBuffer} \text{ (or QuickOpen)}, \quad \text{Section} = \text{"Search"}, \quad \text{SemanticPath} = \text{["MainContent", "Settings", "Search"]}$$
+3. **Control Role Granularity:**
+   * `FocusedControlInfo` already surfaces `ControlType` (`Hyperlink`, `Button`, `Edit`, `CheckBox`, `ComboBox`, `RadioButton`), `ElementName`, and `ValueSnippet`.
+   * Downstream consumers (voice tools, AI agents) receive the complete structured tuple:
+     $$\text{Path} = [\text{MainContent} > \text{Settings} > \text{Search}], \quad \text{Role} = \text{Edit}, \quad \text{Target} = \text{"Find in Settings"}$$
+
+---
+
 ## 6. Phased Implementation Roadmap
 
 ```mermaid
@@ -357,6 +437,12 @@ gantt
 3. **Clipboard COM Exception Guard:** Catch `COMException` in `StaClipboardHelper.cs`.
 4. **Workspace Sync-Over-Async Fix:** Await `GetCurrentWorkspaceAsync` asynchronously in `WindowsWorkspaceManager.cs`.
 5. **Eliminate Unbounded Traversal Cliff:** Remove `FindFirstDescendant` from `UiaExtractionEngine.ExtractFocusedControl`.
+
+### Phase 3.5: Closed Structural Archetype Migration & Spatial Deprecation (P1)
+1. **Authoritative Browser Viewport Invariant:** Update `GeckoZoneResolver.cs` so that elements inside Gecko windows defaulting past TopBar/Sidebar are resolved strictly as `MainContent` / `WebDocument`, never falling through.
+2. **IDE Container Mapping:** Update `ChromiumElectronZoneResolver.cs` to resolve `workbench.parts.*` structural containers and default to `MainContent` / `EditorBuffer`.
+3. **Eliminate Spatial Guessing in Engine:** Remove `SpatialPaneResolver.InferPaneFromGeometry` from `UiaExtractionEngine.ExtractControlInfoCore`.
+4. **Retain Passive Telemetry:** Keep `BoundingRectangle` on `FocusedControlInfo` and `WindowEnvelope` strictly as passive telemetry for HUD drawing.
 
 ### Phase 4: MCP Tool Correctness (P1)
 1. **`tag_active_control` Fail-Fast:** Return `CallToolResult.ErrorText` when `_ruleEngine` is null or fails persistence.
