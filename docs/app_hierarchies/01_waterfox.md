@@ -402,3 +402,25 @@ public sealed class GeckoZoneResolver : IArchetypeZoneResolver
     }
 }
 ```
+
+---
+
+## 7. Epistemic Blind Spots & Unknown Unknowns
+
+> [!IMPORTANT]
+> Catalog of unobserved surfaces, potential Gecko engine quirks, and failure modes.
+
+### 7.1 Unobserved Surfaces & States
+- [ ] **Modal Application Windows:** Native file picker dialogs (`#32770`), authentication popups, and certificate warnings.
+- [ ] **Auxiliary Pages (`about:*`):** Internal browser pages (`about:preferences`, `about:config`, `about:addons`) have not been tested live; they run in specialized chrome/content hybrid containers.
+- [ ] **Detached Tabs / Multi-Window Popouts:** Behavior when dragging a browser tab out to spawn a secondary window (verifying if profile hash or AUMID shifts).
+- [ ] **Developer Tools Docking:** Behavior when F12 DevTools are docked to the bottom or side vs. floating in a separate window.
+
+### 7.2 Framework & Rendering Quirks (Gecko / WebRender)
+- [ ] **Accessibility Service Lag:** Gecko initializes its accessibility engine (`AccessibleCaret`, `ia2`) lazily upon the first UIA event; cold start sampling may return incomplete trees.
+- [ ] **Multi-Process Out-of-Process Iframes (Fission):** Complex web documents running cross-origin iframes run in separate OS worker processes, which can introduce ALPC latency when climbing ancestor trees across iframe boundaries.
+
+### 7.3 Alternative Perception Paths
+- If UIA freezes or drops events on Waterfox, secondary perception can leverage:
+  - Gecko Marionette / Remote Debugging Protocol (push JSON over localhost socket).
+  - Win32 URL extraction via address bar accessibility value pattern fallback.

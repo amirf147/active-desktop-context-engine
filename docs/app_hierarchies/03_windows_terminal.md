@@ -224,3 +224,24 @@ The telemetry below was harvested directly from live execution using `TerminalPr
    Certain WinUI 3 XAML peer elements (such as `TermControl`) throw `PropertyNotSupportedException` on direct `AutomationId` property access. The extraction engine must use `Properties.AutomationId.ValueOrDefault` or try-catch guards.
 5. **Blanket Process Rule Removal:**
    Overbroad declarative rules (e.g. `processPattern: "windowsterminal"` with no control type or class filters) hijack chrome controls like `TabViewItem` and `NewTabButton`. Scoping rules strictly to `classNamePattern: "TermControl"` preserves granular zone resolution.
+
+---
+
+## 7. Epistemic Blind Spots & Unknown Unknowns
+
+> [!IMPORTANT]
+> Catalog of unobserved surfaces, WinUI 3 / XAML Island quirks, and failure modes.
+
+### 7.1 Unobserved Surfaces & States
+- [ ] **Flyouts & Command Palette:** Behavior of the Quick Tab switcher (`Ctrl+Shift+P`), Caret Profile dropdown, and settings tab (`Ctrl+,`).
+- [ ] **Split Pane Layouts:** Horizontally and vertically split terminal panes (`Alt+Shift++` / `Alt+Shift+-`); verifying whether secondary `TermControl` instances share parent visual bounds or have distinct container IDs.
+- [ ] **Secondary Window Sub-AUMIDs (`~Wh~`):** Detaching a tab to a secondary window creates `Microsoft.WindowsTerminal_8wekyb3d8bbwe!App~Wh~w<HEX_HWND>`. Verifying whether child pane HWND extraction functions seamlessly across multiple terminal windows.
+
+### 7.2 Framework & Rendering Quirks (WinUI 3 / XAML Islands)
+- [ ] **`PropertyNotSupportedException` on XAML Peers:** Direct access to `AutomationId` on `TermControl` peers throws managed COM exceptions if not protected with `ValueOrDefault`.
+- [ ] **DirectComposition / ConPTY Buffer Latency:** During heavy output streaming (e.g. building large codebases or dumping logs), terminal UI thread repainting can cause UIA event delays.
+
+### 7.3 Alternative Perception Paths
+- If UIA TextPattern or TermControl fails:
+  - Windows Pseudo Console (ConPTY) output pipe.
+  - Shell window title extraction (`WindowEnvelope.Title`).

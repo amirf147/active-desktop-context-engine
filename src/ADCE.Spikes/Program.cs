@@ -61,6 +61,13 @@ public static class Program
         {
             AppEnumerator.RunListOpenApps();
         }
+        else if (args.Any(a => a.Equals("--stress", StringComparison.OrdinalIgnoreCase) ||
+                               a.Equals("--stress-probe", StringComparison.OrdinalIgnoreCase) ||
+                               a.Equals("--probe", StringComparison.OrdinalIgnoreCase)))
+        {
+            StressProbe.RunStressProbe();
+        }
+
         else if (args.Any(a => a.Equals("--inspect-panes", StringComparison.OrdinalIgnoreCase) ||
                                a.Equals("--panes", StringComparison.OrdinalIgnoreCase) ||
                                a.Equals("-p", StringComparison.OrdinalIgnoreCase)))
@@ -260,9 +267,11 @@ public static class Program
         Console.ResetColor();
         Console.WriteLine("  --grab [filter] [--delay N]  Capture active foreground context snapshot");
         Console.WriteLine("  --apps                       List open windows and classify UI archetypes");
+        Console.WriteLine("  --stress                     Probe DWM cloaking, UIPI integrity, and sub-AUMIDs (~Wh~)");
         Console.WriteLine("  --panes [filter]             Inspect physical window panes & container hierarchy");
         Console.WriteLine("  --timeline [N] [--db path]   Visualize recent SQLite time-series transitions");
         Console.WriteLine("  --analyze [--db path]        Deep statistical audit of stored transitions\n");
+
 
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine("EMPIRICAL PROFILING SUITES:");

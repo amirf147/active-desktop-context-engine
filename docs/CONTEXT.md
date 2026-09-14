@@ -67,12 +67,14 @@ Documentation is structured into strict tiers to keep human developers and AI as
 │ • docs/architecture/EXTRACTION_PIPELINE.md (Gating sequence, traversal bounds, rules)  │
 │ • docs/architecture/STORAGE_ARCHITECTURE.md (Dual-tier cache, SQLite WAL persistence) │
 │ • docs/architecture/DAEMON_AND_CONSUMER_INTEGRATION.md (Tray host, MCP, Caster voice) │
+│ • docs/architecture/DESKTOP_UI_PERCEPTION_AND_VOLATILITY_TAXONOMY.md (Volatility tiers)│
 ├────────────────────────────────────────────────────────────────────────────────────────┤
 │ TIER 3: GUIDES & APPLICATION HIERARCHIES (Operational Reference)                       │
-│ • docs/app_hierarchies/README.md (Waterfox, Antigravity IDE UI automation layouts)    │
+│ • docs/app_hierarchies/README.md (Living Knowledge Hub & application hierarchy index)  │
 │ • docs/guides/EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md                          │
 │ • docs/guides/ADCE_FOCUS_AND_ZONE_DETECTION_EXPLAINED.md                               │
 │ • docs/guides/FIRST_REAL_WORLD_USE_CASE_CASTER_DYNAMIC_TERMINAL_GRAMMARS.md            │
+
 ├────────────────────────────────────────────────────────────────────────────────────────┤
 │ TIER 4: RETROSPECTIVE POSTMORTEMS (Anti-Pattern Ledgers)                               │
 │ • docs/postmortems/README.md                                                           │
@@ -98,6 +100,8 @@ Documentation is structured into strict tiers to keep human developers and AI as
 | [`architecture/SEMANTIC_CLASSIFICATION_AND_INTERACTION_GRAPH_SPEC.md`](architecture/SEMANTIC_CLASSIFICATION_AND_INTERACTION_GRAPH_SPEC.md) | `ADCE.Extraction`, `ADCE.Mcp` | Closed structural archetype resolution (zero spatial math), fine-grained sub-zones & control roles, and ephemeral UI interaction state graph trajectories. |
 | [`architecture/ADCE_PHILOSOPHY_AND_SCOPE_BOUNDARIES.md`](architecture/ADCE_PHILOSOPHY_AND_SCOPE_BOUNDARIES.md) | System Philosophy | Canonical scope boundary definition: ADCE as a high-speed passive perception sensor vs. downstream action/automation actors. |
 | [`architecture/PERCEPTION_PURITY_AND_ONTOLOGY_STRATEGY.md`](architecture/PERCEPTION_PURITY_AND_ONTOLOGY_STRATEGY.md) | System Architecture & Strategy | Architectural assessment on perception purity vs prescriptive ontology, boundary layers, and repository/branching strategy. |
+| [`architecture/DESKTOP_UI_PERCEPTION_AND_VOLATILITY_TAXONOMY.md`](architecture/DESKTOP_UI_PERCEPTION_AND_VOLATILITY_TAXONOMY.md) | System Architecture & Knowledge Hub | Canonical taxonomy on the 4-level volatility spectrum, 7 application framework archetypes & quirks, and the Epistemic Blind Spot Protocol. |
+
 
 ### 3.2 Application Hierarchies & Layouts
 | Profile | Target Application | Documented Automation Structure |

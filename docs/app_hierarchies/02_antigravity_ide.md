@@ -512,3 +512,25 @@ public sealed class ChromiumElectronZoneResolver : IArchetypeZoneResolver
     }
 }
 ```
+
+---
+
+## 7. Epistemic Blind Spots & Unknown Unknowns
+
+> [!IMPORTANT]
+> Catalog of unobserved surfaces, potential Electron/Monaco quirks, and failure modes.
+
+### 7.1 Unobserved Surfaces & States
+- [ ] **Detached Editor / Floating Windows:** Modern VS Code allows tearing off editor tabs into secondary floating windows. Verifying whether secondary windows retain `Chrome_WidgetWin_1` and how parent PID/HWND correlation functions.
+- [ ] **IntelliSense & QuickPick Modals:** Auto-complete widgets (`monaco-editor-hover`, `suggest-widget`, `quick-input-widget`)—verifying whether they are rendered inside the DOM or as floating overlay layers.
+- [ ] **Multi-Root Workspaces:** Behavior of `workbench.view.explorer` when multiple folder roots are opened simultaneously.
+- [ ] **Webview Panes (Markdown preview, Simple Browser):** Rendered inside out-of-process iframes; verifying if Monaco ancestor rules mistakenly categorize webview contents as editor buffers.
+
+### 7.2 Framework & Rendering Quirks (Chromium / Electron)
+- [ ] **Monaco Line Virtualization:** Monaco does not instantiate DOM nodes for off-screen code lines. Querying UIA TextPattern or child lines for off-screen text returns empty or stale data.
+- [ ] **Renderer Process ALPC Stalls:** If a heavy extension or language server saturates the Electron main thread or renderer, cross-process UIA cache requests can block if not gated by short timeouts.
+
+### 7.3 Alternative Perception Paths
+- If UIA encounters deadlocks or degraded trees on VS Code:
+  - Local VS Code Extension socket (direct IPC pushing active file path, selection, and language ID over a localhost named pipe).
+  - Language Server Protocol (LSP) queries.
