@@ -20,10 +20,11 @@ Building an ultra-low latency (< 15 ms), zero-idle-CPU desktop perception engine
 
 There is no single "Windows UI." A modern desktop environment is a heterogeneous federation of rendering engines: classic Win32/GDI, Windows Presentation Foundation (WPF), WinUI 3 / XAML Islands, Chromium/Electron, Mozilla Gecko, and custom GPU canvas compositors (DirectX, Skia, Metal/Vulkan wrappers).
 
-The core thesis of this taxonomy is threefold:
-1. **Code is Cheap; Ground-Truth Knowledge is the Durable Asset:** Hardened C# or Rust code will be refactored or rewritten as systems evolve. A comprehensive, empirically verified knowledge base of application container topologies, rendering quirks, and update volatility is language-agnostic and universally portable.
-2. **The Volatility Invariant:** High-reliability perception engines must never bind to volatile UI properties (dynamic CSS hashes, child ordinal indices, undocumented COM vtable layouts). They must anchor exclusively to immutable OS ground truth (Level 1) and stable structural containers (Level 2).
-3. **Surveillance of Unknown Unknowns (The Blind Spot Protocol):** Any accessibility API (`UIAutomationCore.dll`) can and will report incomplete, misleading, or lazy-degraded trees. Systems must actively triangulate across multiple OS signals (Win32 HWNDs, AUMIDs, DWM cloaking, dynamic perturbations) to expose architectural blind spots.
+The core thesis of this taxonomy is fourfold:
+1. **OS Ground Truth vs. Application Volatility:** Immutable OS primitives (Level 1: HWNDs, PIDs, DWM cloaking, and native window classes) provide decade-long stability. Application-specific container selectors (Level 2: `workbench.parts.*`, `#navigator-toolbox`) represent internal vendor conventions subject to layout churn across minor releases.
+2. **Decoupled Architecture Invariant:** Core compiled extraction logic must anchor exclusively to Level 1 OS primitives and generic UIA structural patterns. Application-specific Level 2 container selectors must not be hardcoded into core binaries; they belong in external, hot-reloadable rule overlays (`semantic_rules.json`).
+3. **Out-of-Band Viewport Handoff:** Desktop accessibility APIs cannot inspect in-viewport web documents or GPU canvases without triggering multi-second cross-process COM LPC stalls. Deep document comprehension must be delegated to specialized out-of-band protocols (Chrome DevTools Protocol for web viewports, Language Server Protocol for code editors), using ADCE's low-latency window telemetry (HWND, PID, sanitized URL, bounds) as the correlation handle.
+4. **Surveillance of Unknown Unknowns (The Blind Spot Protocol):** Any accessibility API (`UIAutomationCore.dll`) can and will report incomplete, misleading, or lazy-degraded trees. Systems must actively triangulate across multiple OS signals (Win32 HWNDs, AUMIDs, DWM cloaking, dynamic perturbations) to expose architectural blind spots.
 
 ---
 
@@ -34,18 +35,19 @@ To prevent brittle selectors that break across application patches or Windows cu
 ```
 STABILITY
    ▲
-   │  LEVEL 1: IMMUTABLE OS GROUND TRUTH (Stable for Decades)
+   │  LEVEL 1: IMMUTABLE OS GROUND TRUTH (Decade-Long Stability)
    │  • Win32 Window Handles (HWND), Process IDs (PID), Top-Level Window Class Names
    │  • Win32 AppUserModelID (PKEY_AppUserModel_ID), including sub-AUMIDs (~Wh~w<HEX_HWND>)
    │  • Standard UIA ControlType Enums (ControlType.Edit, ControlType.TabItem, ControlType.Document)
    │  • DWM Cloaking State (DWMWA_CLOAKED via dwmapi.dll)
    │
-   │  LEVEL 2: HIGH STRUCTURAL STABILITY (Multi-Year / Semver Minor Stable)
+   │  LEVEL 2: APPLICATION CONTAINER CONVENTIONS (Semver Minor Stable, Heuristic Rule Overlays)
    │  • Semantic Container AutomationIds in well-architected applications:
    │    - VS Code / Electron: workbench.parts.panel, workbench.parts.sidebar, workbench.parts.editor
    │    - Gecko / Waterfox: #navigator-toolbox, #urlbar-input, #tabbrowser-tabs
    │    - Windows Terminal: TermControl, TabBar
    │  • Standard ARIA roles (role="tab", role="textbox") exposed through the browser accessibility bridge
+   │  • Note: Maintained via dynamic rule overlays (semantic_rules.json) to prevent compiled code churn
    │
    │  LEVEL 3: MODERATE VOLATILITY (Alters on Major Feature Releases / UI Overhauls)
    │  • Exact child nesting depth (e.g. an element moving from 4 levels to 6 levels deep)

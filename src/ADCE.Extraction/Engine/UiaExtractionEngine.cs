@@ -95,6 +95,13 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
             return ValueTask.FromResult(CreateEmptySnapshot(hwnd, "Invalid Window Handle", string.Empty, 0, string.Empty, DesktopAppArchetype.Unknown, sw.Elapsed.TotalMilliseconds));
         }
 
+        // 1b. DWM Cloaking Gating: drop windows on other Virtual Desktops in sub-microsecond time (< 0.01 ms)
+        if (Win32Gating.IsWindowCloaked(hwnd))
+        {
+            sw.Stop();
+            return ValueTask.FromResult(CreateEmptySnapshot(hwnd, "Cloaked Window (Other Desktop)", className, pid, processName, DesktopAppArchetype.Unknown, sw.Elapsed.TotalMilliseconds));
+        }
+
         var bounds = Win32Gating.GetWindowBounds(hwnd);
         var archetype = _classifier.Classify(className, processName, title);
 

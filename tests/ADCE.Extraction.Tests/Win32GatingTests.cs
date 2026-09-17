@@ -33,4 +33,25 @@ public class Win32GatingTests
         bool result = Win32Gating.CanAccessProcess(nint.Zero);
         Assert.False(result);
     }
+
+    [Fact]
+    public void IsWindowCloaked_ReturnsFalseForZeroHandle()
+    {
+        bool result = Win32Gating.IsWindowCloaked(nint.Zero);
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void IsWindowCloaked_HandlesInvalidHandleCleanly()
+    {
+        bool result = Win32Gating.IsWindowCloaked((nint)0x0000_1234);
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void IsWindowValidAndVisible_ReturnsFalseForInvalidHandle()
+    {
+        bool result = Win32Gating.IsWindowValidAndVisible((nint)0x0000_1234);
+        Assert.False(result);
+    }
 }

@@ -195,9 +195,10 @@ public sealed class DebouncedDesktopEventPipeline : IDisposable
         {
             var snapshot = await _extractor.ExtractSnapshotAsync(token.Hwnd, cancellationToken);
 
-            // Filter OS kernel subsystem arbitration, destroyed transient windows, and transient shell surfaces (Taskbar, tray flyouts, tooltips)
+            // Filter OS kernel subsystem arbitration, destroyed transient windows, cloaked windows, and transient shell surfaces (Taskbar, tray flyouts, tooltips)
             if (snapshot.Window.Hwnd == nint.Zero ||
                 snapshot.Window.Title.Equals("Invalid Window Handle", StringComparison.OrdinalIgnoreCase) ||
+                snapshot.Window.Title.StartsWith("Cloaked Window", StringComparison.OrdinalIgnoreCase) ||
                 snapshot.Window.ProcessName.Equals("csrss", StringComparison.OrdinalIgnoreCase) ||
                 snapshot.Window.ProcessName.Equals("dwm", StringComparison.OrdinalIgnoreCase) ||
                 snapshot.Window.ClassName.Equals("OLEChannelWnd", StringComparison.OrdinalIgnoreCase) ||

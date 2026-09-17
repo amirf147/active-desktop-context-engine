@@ -80,12 +80,35 @@ public static class Win32Gating
     }
 
     /// <summary>
+    /// Checks whether the window is cloaked by the Desktop Window Manager (DWM),
+    /// e.g. when residing on an inactive Virtual Desktop or suspended by the shell.
+    /// Returns true if the window has any non-zero cloaked state.
+    /// </summary>
+    public static bool IsWindowCloaked(nint hwnd)
+    {
+        if (hwnd == nint.Zero || !NativeMethods.IsWindow(hwnd))
+            return false;
+
+        int hr = NativeMethods.DwmGetWindowAttribute(
+            hwnd,
+            NativeMethods.DWMWA_CLOAKED,
+            out uint cloaked,
+            sizeof(uint));
+
+        return hr == 0 && cloaked != 0;
+    }
+
+    /// <summary>
     /// Validates whether an HWND is a candidate desktop window.
     /// The active foreground window is always treated as valid.
     /// </summary>
     public static bool IsWindowValidAndVisible(nint hwnd)
     {
         if (hwnd == nint.Zero || !NativeMethods.IsWindow(hwnd))
+            return false;
+
+        // Reject windows cloaked by DWM (such as those residing on another Virtual Desktop)
+        if (IsWindowCloaked(hwnd))
             return false;
 
         // Active foreground window is always valid regardless of tool styles

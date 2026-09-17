@@ -208,4 +208,12 @@ internal static partial class NativeMethods
 
     [DllImport("kernel32.dll")]
     public static extern nint GetCurrentProcess();
+
+    public const uint DWMWA_CLOAKED = 14;
+    public const uint DWM_CLOAKED_APP = 0x00000001;
+    public const uint DWM_CLOAKED_SHELL = 0x00000002;
+    public const uint DWM_CLOAKED_INHERITED = 0x00000004;
+
+    [DllImport("dwmapi.dll")]
+    public static extern int DwmGetWindowAttribute(nint hwnd, uint dwAttribute, out uint pvAttribute, int cbAttribute);
 }

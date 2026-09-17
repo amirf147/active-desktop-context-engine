@@ -5,12 +5,12 @@
 
 ---
 
-# Semantic Classification & Interaction State Graph Specification
+# Semantic Classification & Structural Archetype Taxonomy Specification
 
 > **Document Status:** Active Canonical Architecture Specification
 > **Epistemic Authority:** Tier 2 (Canonical Domain & Semantic Taxonomy Model)
 > **Target Solution:** `ADCE.Core`, `ADCE.Extraction`, `ADCE.Mcp`, `ADCE.Daemon`
-> **Target Consumers:** AI Coding Assistants (Antigravity IDE, Claude, Cline), Voice Frameworks (Caster), Automation Engines
+> **Target Consumers:** AI Coding Assistants (Antigravity IDE, Claude, Cline), Voice Frameworks (Caster)
 > **Runtime:** .NET 10 (`net10.0-windows`) / C# 14 / `FlaUI.UIA3 5.0.0`
 > **Date:** September 2026
 
@@ -18,20 +18,20 @@
 
 ## 1. Executive Overview & Problem Statement
 
-ADCE serves two interconnected operational roles for downstream AI and automation consumers:
-1. **Passive Observation Plane:** Deterministically classifying the user's active focus, macro window pane, semantic zone, and interactive control role with sub-millisecond overhead and zero spatial coordinate guessing.
-2. **Actionable Interaction Plane (State Transition Graph):** Providing AI agents and voice grammars with deterministic **Interaction Trajectories (UI Paths)** to reach, reveal, and automate ephemeral or unmounted UI surfaces (such as Settings, Hamburger Menus, Command Palettes, and XAML Island tabs) without requiring blind full-tree DOM crawling.
+ADCE operates strictly as a **Passive Observation Sensor** for downstream AI and automation consumers:
+1. **Passive Telemetry Extraction:** Deterministically classifying the user's active focus, macro window pane, semantic zone, and interactive control role with sub-millisecond overhead and zero spatial coordinate guessing.
+2. **Strict Scope Separation:** ADCE does not maintain multi-step click recipes, UI path trajectories, or state transition graphs. Action execution, keystroke synthesis, and UI automation planning belong exclusively to external agent frameworks or automation drivers, as codified in [ADCE_PHILOSOPHY_AND_SCOPE_BOUNDARIES.md](ADCE_PHILOSOPHY_AND_SCOPE_BOUNDARIES.md).
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                ADCE DUAL-PLANE ARCHITECTURE                                      │
+│                                ADCE PASSIVE OBSERVATION ARCHITECTURE                             │
 ├─────────────────────────────────────────────────────────────────┬────────────────────────────────┤
-│ PASSIVE OBSERVATION PLANE (Live State)                          │ ACTIONABLE INTERACTION PLANE   │
+│ PASSIVE OBSERVATION PLANE (ADCE Core Engine)                    │ DOWNSTREAM CONSUMERS & ACTORS  │
 ├─────────────────────────────────────────────────────────────────┼────────────────────────────────┤
-│ • Focus Element & AncestorChain Harvesting                      │ • Semantic State Graph         │
-│ • Closed Structural Archetype Topologies (Zero Spatial Math)    │ • Ephemeral UI Reveal Recipes  │
-│ • Fine-Grained Sub-Zones & Control Roles                        │ • Deterministic Key / UI Paths │
-│ • Emits: DesktopContextSnapshot over MCP & Caster IPC           │ • Exposes: Interaction Traject.│
+│ • Focus Element & AncestorChain Harvesting                      │ • Action Planning & Execution  │
+│ • Closed Structural Archetype Topologies (Zero Spatial Math)    │ • Keyboard Shortcuts & Drivers │
+│ • Fine-Grained Sub-Zones & Control Roles                        │ • Agent Navigation Reasoning   │
+│ • Emits: DesktopContextSnapshot over MCP & Caster IPC           │ • Sensory Verification Loops   │
 └─────────────────────────────────────────────────────────────────┴────────────────────────────────┘
 ```
 
@@ -124,82 +124,43 @@ $$\text{Semantic Path} = [\text{Macro Pane} > \text{Active View} > \text{Section
 
 ---
 
-## 4. The Ephemeral UI Tree & The Interaction State Graph
+## 4. The Ephemeral UI Tree & Sensory Verification Boundaries
 
 ### 4.1 The Physical Problem: The "Dark / Virtualized Tree"
 In modern UI frameworks (Chromium/Electron, Gecko, WinUI 3 XAML Islands):
-1. **Dynamic Mounting:** Menus (`#appMenu-popup`, `monaco-menu`), Command Palettes, In-Page Find Bars (`#findbar`), and Settings pages **do NOT exist in the UIA accessibility tree when closed**. They are dynamically mounted and rendered only upon specific user interaction.
+1. **Dynamic Mounting:** Menus (`#appMenu-popup`, `monaco-menu`), Command Palettes, In-Page Find Bars (`#findbar`), and Settings pages do NOT exist in the accessibility tree when closed. They are dynamically mounted and rendered only upon specific user interaction.
 2. **Deferred Layout Virtualization:** WinUI 3 XAML Islands (e.g. Windows Terminal Settings) defer layout virtualization until the tab is actively focused and rendered, returning empty bounding boxes (`0, 0, 0, 0`) prior to layout completion.
-3. **The Agentic Brute-Force Trap:** An AI agent attempting to automate or inspect an unmounted surface cannot find the target control through passive querying. If the agent attempts recursive full-tree scanning (`FindFirstDescendant`), it triggers 800ms–3500ms CPU stalls and still finds zero elements because the controls are unmounted.
+3. **The Agentic Brute-Force Trap:** An AI agent attempting to inspect an unmounted surface cannot find the target control through passive querying. If the agent attempts recursive full-tree scanning (`FindFirstDescendant`), it triggers 800 ms to 3500 ms CPU stalls and still finds zero elements because the controls are unmounted.
 
-### 4.2 The Solution: Interaction Trajectories & Transition Recipes
-Rather than guessing or blind-crawling, ADCE formalizes an **Interaction State Graph** defining the deterministic recipes to reveal, focus, and navigate to any target state.
+### 4.2 The Solution: External Orchestration with Passive Sensory Feedback
+ADCE does not embed automation recipes or navigation click scripts into the telemetry engine. Storing multi-step click recipes inside ADCE violates the core invariant of being a passive, zero-allocation sensor. External agents execute actions using their own planners and use ADCE's real-time sensory feedback to verify whether the target surface mounted successfully:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                              INTERACTION STATE TRANSITION GRAPH                        │
-├──────────────────────┬─────────────────────────┬───────────────────────────────────────┤
-│ Target UI State      │ Primary Shortcut Path   │ Deterministic UI Click Trajectory     │
-├──────────────────────┼─────────────────────────┼───────────────────────────────────────┤
-│ Settings (Browser)   │ about:preferences       │ TopBar > #PanelUI-menu-button (Click) │
-│                      │                         │ └─ OverlayModal > #appMenu-settings   │
-├──────────────────────┼─────────────────────────┼───────────────────────────────────────┤
-│ Settings (IDE)       │ Ctrl+,                  │ TopBar > MenuBar > "File" (Click)     │
-│                      │                         │ └─ "Preferences" > "Settings"         │
-├──────────────────────┼─────────────────────────┼───────────────────────────────────────┤
-│ Command Palette (IDE)│ Ctrl+Shift+P            │ TopBar > MenuBar > "View" (Click)     │
-│                      │                         │ └─ "Command Palette..."               │
-├──────────────────────┼─────────────────────────┼───────────────────────────────────────┤
-│ In-Page Find (Browser│ Ctrl+F                  │ TopBar > #PanelUI-menu-button (Click) │
-│                      │                         │ └─ "Find in This Page..."             │
-├──────────────────────┼─────────────────────────┼───────────────────────────────────────┤
-│ Integrated Terminal  │ Ctrl+` (or Ctrl+J)      │ TopBar > MenuBar > "Terminal" (Click) │
-│                      │                         │ └─ "New Terminal"                     │
-├──────────────────────┼─────────────────────────┼───────────────────────────────────────┤
-│ AI Assistant Drawer  │ Ctrl+L (or Ctrl+Alt+B)  │ ActivityBar > "Chat" Icon (Click)     │
-└──────────────────────┴─────────────────────────┴───────────────────────────────────────┘
-```
-
-### 4.3 Structure of an Interaction Recipe (Schema)
-
-```csharp
-public record InteractionTrajectory(
-    string TargetView,
-    string? TargetSection,
-    string? PrimaryShortcut,
-    IReadOnlyList<UiInteractionStep> UiSteps);
-
-public record UiInteractionStep(
-    int StepOrder,
-    string ContainerAnchor,
-    string TargetControlId,
-    string ActionType, // "Click", "Expand", "Focus", "SetText"
-    string ExpectedResultZone);
-```
-
-#### Example: Revealing Waterfox Application Settings via UI Path:
-```json
-{
-  "target_view": "Settings",
-  "primary_shortcut": "Ctrl+,",
-  "direct_url": "about:preferences",
-  "ui_steps": [
-    {
-      "step": 1,
-      "container": "TopBar > NavigationBar",
-      "target_id": "PanelUI-menu-button",
-      "action": "Click",
-      "expected_zone": "NavigationPanel (AppMenu)"
-    },
-    {
-      "step": 2,
-      "container": "OverlayModal > AppMenu",
-      "target_id": "appMenu-settings-button",
-      "action": "Click",
-      "expected_zone": "WebDocument (Settings)"
-    }
-  ]
-}
+│                       THE PERCEPTION-ACTION AGENTIC LOOP                               │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                        │
+│  1. Agent Receives Goal: "Search for proxy settings in Waterfox"                       │
+│                                                                                        │
+│  2. Agent Queries Sensor (ADCE):                                                       │
+│     MCP: `get_current_snapshot` ──▶ State: [Waterfox | MainContent > WebDocument]     │
+│                                                                                        │
+│  3. Agent Plans Action (External Planner):                                             │
+│     Agent knows shortcut is Ctrl+, or direct navigation to about:preferences           │
+│                                                                                        │
+│  4. Agent Executes Action (External Automation Driver):                                │
+│     Agent triggers shortcut or navigates to about:preferences                         │
+│                                                                                        │
+│  5. ADCE Passively Detects Transition:                                                 │
+│     Focus shifts ──▶ WinEvent hook fires ──▶ ADCE extracts state (< 10 ms)             │
+│                                                                                        │
+│  6. Agent Queries Sensor to Verify:                                                    │
+│     MCP: `get_current_snapshot` ──▶ State: [Waterfox | MainContent > Settings > Search]│
+│                                            Control: Edit ("Find in Settings")          │
+│                                                                                        │
+│  7. Agent Confirms Success & Proceeds to Next Step.                                    │
+│                                                                                        │
+└────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -208,19 +169,12 @@ public record UiInteractionStep(
 
 ### 5.1 Passive Observation Flow (Live Telemetry)
 1. User clicks or tabs to an element.
-2. `AncestorChainHarvester` captures parent container IDs.
+2. `AncestorChainHarvester` captures parent container IDs within a single COM roundtrip.
 3. The closed `IArchetypeZoneResolver` maps the control to `[MacroPane > ActiveView > SectionName > Role]`.
-4. MCP tool `get_current_snapshot` returns the enriched envelope in `< 1.0 ms`.
+4. MCP tool `get_current_snapshot` returns the enriched envelope in `< 1.0 ms` from the L1 cache.
 
-### 5.2 Actionable Intent Flow (Agentic Navigation)
-1. Agent receives user goal: *"Search for cookie settings in Waterfox"*.
-2. Agent queries ADCE: Current state is `[MainContent > WebDocument > Article]`.
-3. Agent inspects interaction recipe for `TargetView: "Settings"`:
-   * Option A (Direct): Invoke `Ctrl+,` or navigate to `about:preferences`.
-   * Option B (UI Trajectory): Click `#PanelUI-menu-button` $\implies$ Click `#appMenu-settings-button`.
-4. Agent executes recipe.
-5. ADCE detects focus transition and immediately confirms: `[MainContent > Settings > Search]`, Control: `Edit ("Find in Settings")`.
-6. Agent writes `"cookie"` into the search box via UIA `ValuePattern.SetValue()`.
+### 5.2 Verification Verification Flow
+When an agent or voice grammar issues an action, it queries ADCE post-action to confirm that the focused control, macro pane, or semantic zone transitioned to the expected state before proceeding to subsequent keystrokes.
 
 ---
 
@@ -228,7 +182,7 @@ public record UiInteractionStep(
 
 ```mermaid
 gantt
-    title Semantic Labeling & Interaction Graph Roadmap
+    title Semantic Labeling & Structural Topology Roadmap
     dateFormat  YYYY-MM-DD
     section Phase 1: Core Engine
     Remove SpatialPaneResolver      :p1_1, 2026-09-07, 1d
@@ -238,9 +192,9 @@ gantt
     Gecko Hamburger/AppMenu Anchors :p2_2, after p2_1, 1d
     Gecko Settings & Search Inputs  :p2_3, after p2_2, 1d
     Chromium workbench.parts.* Map  :p2_4, after p2_3, 1d
-    section Phase 3: Interaction Graph
-    Trajectory Models & Recipes     :p3_1, after p2_4, 2d
-    Expose Recipes over MCP Schema  :p3_2, after p3_1, 2d
+    section Phase 3: Dynamic Rule Configuration
+    JSON Rule Schema Definition     :p3_1, after p2_4, 2d
+    User-Configurable Overlays      :p3_2, after p3_1, 2d
     section Phase 4: Verification
     GeckoStructuralTests            :p4_1, after p3_2, 2d
     IdePaneClassificationTests      :p4_2, after p4_1, 1d
