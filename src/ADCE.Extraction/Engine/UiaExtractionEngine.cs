@@ -120,10 +120,7 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
             return ValueTask.FromResult(CreateShallowSnapshot(hwnd, title, className, pid, processName, archetype, bounds, sw.Elapsed.TotalMilliseconds));
         }
 
-        // 4. Extract Focus Target
-        var focusInfo = ExtractFocusedControl(_automation, windowElement, pid, processName, archetype, EnableSemanticZones, _ruleEngine, bounds);
-
-        // 5. Specialized Multi-Zone Extraction based on Archetype
+        // 4. Specialized Multi-Zone Extraction based on Archetype
         IdeContext? ideContext = null;
         BrowserContext? browserContext = null;
         ExplorerContext? explorerContext = null;
@@ -164,6 +161,10 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
             // Resilient degradation
         }
 
+        // 5. Extract Focus Target
+        string? activeFilePath = ideContext?.ActiveFilePath;
+        var focusInfo = ExtractFocusedControl(_automation, windowElement, pid, processName, archetype, EnableSemanticZones, _ruleEngine, bounds, activeFilePath);
+
         sw.Stop();
 
         var snapshot = new DesktopContextSnapshot
@@ -180,7 +181,7 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
             Window = new WindowEnvelope
             {
                 Hwnd = hwnd,
-                Title = title,
+                Title = ContextPrivacySanitizer.SanitizeText(title),
                 ProcessName = processName,
                 Pid = pid,
                 ClassName = className,
@@ -221,7 +222,8 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
         AutomationElement windowElement,
         AutomationElement control,
         DesktopAppArchetype archetype,
-        BoundingRectangle windowBounds = default)
+        BoundingRectangle windowBounds = default,
+        string? activeFilePath = null)
     {
         int pid = 0;
         string procName = string.Empty;
@@ -251,7 +253,7 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
 
         return ExtractControlInfoCore(
             _automation, windowElement, control, pid, procName, archetype,
-            EnableSemanticZones, _ruleEngine, windowBounds);
+            EnableSemanticZones, _ruleEngine, windowBounds, activeFilePath);
     }
 
     private static FocusedControlInfo ExtractFocusedControl(
@@ -262,7 +264,8 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
         DesktopAppArchetype archetype,
         bool enableSemanticZones = true,
         ISemanticRuleEngine? ruleEngine = null,
-        BoundingRectangle windowBounds = default)
+        BoundingRectangle windowBounds = default,
+        string? activeFilePath = null)
     {
         try
         {
@@ -280,22 +283,9 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
                 {
                     return ExtractControlInfoCore(
                         automation, windowElement, focused, windowPid, processName, archetype,
-                        enableSemanticZones, ruleEngine, windowBounds);
+                        enableSemanticZones, ruleEngine, windowBounds, activeFilePath);
                 }
             }
-
-            try
-            {
-                var cond = new FlaUI.Core.Conditions.PropertyCondition(automation.PropertyLibrary.Element.HasKeyboardFocus, true);
-                var internalFocus = windowElement.FindFirstDescendant(cond);
-                if (internalFocus != null)
-                {
-                    return ExtractControlInfoCore(
-                        automation, windowElement, internalFocus, windowPid, processName, archetype,
-                        enableSemanticZones, ruleEngine, windowBounds);
-                }
-            }
-            catch { }
         }
         catch { }
 
@@ -311,7 +301,8 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
         DesktopAppArchetype archetype,
         bool enableSemanticZones = true,
         ISemanticRuleEngine? ruleEngine = null,
-        BoundingRectangle windowBounds = default)
+        BoundingRectangle windowBounds = default,
+        string? activeFilePath = null)
     {
         string cType = focused.Properties.ControlType.ValueOrDefault.ToString();
         string name = focused.Properties.Name.ValueOrDefault ?? string.Empty;
@@ -412,7 +403,21 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
         string? value = null;
         try { value = focused.Patterns.Value.PatternOrDefault?.Value.ValueOrDefault; } catch { }
 
-        string? sanitizedValue = ContextPrivacySanitizer.SanitizeBuffer(value, name, isPassword);
+        if (value != null && value.Length > 2048)
+        {
+            value = value[..2048];
+        }
+
+        string targetFile = !string.IsNullOrWhiteSpace(activeFilePath) ? activeFilePath : name;
+        string? sanitizedValue = ContextPrivacySanitizer.SanitizeBuffer(value, targetFile, isPassword);
+        if (sanitizedValue != null)
+        {
+            sanitizedValue = ContextPrivacySanitizer.SanitizeText(sanitizedValue);
+            if (sanitizedValue.Length > 2048)
+            {
+                sanitizedValue = sanitizedValue[..2048];
+            }
+        }
 
         return new FocusedControlInfo
         {
@@ -435,10 +440,11 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
 
     private static FocusedControlInfo CreateDefaultFocusedControlInfo(AutomationElement windowElement, BoundingRectangle windowBounds)
     {
+        string rawTitle = windowElement.Properties.Name.ValueOrDefault ?? string.Empty;
         return new FocusedControlInfo
         {
             ControlType = "Window",
-            ElementName = windowElement.Properties.Name.ValueOrDefault ?? string.Empty,
+            ElementName = ContextPrivacySanitizer.SanitizeText(rawTitle),
             AutomationId = string.Empty,
             ClassName = windowElement.Properties.ClassName.ValueOrDefault ?? string.Empty,
             BoundingBox = windowBounds.IsEmpty ? BoundingRectangle.Empty : windowBounds,
@@ -449,7 +455,8 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
             SemanticPath = System.Collections.Immutable.ImmutableArray<string>.Empty,
             ContainerPath = System.Collections.Immutable.ImmutableArray<string>.Empty,
             ContainerClasses = System.Collections.Immutable.ImmutableArray<string>.Empty,
-            IsOverlay = false
+            IsOverlay = false,
+            ValueSnippet = null
         };
     }
 
@@ -547,7 +554,7 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
             Window = new WindowEnvelope
             {
                 Hwnd = hwnd,
-                Title = title,
+                Title = ContextPrivacySanitizer.SanitizeText(title),
                 ProcessName = processName,
                 Pid = pid,
                 ClassName = className,
@@ -559,7 +566,7 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
             Focus = new FocusedControlInfo
             {
                 ControlType = "Window",
-                ElementName = title,
+                ElementName = ContextPrivacySanitizer.SanitizeText(title),
                 AutomationId = string.Empty,
                 ClassName = className,
                 BoundingBox = bounds,

@@ -19,9 +19,6 @@ using ADCE.Extraction.Engine;
 using ADCE.Extraction.Events;
 using ADCE.Spikes.Models;
 using ADCE.Spikes.Native;
-using ADCE.Spikes.Verification;
-using ADCE.Spikes.Verification.Drivers;
-using ADCE.Spikes.Verification.Models;
 using ADCE.Storage.Database;
 using ADCE.Storage.Options;
 using FlaUI.Core.AutomationElements;
@@ -808,79 +805,6 @@ internal static class MilestoneSpikes
         }
 
         await pipeline.StopAsync();
-    }
-
-#pragma warning disable CS0618 // Type or member is obsolete (retained for legacy CLI compatibility)
-    public static async Task RunClaimVerificationSuiteAsync(bool liveMode, string? singleClaim = null)
-    {
-        var runner = new ClaimVerificationRunner();
-#pragma warning restore CS0618
-        IStimulusDriver driver;
-
-        if (liveMode)
-        {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("==========================================================================");
-            Console.WriteLine("  LIVE INTERACTIVE CLAIM VERIFICATION                                     ");
-            Console.WriteLine("  WARNING: Interactive live test will inspect desktop windows.            ");
-            Console.WriteLine("  Starting in 3 seconds. Please do not move mouse or switch windows...    ");
-            Console.WriteLine("==========================================================================");
-            Console.ResetColor();
-            await Task.Delay(3000);
-
-            driver = new LiveWin32StimulusDriver();
-        }
-        else
-        {
-            driver = new MockStimulusDriver();
-        }
-
-        ClaimVerificationSuiteResult suite;
-        if (!string.IsNullOrWhiteSpace(singleClaim))
-        {
-            string normClaim = singleClaim.Replace("-", "_").ToUpperInvariant();
-            if (Enum.TryParse<ClaimId>(normClaim, out var claimId) ||
-                Enum.TryParse<ClaimId>("CLM_" + normClaim.TrimStart('C', 'L', 'M', '_'), out claimId))
-            {
-                var singleResult = await runner.RunSingleClaimAsync(claimId, driver);
-                suite = new ClaimVerificationSuiteResult
-                {
-                    SuiteName = $"Single Claim Verification: {claimId}",
-                    DriverType = driver.DriverName,
-                    StartTime = DateTimeOffset.UtcNow,
-                    EndTime = DateTimeOffset.UtcNow,
-                    TotalDurationMs = singleResult.ElapsedMs,
-                    Results = [singleResult]
-                };
-            }
-            else
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"[ERROR] Unrecognized claim identifier: '{singleClaim}'. Valid values: CLM-001 through CLM-006.");
-                Console.ResetColor();
-                return;
-            }
-        }
-        else
-        {
-            suite = await runner.RunSuiteAsync(driver);
-        }
-
-        EvidenceLedger.PrintConsoleSummary(suite);
-
-        // Persist transient claim reports in artifacts/claim_reports
-        string reportsDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "artifacts", "claim_reports"));
-        try
-        {
-            await EvidenceLedger.SaveReportsAsync(suite, reportsDir);
-            Console.WriteLine($"[LEDGER SAVED] Transient evidence reports saved in artifacts/claim_reports/\n");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[LEDGER WARN] Could not write to artifacts/claim_reports: {ex.Message}\n");
-        }
-
-        if (driver is IDisposable d) d.Dispose();
     }
 
     public static async Task RunDaemonSpikeAsync()

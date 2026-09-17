@@ -17,26 +17,15 @@ public sealed class ArchetypeClassifier : IArchetypeClassifier
     public DesktopAppArchetype Classify(string className, string processName, string title)
     {
         ReadOnlySpan<char> cls = className.AsSpan();
-        ReadOnlySpan<char> proc = processName.AsSpan();
-
-        // 1. Gecko / Mozilla Engine (Waterfox, Firefox, Thunderbird)
-        if (cls.Equals("MozillaWindowClass", StringComparison.OrdinalIgnoreCase) ||
-            proc.Equals("waterfox", StringComparison.OrdinalIgnoreCase) ||
-            proc.Equals("firefox", StringComparison.OrdinalIgnoreCase) ||
-            proc.Equals("thunderbird", StringComparison.OrdinalIgnoreCase))
+        // 1. Gecko / Mozilla Engine (Waterfox, Firefox, Thunderbird, Zen)
+        if (cls.Equals("MozillaWindowClass", StringComparison.OrdinalIgnoreCase))
         {
             return DesktopAppArchetype.Gecko;
         }
 
-        // 2. Chromium / Electron Engine (VS Code, Antigravity, Slack, Chrome, Edge)
+        // 2. Chromium / Electron Engine (VS Code, Antigravity, Slack, Chrome, Edge, Cursor)
         if (cls.Equals("Chrome_WidgetWin_1", StringComparison.OrdinalIgnoreCase) ||
-            cls.Equals("Chrome_WidgetWin_0", StringComparison.OrdinalIgnoreCase) ||
-            proc.Equals("code", StringComparison.OrdinalIgnoreCase) ||
-            proc.Equals("antigravity", StringComparison.OrdinalIgnoreCase) ||
-            proc.Equals("chrome", StringComparison.OrdinalIgnoreCase) ||
-            proc.Equals("msedge", StringComparison.OrdinalIgnoreCase) ||
-            proc.Equals("slack", StringComparison.OrdinalIgnoreCase) ||
-            proc.Equals("discord", StringComparison.OrdinalIgnoreCase))
+            cls.Equals("Chrome_WidgetWin_0", StringComparison.OrdinalIgnoreCase))
         {
             return DesktopAppArchetype.ChromiumElectron;
         }

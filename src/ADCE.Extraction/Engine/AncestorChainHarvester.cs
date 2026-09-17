@@ -67,7 +67,15 @@ public static class AncestorChainHarvester
                 try
                 {
                     parentPid = (int)parentNative.GetCachedPropertyValue(automation.PropertyLibrary.Element.ProcessId.Id);
-                    parentHwnd = (nint)(int)parentNative.GetCachedPropertyValue(automation.PropertyLibrary.Element.NativeWindowHandle.Id);
+                    var rawHwnd = parentNative.GetCachedPropertyValue(automation.PropertyLibrary.Element.NativeWindowHandle.Id);
+                    parentHwnd = rawHwnd switch
+                    {
+                        int hInt => (nint)(uint)hInt,
+                        uint hUint => (nint)hUint,
+                        long hLong => (nint)hLong,
+                        nint hNint => hNint,
+                        _ => nint.Zero
+                    };
                 }
                 catch { }
 
