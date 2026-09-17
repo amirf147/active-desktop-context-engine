@@ -103,6 +103,7 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
         }
 
         var bounds = Win32Gating.GetWindowBounds(hwnd);
+        var monitorBounds = Win32Gating.GetMonitorBounds(hwnd);
         var archetype = _classifier.Classify(className, processName, title);
 
         // 2. UIPI Gating: If target runs elevated and ADCE is standard user, return Win32 shallow context
@@ -176,7 +177,7 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
                 DesktopIndex = 0,
                 VirtualDesktopName = "Current Desktop",
                 MonitorIndex = 0,
-                MonitorBounds = bounds
+                MonitorBounds = !monitorBounds.IsEmpty ? monitorBounds : bounds
             },
             Window = new WindowEnvelope
             {
@@ -292,6 +293,27 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
         return CreateDefaultFocusedControlInfo(windowElement, windowBounds);
     }
 
+    private static bool IsIdeWindow(DesktopAppArchetype archetype, string processName, string? activeFilePath)
+    {
+        if (!string.IsNullOrWhiteSpace(activeFilePath)) return true;
+        return processName.Contains("code", StringComparison.OrdinalIgnoreCase) ||
+               processName.Contains("antigravity", StringComparison.OrdinalIgnoreCase) ||
+               processName.Contains("cursor", StringComparison.OrdinalIgnoreCase) ||
+               processName.Contains("windsurf", StringComparison.OrdinalIgnoreCase) ||
+               processName.Contains("devenv", StringComparison.OrdinalIgnoreCase) ||
+               processName.Contains("idea", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsBrowserWindow(DesktopAppArchetype archetype, string processName, string? activeFilePath)
+    {
+        if (archetype == DesktopAppArchetype.Gecko) return true;
+        if (archetype == DesktopAppArchetype.ChromiumElectron && !IsIdeWindow(archetype, processName, activeFilePath))
+        {
+            return true;
+        }
+        return false;
+    }
+
     private static FocusedControlInfo ExtractControlInfoCore(
         UIA3Automation automation,
         AutomationElement windowElement,
@@ -382,9 +404,24 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
             if (zone == DesktopSemanticZone.Unknown) zone = DesktopSemanticZone.WebDocument;
             activeView ??= "WebDocument";
         }
-        else if (pane == WindowPaneLocation.Unknown && !windowBounds.IsEmpty && !boundingBox.IsEmpty)
+        else if (pane == WindowPaneLocation.Unknown || zone == DesktopSemanticZone.Unknown)
         {
-            pane = SpatialPaneResolver.InferPaneFromGeometry(windowBounds, boundingBox);
+            // Closed default canvas resolution (zero spatial guessing)
+            if (IsBrowserWindow(archetype, processName, activeFilePath))
+            {
+                if (pane == WindowPaneLocation.Unknown) pane = WindowPaneLocation.MainContent;
+                if (zone == DesktopSemanticZone.Unknown) zone = DesktopSemanticZone.WebDocument;
+            }
+            else if (IsIdeWindow(archetype, processName, activeFilePath))
+            {
+                if (pane == WindowPaneLocation.Unknown) pane = WindowPaneLocation.MainContent;
+                if (zone == DesktopSemanticZone.Unknown) zone = DesktopSemanticZone.EditorBuffer;
+            }
+            else
+            {
+                if (pane == WindowPaneLocation.Unknown) pane = WindowPaneLocation.MainContent;
+                if (zone == DesktopSemanticZone.Unknown) zone = DesktopSemanticZone.Unknown;
+            }
         }
 
         activeView ??= SemanticZoneInference.InferViewFromZone(zone);
@@ -540,6 +577,7 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
         nint hwnd, string title, string className, int pid, string processName,
         DesktopAppArchetype archetype, BoundingRectangle bounds, double durationMs)
     {
+        var monitorBounds = hwnd != nint.Zero ? Win32Gating.GetMonitorBounds(hwnd) : BoundingRectangle.Empty;
         return new DesktopContextSnapshot
         {
             Timestamp = DateTimeOffset.UtcNow,
@@ -549,7 +587,7 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
                 DesktopIndex = 0,
                 VirtualDesktopName = "Current Desktop",
                 MonitorIndex = 0,
-                MonitorBounds = bounds
+                MonitorBounds = !monitorBounds.IsEmpty ? monitorBounds : bounds
             },
             Window = new WindowEnvelope
             {

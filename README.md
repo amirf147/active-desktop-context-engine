@@ -187,7 +187,7 @@ dotnet run --project src/ADCE.Spikes -- --timeline 20
 
 ### Running Test Suite & Spikes
 ```powershell
-# Run full automated unit test suite across all 5 projects (274 tests)
+# Run full automated unit test suite across all 5 projects (281 tests)
 dotnet test --configuration Release
 
 # Run Milestone 6 Daemon & End-to-End integration verification spike

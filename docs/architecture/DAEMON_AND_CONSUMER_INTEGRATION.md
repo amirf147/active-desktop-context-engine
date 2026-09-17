@@ -49,7 +49,7 @@
 * `ADCE.Daemon` runs a standard WinForms `ApplicationContext` message loop, guaranteeing responsive event delivery without hooking overhead in target processes.
 
 ### 2.2 Single-Instance Mutex
-* A named system mutex (`Local\ADCE.Daemon.SingleInstance`) prevents duplicate daemon processes from running concurrently and competing for WinEvent hooks or database locks.
+* A named system mutex (`Local\ADCE_Daemon_SingleInstance_Mutex`) prevents duplicate daemon processes from running concurrently and competing for WinEvent hooks or database locks.
 * Attempting to launch a second instance terminates immediately with exit code 0.
 
 ### 2.3 Non-Activating HUD Overlay

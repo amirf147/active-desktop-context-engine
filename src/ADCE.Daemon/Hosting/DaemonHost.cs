@@ -5,8 +5,10 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text.Json;
 using ADCE.Core.Interfaces;
 using ADCE.Core.Models;
+using ADCE.Core.Serialization;
 using ADCE.Daemon.Configuration;
 using ADCE.Extraction.Engine;
 using ADCE.Extraction.Events;
@@ -112,7 +114,13 @@ public sealed class DaemonHost : IAsyncDisposable, IDisposable
 
         if (_options.EnableSse)
         {
-            _sseTransport = new HttpSseMcpTransport(_options.Port);
+            _sseTransport = new HttpSseMcpTransport(
+                _options.Port,
+                () =>
+                {
+                    var snap = _store.GetCurrentSnapshot();
+                    return snap != null ? JsonSerializer.Serialize(snap, AdceJsonSerializerOptions.Default) : null;
+                });
             _sseServer = new McpServer(_sseTransport, _mcpHandler, new ServerInfo("ADCE.Daemon.SSE", "1.0.0"));
         }
 
@@ -244,6 +252,16 @@ public sealed class DaemonHost : IAsyncDisposable, IDisposable
                         _store.UpdateCurrentSnapshot(snapshot);
                         Interlocked.Increment(ref _totalSnapshotsExtracted);
                         SnapshotChanged?.Invoke(snapshot);
+
+                        if (_sseTransport != null)
+                        {
+                            try
+                            {
+                                var json = JsonSerializer.Serialize(snapshot, AdceJsonSerializerOptions.Default);
+                                await _sseTransport.SendMessageAsync(json, _cts.Token).ConfigureAwait(false);
+                            }
+                            catch { }
+                        }
                     }
                 }
                 catch { }
@@ -356,6 +374,19 @@ public sealed class DaemonHost : IAsyncDisposable, IDisposable
                 _store.UpdateCurrentSnapshot(snapshot);
                 Interlocked.Increment(ref _totalSnapshotsExtracted);
                 SnapshotChanged?.Invoke(snapshot);
+
+                if (_sseTransport != null)
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            var json = JsonSerializer.Serialize(snapshot, AdceJsonSerializerOptions.Default);
+                            await _sseTransport.SendMessageAsync(json, cancellationToken).ConfigureAwait(false);
+                        }
+                        catch { }
+                    }, cancellationToken);
+                }
             }
         }
         catch (OperationCanceledException) { }

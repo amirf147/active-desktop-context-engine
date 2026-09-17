@@ -414,7 +414,17 @@ public sealed class DesktopContextMcpHandler : IMcpHandler
             };
         }
 
-        _ruleEngine?.AddOrUpdateRule(rule);
+        if (_ruleEngine == null)
+        {
+            var failurePayload = new
+            {
+                success = false,
+                message = "Dynamic rule engine is not configured on this host"
+            };
+            return CallToolResult.SuccessText(JsonSerializer.Serialize(failurePayload, AdceJsonSerializerOptions.Default));
+        }
+
+        _ruleEngine.AddOrUpdateRule(rule);
 
         var resolvedPane = targetPane ?? (focus.PaneLocation != WindowPaneLocation.Unknown ? focus.PaneLocation : targetZone.ToDefaultPaneLocation());
         var resolvedView = targetView ?? focus.ActiveView ?? targetZone.ToDefaultView();

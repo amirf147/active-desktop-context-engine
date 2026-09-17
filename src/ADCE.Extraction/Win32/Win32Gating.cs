@@ -235,4 +235,31 @@ public static class Win32Gating
 
         return false;
     }
+
+    /// <summary>
+    /// Retrieves the physical display monitor bounding rectangle for the specified window handle.
+    /// Uses MonitorFromWindow with MONITOR_DEFAULTTONEAREST.
+    /// </summary>
+    public static BoundingRectangle GetMonitorBounds(nint hwnd)
+    {
+        if (hwnd == nint.Zero || !NativeMethods.IsWindow(hwnd))
+            return BoundingRectangle.Empty;
+
+        nint hMonitor = NativeMethods.MonitorFromWindow(hwnd, NativeMethods.MONITOR_DEFAULTTONEAREST);
+        if (hMonitor == nint.Zero)
+            return BoundingRectangle.Empty;
+
+        var mi = new NativeMethods.MONITORINFO();
+        mi.cbSize = Marshal.SizeOf<NativeMethods.MONITORINFO>();
+
+        if (!NativeMethods.GetMonitorInfo(hMonitor, ref mi))
+            return BoundingRectangle.Empty;
+
+        return new BoundingRectangle(
+            mi.rcMonitor.Left,
+            mi.rcMonitor.Top,
+            Math.Max(0, mi.rcMonitor.Right - mi.rcMonitor.Left),
+            Math.Max(0, mi.rcMonitor.Bottom - mi.rcMonitor.Top)
+        );
+    }
 }

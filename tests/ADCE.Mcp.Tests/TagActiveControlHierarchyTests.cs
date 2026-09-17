@@ -65,7 +65,8 @@ public class TagActiveControlHierarchyTests : IDisposable
 
         _store.UpdateCurrentSnapshot(initialSnapshot);
 
-        var handler = new DesktopContextMcpHandler(_store);
+        var ruleEngine = new TestSemanticRuleEngine();
+        var handler = new DesktopContextMcpHandler(_store, ruleEngine);
 
         var argsJson = JsonDocument.Parse("""
         {

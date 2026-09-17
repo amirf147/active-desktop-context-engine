@@ -136,13 +136,26 @@ public static class Program
             Console.CancelKeyPress += (s, e) =>
             {
                 e.Cancel = true;
-                cts.Cancel();
+                try
+                {
+                    if (!cts.IsCancellationRequested) cts.Cancel();
+                }
+                catch (ObjectDisposedException) { }
             };
 
             AppDomain.CurrentDomain.ProcessExit += (s, e) =>
             {
-                cts.Cancel();
-                host.Dispose();
+                try
+                {
+                    if (!cts.IsCancellationRequested) cts.Cancel();
+                }
+                catch (ObjectDisposedException) { }
+
+                try
+                {
+                    host.Dispose();
+                }
+                catch { }
             };
 
             if (options.ShowStatus)

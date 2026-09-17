@@ -65,8 +65,6 @@ public class TagActiveControlTests : IDisposable
 
         _store.UpdateCurrentSnapshot(initialSnapshot);
 
-        var handler = new DesktopContextMcpHandler(_store);
-
         var argsJson = JsonDocument.Parse("""
         {
             "target_zone": "GitCommitBox",
@@ -74,6 +72,20 @@ public class TagActiveControlTests : IDisposable
             "comment": "Tag SCM input as GitCommitBox"
         }
         """).RootElement;
+
+        // 1. When ruleEngine is null, returns failure payload
+        var nullEngineHandler = new DesktopContextMcpHandler(_store);
+        var nullResult = await nullEngineHandler.CallToolAsync("tag_active_control", argsJson);
+        Assert.False(nullResult.IsError);
+        using (var nullDoc = JsonDocument.Parse(nullResult.Content[0].Text ?? "{}"))
+        {
+            Assert.False(nullDoc.RootElement.GetProperty("success").GetBoolean());
+            Assert.Equal("Dynamic rule engine is not configured on this host", nullDoc.RootElement.GetProperty("message").GetString());
+        }
+
+        // 2. When ruleEngine is configured, rule is saved and snapshot updated
+        var ruleEngine = new TestSemanticRuleEngine();
+        var handler = new DesktopContextMcpHandler(_store, ruleEngine);
 
         var result = await handler.CallToolAsync("tag_active_control", argsJson);
 
@@ -84,6 +96,7 @@ public class TagActiveControlTests : IDisposable
         var updatedSnapshot = _store.GetCurrentSnapshot();
         Assert.NotNull(updatedSnapshot);
         Assert.Equal(DesktopSemanticZone.GitCommitBox, updatedSnapshot.Focus.SemanticZone);
+        Assert.Single(ruleEngine.GetAllRules());
     }
 
     [Fact]

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using ADCE.Core.Models;
 using FlaUI.Core;
@@ -128,13 +129,13 @@ public static class MonacoIdeExtractor
 
         // 4. Active File Path resolution from breadcrumbs or active tab
         string? activeFilePath = null;
+        var activeTab = tabsBuilder.FirstOrDefault(t => t.IsActive);
         if (breadcrumbsBuilder.Count > 0)
         {
             activeFilePath = string.Join('/', breadcrumbsBuilder);
         }
         else
         {
-            var activeTab = tabsBuilder.FirstOrDefault(t => t.IsActive);
             activeFilePath = activeTab?.Title;
         }
 
@@ -163,7 +164,7 @@ public static class MonacoIdeExtractor
             ActiveFilePath = activeFilePath,
             ActiveSidebarView = activeSidebar,
             IsDiffEditor = isDiffEditor,
-            EditBuffer = activeFilePath,
+            EditBuffer = activeTab?.Title ?? (activeFilePath != null ? Path.GetFileName(activeFilePath) : null),
             Breadcrumbs = breadcrumbsBuilder.ToImmutable(),
             OpenEditorTabs = tabsBuilder.ToImmutable()
         };

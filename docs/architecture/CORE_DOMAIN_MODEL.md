@@ -6,7 +6,7 @@
 > **Document Status:** Active / Normative Core Architecture Reference
 > **Epistemic Authority:** Tier 1 (Normative Production Contract)
 > **Implementation Target:** `src/ADCE.Core/` (.NET 10 / C# 14)
-> **Test Baseline:** 98/98 Passing Unit Tests in `tests/ADCE.Core.Tests/`
+> **Test Baseline:** 281 Passing Unit Tests (98 Core, 119 Extraction, 14 Storage, 22 Mcp, 28 Daemon)
 
 ---
 
@@ -32,7 +32,7 @@ Desktop context is structured in a four-tier aggregate hierarchy: Workspace Enve
 ├────────────────────────────────────────────────────────────────────────────────────────┤
 │ DateTimeOffset Timestamp: ISO-8601 UTC capture timestamp                               │
 │ WorkspaceEnvelope Workspace:                                                           │
-│   - VirtualDesktopId (Guid): Virtual desktop GUID from Slions.VirtualDesktop           │
+│   - VirtualDesktopId (Guid): Default Guid.Empty (Virtual Desktop GUID extraction scheduled for Phase 8 / Slion-VirtualDesktop integration due to Windows 11 vtable & window pinning constraints) │
 │   - DesktopIndex (int): 0-based virtual desktop workspace index                        │
 │   - VirtualDesktopName (string): User-assigned or system desktop name                  │
 │   - MonitorIndex (int): Display monitor index hosting window center                    │
@@ -66,7 +66,7 @@ Desktop context is structured in a four-tier aggregate hierarchy: Workspace Enve
 │   - ValueSnippet (string?): Sanitized text snippet from ValuePattern / TextPattern     │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
 │ Specialized Application Contexts (Optional Nullable Records):                          │
-│   - IdeContext? IdeContext: ActiveFilePath, ActiveSidebarView, OpenEditorTabs          │
+│   - IdeContext? IdeContext: ActiveFilePath, ActiveSidebarView, OpenEditorTabs, GitBranch (optional / reserved for status bar integration) │
 │   - BrowserContext? BrowserContext: ContainerType, TotalTabCount, ActiveTab, OpenTabs  │
 │   - ExplorerContext? ExplorerContext: CurrentPath, SelectedItems, OpenFolderTabs       │
 │   - TerminalContext? TerminalContext: ShellTitle, BufferSnippet, ActiveTab             │

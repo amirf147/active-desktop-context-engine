@@ -8,6 +8,7 @@ using System.IO;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -24,8 +25,11 @@ public sealed class HttpSseMcpTransport : IMcpTransport
     private readonly HttpListener _listener;
     private readonly Channel<string> _incomingChannel;
     private readonly ConcurrentDictionary<string, StreamWriter> _sseClients = new();
+    private readonly ConcurrentDictionary<string, ConcurrentQueue<string>> _requestIdToSessions = new();
     private readonly CancellationTokenSource _cts = new();
+    private readonly Func<string?>? _initialPayloadProvider;
     private Task? _listenerLoop;
+    private Task? _heartbeatTask;
     private bool _isDisposed;
 
     /// <summary>
@@ -37,9 +41,19 @@ public sealed class HttpSseMcpTransport : IMcpTransport
     /// Initializes a new instance of <see cref="HttpSseMcpTransport"/> listening on localhost.
     /// </summary>
     /// <param name="port">Port number (default 8424).</param>
-    public HttpSseMcpTransport(int port = 8424)
+    public HttpSseMcpTransport(int port = 8424) : this(port, null)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="HttpSseMcpTransport"/> listening on localhost with an initial payload provider.
+    /// </summary>
+    /// <param name="port">Port number (default 8424).</param>
+    /// <param name="initialPayloadProvider">Optional provider called on new SSE connection to supply current context snapshot.</param>
+    public HttpSseMcpTransport(int port, Func<string?>? initialPayloadProvider)
     {
         BaseUrl = $"http://127.0.0.1:{port}/";
+        _initialPayloadProvider = initialPayloadProvider;
         _listener = new HttpListener();
         _listener.Prefixes.Add(BaseUrl);
 
@@ -61,6 +75,7 @@ public sealed class HttpSseMcpTransport : IMcpTransport
 
         _listener.Start();
         _listenerLoop = Task.Run(() => ListenLoopAsync(_cts.Token));
+        _heartbeatTask = Task.Run(() => HeartbeatLoopAsync(_cts.Token));
     }
 
     /// <inheritdoc />
@@ -84,6 +99,51 @@ public sealed class HttpSseMcpTransport : IMcpTransport
         ArgumentNullException.ThrowIfNull(message);
 
         var sseFormattedMessage = $"event: message\ndata: {message}\n\n";
+
+        // Try routing to specific client session by request ID
+        string? targetSessionId = null;
+        try
+        {
+            using var doc = JsonDocument.Parse(message);
+            if (doc.RootElement.TryGetProperty("id", out var idProp))
+            {
+                string idKey = idProp.GetRawText();
+                if (_requestIdToSessions.TryGetValue(idKey, out var queue) && queue.TryDequeue(out var sid))
+                {
+                    targetSessionId = sid;
+                    if (queue.IsEmpty)
+                    {
+                        _requestIdToSessions.TryRemove(idKey, out _);
+                    }
+                }
+            }
+        }
+        catch
+        {
+            // Fall back to broadcast
+        }
+
+        if (targetSessionId != null)
+        {
+            if (_sseClients.TryGetValue(targetSessionId, out var writer))
+            {
+                try
+                {
+                    await writer.WriteAsync(sseFormattedMessage.AsMemory(), cancellationToken).ConfigureAwait(false);
+                    await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+                }
+                catch
+                {
+                    if (_sseClients.TryRemove(targetSessionId, out var deadWriter))
+                    {
+                        try { deadWriter.Dispose(); } catch { }
+                    }
+                }
+            }
+            return;
+        }
+
+        // Broadcast to all connected clients when no session target is identified
         var deadClients = new List<string>();
 
         foreach (var (clientId, writer) in _sseClients)
@@ -133,10 +193,25 @@ public sealed class HttpSseMcpTransport : IMcpTransport
         var request = context.Request;
         var response = context.Response;
 
-        // Security check: Only allow localhost origins and paths
-        response.Headers.Add("Access-Control-Allow-Origin", "*");
-        response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-        response.Headers.Add("Access-Control-Allow-Headers", "Content-Type");
+        // Security check: Only allow localhost origins and paths. Never wildcard '*' to prevent web browser tabs from bypassing SOP.
+        var origin = request.Headers["Origin"];
+        if (!string.IsNullOrEmpty(origin))
+        {
+            if (Uri.TryCreate(origin, UriKind.Absolute, out var originUri) &&
+                (originUri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase) ||
+                 originUri.Host.Equals("127.0.0.1", StringComparison.OrdinalIgnoreCase)))
+            {
+                response.Headers.Add("Access-Control-Allow-Origin", origin);
+                response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+                response.Headers.Add("Access-Control-Allow-Headers", "Content-Type");
+            }
+            else
+            {
+                response.StatusCode = (int)HttpStatusCode.Forbidden;
+                response.Close();
+                return;
+            }
+        }
 
         if (request.HttpMethod.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
         {
@@ -165,6 +240,15 @@ public sealed class HttpSseMcpTransport : IMcpTransport
                 await writer.WriteAsync(endpointMessage.AsMemory(), cancellationToken).ConfigureAwait(false);
                 await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
 
+                // Send immediate snapshot state if provider is configured
+                var initialPayload = _initialPayloadProvider?.Invoke();
+                if (!string.IsNullOrWhiteSpace(initialPayload))
+                {
+                    var initialEvent = $"event: message\ndata: {initialPayload}\n\n";
+                    await writer.WriteAsync(initialEvent.AsMemory(), cancellationToken).ConfigureAwait(false);
+                    await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+                }
+
                 // Keep stream alive until cancelled or disconnected
                 var tcs = new TaskCompletionSource();
                 using (cancellationToken.Register(() => tcs.TrySetResult()))
@@ -190,11 +274,36 @@ public sealed class HttpSseMcpTransport : IMcpTransport
         if (request.HttpMethod.Equals("POST", StringComparison.OrdinalIgnoreCase) &&
             (path.Equals("/messages", StringComparison.OrdinalIgnoreCase) || path.Equals("/message", StringComparison.OrdinalIgnoreCase)))
         {
+            var sessionId = request.QueryString["session_id"] ?? request.QueryString["sessionId"];
+            if (!string.IsNullOrWhiteSpace(sessionId) && !_sseClients.ContainsKey(sessionId))
+            {
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                response.Close();
+                return;
+            }
+
             using var reader = new StreamReader(request.InputStream, s_utf8EncodingWithoutBom);
             var body = await reader.ReadToEndAsync(cancellationToken).ConfigureAwait(false);
 
             if (!string.IsNullOrWhiteSpace(body))
             {
+                if (!string.IsNullOrWhiteSpace(sessionId))
+                {
+                    try
+                    {
+                        using var doc = JsonDocument.Parse(body);
+                        if (doc.RootElement.TryGetProperty("id", out var idProp))
+                        {
+                            string idKey = idProp.GetRawText();
+                            _requestIdToSessions.GetOrAdd(idKey, _ => new ConcurrentQueue<string>()).Enqueue(sessionId);
+                        }
+                    }
+                    catch
+                    {
+                        // Ignore parse errors here; McpServer will emit standard JSON-RPC parse error
+                    }
+                }
+
                 await _incomingChannel.Writer.WriteAsync(body, cancellationToken).ConfigureAwait(false);
             }
 
@@ -233,12 +342,61 @@ public sealed class HttpSseMcpTransport : IMcpTransport
             try { writer.Dispose(); } catch { }
         }
         _sseClients.Clear();
+        _requestIdToSessions.Clear();
 
         if (_listenerLoop != null)
         {
             try { await _listenerLoop.ConfigureAwait(false); } catch { }
         }
 
+        if (_heartbeatTask != null)
+        {
+            try { await _heartbeatTask.ConfigureAwait(false); } catch { }
+        }
+
         _cts.Dispose();
+    }
+
+    private async Task HeartbeatLoopAsync(CancellationToken cancellationToken)
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(4));
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            try
+            {
+                if (!await timer.WaitForNextTickAsync(cancellationToken).ConfigureAwait(false))
+                    break;
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
+
+            if (_sseClients.IsEmpty) continue;
+
+            var heartbeat = ": keepalive\n\n";
+            var deadClients = new List<string>();
+
+            foreach (var (clientId, writer) in _sseClients)
+            {
+                try
+                {
+                    await writer.WriteAsync(heartbeat.AsMemory(), cancellationToken).ConfigureAwait(false);
+                    await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+                }
+                catch
+                {
+                    deadClients.Add(clientId);
+                }
+            }
+
+            foreach (var dead in deadClients)
+            {
+                if (_sseClients.TryRemove(dead, out var writer))
+                {
+                    try { writer.Dispose(); } catch { }
+                }
+            }
+        }
     }
 }

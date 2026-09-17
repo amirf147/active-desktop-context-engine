@@ -6,7 +6,7 @@
 > **Target System:** Active Desktop Context Engine (ADCE)
 > **Runtime:** .NET 10 (x64) + `FlaUI.UIA3 5.0.0`
 > **Architecture:** Decoupled Layered Pipeline (Win32 Event Hooks + FlaUI.UIA3 + SQLite WAL + MCP Server)
-> **Active Verification Baseline:** 274 Passing Unit Tests Across 5 Test Suites (`dotnet test`)
+> **Active Verification Baseline:** 281 Passing Unit Tests Across 5 Test Suites (`dotnet test`)
 > **Canonical Architecture Specifications:** [`docs/architecture/`](./architecture/)
 
 ---
@@ -60,7 +60,7 @@ Documentation is organized into five functional tiers to keep developers and AI 
 │ TIER 1: PRODUCTION CODE & AUTOMATED TESTS (Ground Truth Baseline)                      │
 │ • Production Projects: src/ADCE.Core, ADCE.Extraction, ADCE.Storage, ADCE.Mcp,         │
 │   ADCE.Daemon                                                                          │
-│ • Automated Test Suites: tests/ (274 passing unit tests across 5 test assemblies)      │
+│ • Automated Test Suites: tests/ (281 passing unit tests across 5 test assemblies)      │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
 │ TIER 2: ARCHITECTURE SPECIFICATIONS (Normative Contracts)                              │
 │ • Core Engine: CORE_DOMAIN_MODEL.md, EXTRACTION_PIPELINE.md, STORAGE_ARCHITECTURE.md   │
@@ -163,4 +163,4 @@ Superseded test run outputs, exploratory research into unused third-party librar
 2. **Strict Traversal Depth Bounds:** Inspect only the focused leaf element and climb a maximum of 8 ancestor levels. Never invoke child discovery (`FindAllChildren`) on complex containers like web documents or code buffers.
 3. **Event Pipeline Debouncing:** Enforce a 50 ms trailing-edge quiet window with a 250 ms maximum delay clamp to absorb rapid typing bursts while bounding latency.
 4. **Dedicated Apartment Isolation:** Run `SetWinEventHook` on an STA message pump thread and offload all `FlaUI.UIA3` inspection to background worker threads.
-5. **Standard Testing Frameworks:** Verify real behavioral invariants exclusively with standard automated xUnit tests (274 passing tests across 5 test projects). Never build custom verification runners or self-asserting mock drivers.
+5. **Standard Testing Frameworks:** Verify real behavioral invariants exclusively with standard automated xUnit tests (281 passing tests across 5 test projects). Never build custom verification runners or self-asserting mock drivers.
