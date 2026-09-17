@@ -1,22 +1,21 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <!-- Copyright (c) 2026 Amir Farhadi -->
 
-[ 🏠 ADCE Home ](../../README.md) › [ 📚 Documentation Hub ](../CONTEXT.md) › **Epistemic Gaps, Dynamic App Discovery & Engine Requirements**
+[ 🏠 ADCE Home ](../../README.md) › [ 📚 Documentation Hub ](../CONTEXT.md) › **Dynamic App Discovery & Engine Requirements**
 
 ---
 
-# Epistemic Gaps, Dynamic App Discovery & Engine Requirements Specification (018)
+# Dynamic App Discovery & Engine Requirements Specification
 
 > **Document Status:** Active / Master Architecture Specification (Reconciled with Milestone 6 Production Baseline)
-> **Epistemic Authority:** Tier 2 (Normative Architectural Blueprint — Subordinate to Tier 1 Code)
 > **Target System:** Active Desktop Context Engine (ADCE)
-> **Related Documents:** [Core Domain Model](CORE_DOMAIN_MODEL.md) | [Extraction Pipeline](EXTRACTION_PIPELINE.md) | [UI Automation SSOT](UI_AUTOMATION_STRUCTURES_REFERENCE.md)
+> **Related Documents:** [Core Domain Model](CORE_DOMAIN_MODEL.md) | [Extraction Pipeline](EXTRACTION_PIPELINE.md) | [UI Automation Reference](UI_AUTOMATION_STRUCTURES_REFERENCE.md)
 
 ---
 
-## 1. Epistemic Pause: Interrogating Our Knowledge Gaps
+## 1. Technical Risk Assessment: Addressing Knowledge Gaps
 
-In accordance with our **4-Gate Epistemic Protocol**, before scaling the C# `ADCE.Daemon`, we applied a rigorous epistemic brake:
+Before scaling the C# `ADCE.Daemon`, we conducted an engineering risk assessment:
 
 > [!WARNING]
 > **The Hardcoded Selector Trap (Mitigated in Milestone 4.5 & 5):**

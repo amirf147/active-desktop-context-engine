@@ -44,7 +44,7 @@ During initial research spikes, automated stimulus drivers attempted to inject s
 - **Focus Contention:** Automated drivers actively hijack the developer's foreground focus, mouse cursor, and active window state.
 
 ### Next Steps: Shifting Deep Modal Exploration to an Isolated VM
-To maintain strict epistemic integrity without fighting the host operating system:
+To maintain high verification standards without fighting the host operating system:
 1. **Host Workstation:** Restricted to passive resting-state observation and non-intrusive UIA tree sampling.
 2. **Dedicated Profiling VM / Windows Sandbox:** Deep interactive exploration (triggering complex flyouts, modal overlays, elevated settings workspaces, and multi-window state transitions) will be conducted in an isolated virtual machine or sandbox environment.
 3. **Current State:** Live host-level driver spikes are paused while the VM-based automated profiling harness and existing tooling options are evaluated.
@@ -53,12 +53,12 @@ To maintain strict epistemic integrity without fighting the host operating syste
 
 ## Standard Profile Specification Structure
 
-Every profile document in this folder follows the canonical [Standard Profile Template](TEMPLATE.md), adhering to the epistemic principles defined in [Desktop UI Perception & Volatility Taxonomy](../architecture/DESKTOP_UI_PERCEPTION_AND_VOLATILITY_TAXONOMY.md):
+Every profile document in this folder follows the canonical [Standard Profile Template](TEMPLATE.md), adhering to the architectural principles defined in [Desktop UI Perception & Volatility Taxonomy](../architecture/DESKTOP_UI_PERCEPTION_AND_VOLATILITY_TAXONOMY.md):
 
 1. **Physical Window & Process Specification (Level 1 Invariants):** PID, HWND, Win32 window classes, AUMID structure, `~Wh~` sub-window tokens, DWM cloaking.
 2. **Rendering Engine & Accessibility Adapter Quirks:** Underlying renderer (Chromium, Gecko, WinUI, Win32, Skia), lazy activation flags, and DOM virtualization.
 3. **Structural Container Anatomy (Level 2 Invariants):** Complete dissection of stable top-level containers (`workbench.parts.*`, `#navigator-toolbox`, `TermControl`).
 4. **Viewport Boundary Condition:** Strict demarcation separating application window chrome from inner canvas/document elements.
-5. **Resting-State Empirical Telemetry:** Verifiable tables recording `ControlType`, `AutomationId`, `ClassName`, `Name`, `Bounds`, and bounded ancestor parent hierarchies (max depth $\le 5$).
+5. **Resting-State Empirical Telemetry:** Verifiable tables recording `ControlType`, `AutomationId`, `ClassName`, `Name`, `Bounds`, and bounded ancestor parent hierarchies (max depth $\le 8$).
 6. **Update Volatility Matrix & Known Gotchas:** Identification of resilient Level 1/2 properties and explicitly rejected Level 4 anti-patterns (dynamic CSS hashes, child ordinal indices).
-7. **Epistemic Blind Spots & Unknown Unknowns:** Rigorous ledger of unobserved modal/popup surfaces, potential framework failure modes, and fallback perception paths.
+7. **Unverified Surfaces & Known Limitations:** Rigorous ledger of unobserved modal/popup surfaces, potential framework failure modes, and fallback perception paths.

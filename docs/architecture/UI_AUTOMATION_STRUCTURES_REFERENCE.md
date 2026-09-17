@@ -1,14 +1,13 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <!-- Copyright (c) 2026 Amir Farhadi -->
 
-[ 🏠 ADCE Home ](../../README.md) › [ 📚 Documentation Hub ](../CONTEXT.md) › **UI Automation Tree Structures & Target Zones Reference (SSOT)**
+[ 🏠 ADCE Home ](../../README.md) › [ 📚 Documentation Hub ](../CONTEXT.md) › **UI Automation Tree Structures & Target Zones Reference**
 
 ---
 
-# Single Source of Truth: UI Automation Tree Structures & Target Zones Reference (017)
+# UI Automation Tree Structures & Target Zones Reference
 
-> **Document Status:** Active / Master Architecture Reference (SSOT)
-> **Epistemic Authority:** Tier 2 (Normative Architectural Blueprint — Subordinate to Tier 1 Code)
+> **Document Status:** Active / Master Architecture Reference
 > **Target Systems:** Active Desktop Context Engine (ADCE) & Caster Accessibility Engine
 > **Engines Tested:** C# .NET 10 (`FlaUI.UIA3 5.0.0`) & Python 3.10 (`uiautomation` / `ctypes`)
 > **Related Documents:** [Core Domain Model](CORE_DOMAIN_MODEL.md) | [Extraction Pipeline](EXTRACTION_PIPELINE.md) | [`APPLICATION_PANE_AND_HIERARCHY_STRUCTURES_RESEARCH.md`](./APPLICATION_PANE_AND_HIERARCHY_STRUCTURES_RESEARCH.md)

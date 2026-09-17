@@ -4,13 +4,12 @@
 # ADCE Extraction Pipeline Specification
 
 > **Document Status:** Active / Normative Extraction Pipeline Reference
-> **Epistemic Authority:** Tier 1 (Normative Production Specification)
 > **Implementation Target:** `src/ADCE.Extraction/` (.NET 10 / C# 14 / FlaUI.UIA3)
-> **Test Baseline:** 100/100 Passing Unit Tests in `tests/ADCE.Extraction.Tests/`
+> **Test Baseline:** 112/112 Passing Unit Tests in `tests/ADCE.Extraction.Tests/`
 
 ---
 
-## 1. Architectural Architecture & Gating Sequence
+## 1. Pipeline Architecture & Gating Sequence
 
 The extraction pipeline transforms raw Windows OS WinEvents into validated `DesktopContextSnapshot` objects. To prevent UI freezing and eliminate high CPU overhead, the pipeline enforces a strict four-stage gating sequence:
 
@@ -28,7 +27,7 @@ The extraction pipeline transforms raw Windows OS WinEvents into validated `Desk
                          │ Pass
                          ▼
 ┌────────────────────────────────────────────────────────┐
-│ Stage 2: Event Pipeline Debounce (150 ms window)       │
+│ Stage 2: Event Pipeline Debounce (50 ms quiet window)  │
 │ - Clamps rapid focus bursts (e.g. keyboard navigation) │
 │ - Deduplicates identical window/control transitions    │
 │ - Enqueues background worker execution                 │
@@ -65,7 +64,7 @@ The extraction pipeline transforms raw Windows OS WinEvents into validated `Desk
 * **Timing Guarantee:** Win32 gating operations execute in under 0.5 ms, avoiding WinEvent pump thread starvation.
 
 ### 2.2 UIA Traversal Bounds
-* **Bounded Depth:** The engine inspects only the focused leaf element and traverses up the ancestor chain to a maximum depth of 5 parents.
+* **Bounded Depth:** The engine inspects only the focused leaf element and traverses up the ancestor chain to a maximum depth of 8 parents.
 * **Zero Child Crawling:** Under no circumstances does the engine call `FindAllChildren()` on browser viewport containers, editor text bodies, or tree views. Doing so on modern web views or IDEs causes catastrophic DOM traversal freezes.
 * **Cached Properties:** The engine requests properties in a single cache request (`Name`, `AutomationId`, `ClassName`, `ControlType`, `BoundingRectangle`, `IsKeyboardFocusable`).
 

@@ -14,7 +14,7 @@ The **Active Desktop Context Engine (ADCE)** is a privacy-first Windows backgrou
 Instead of relying on resource-heavy screenshot OCR, periodic screen polling, or cloud telemetry, ADCE integrates directly with native Win32 `WinEvent` hooks and UI Automation (UIA) caching to maintain a live, structured model of the user's active desktop environment with minimal resource overhead.
 
 ### Key Capabilities:
-* **100% Local Data Sovereignty:** Complete on-device execution. Active window titles, document contents, and application states never leave localhost—ensuring enterprise privacy and zero telemetry leakage.
+* **100% Local Data Sovereignty:** Complete on-device execution. Active window titles, document contents, and application states never leave localhost, ensuring enterprise privacy and zero telemetry leakage.
 * **Deterministic Focus & Window Topology:** Event-driven tracking of foreground application envelopes, process metadata, window hierarchies, and focused UI controls via decoupled asynchronous channels.
 * **Virtual Desktop & Workspace Awareness:** Extraction of active Virtual Desktop GUIDs, friendly names, and desktop indices via native COM interop.
 * **Container-Aware Tab Discovery:** Targeted tab enumeration across modern browsers (Waterfox, Firefox, Chrome, Edge) and code editors (VS Code, Antigravity) without triggering unpruned DOM crawling stalls.
@@ -84,39 +84,35 @@ ADCE is structured as a high-performance, unidirectional 4-tier pipeline designe
 
 ---
 
-## 5. Documentation Hub & Public Research Ledger
+## 5. Documentation Hub & Architecture Reference
 
-ADCE functions as both a production codebase and an evolving research ledger tracking low-level COM experiments, UI Automation benchmarks, and systems architecture.
+ADCE maintains a comprehensive documentation suite covering architecture specifications, application layout profiles, and operational guides.
 
-> 📚 **Central Documentation Entrypoint:** Explore the full documentation suite in **[`docs/CONTEXT.md`](docs/CONTEXT.md)**.
-> 📑 **Architecture Specifications:** Explore the normative architecture specifications in **[`docs/architecture/`](docs/architecture/)**.
+> 📚 **Master Documentation Entrypoint:** The complete engineering context, specifications catalog, and architecture invariants are indexed in **[`docs/CONTEXT.md`](docs/CONTEXT.md)**.
+> 📑 **Architecture Specifications:** Normative specifications are located in **[`docs/architecture/`](docs/architecture/)**.
 
-### 🏛️ Architecture & System Specifications
-| Document | Description |
+### Primary Architecture Specifications
+| Specification | Description |
 | :--- | :--- |
 | 📑 [Core Domain Model Specification](docs/architecture/CORE_DOMAIN_MODEL.md) | Immutable records, 19 semantic zones, 6 application archetypes, and JSON serialization. |
 | ⚡ [Extraction Pipeline Specification](docs/architecture/EXTRACTION_PIPELINE.md) | Win32 shallow gating (< 0.5 ms), UIPI privilege checks, FlaUI caching, and dynamic rules. |
 | 💾 [Dual-Tier Storage Architecture](docs/architecture/STORAGE_ARCHITECTURE.md) | Sub-microsecond L1 atomic memory cache and SQLite WAL time-series state persistence. |
 | 🖥️ [Daemon Host & Consumer Integration](docs/architecture/DAEMON_AND_CONSUMER_INTEGRATION.md) | WinEvent STA message pump, tray host, HUD overlay, and MCP endpoints for Caster voice grammars. |
-| 📚 [Application Layout Hierarchies Catalog](docs/app_hierarchies/README.md) | Per-application empirical profiles, container structures, and UIA selectors (Waterfox, Antigravity). |
+| 🛡️ [Security, Systems & Hardening Audit](docs/architecture/SECURITY_AND_HYGIENE_AUDIT_2026.md) | Master security audit covering MCP CORS/auth hardening, privacy sanitizer, and COM RCW lifecycle. |
+| 📐 [Desktop UI Perception & Volatility Taxonomy](docs/architecture/DESKTOP_UI_PERCEPTION_AND_VOLATILITY_TAXONOMY.md) | 4-level volatility spectrum, application framework quirks, and out-of-band protocol handoff. |
+| 🎯 [ADCE Philosophy & Scope Boundaries](docs/architecture/ADCE_PHILOSOPHY_AND_SCOPE_BOUNDARIES.md) | Boundary definition: ADCE as a high-speed passive perception sensor vs. downstream action actors. |
 | ⚔️ [Hostile Architecture & Systems Review](docs/architecture/HOSTILE_ARCHITECTURE_REVIEW.md) | Adversarial review evaluating COM apartment deadlocks, GC allocation churn, and UIPI boundaries. |
 
-### 📘 Educational Guides & Consumer Integrations
-| Guide | Description |
-| :--- | :--- |
-| 📘 [Educational Refresher & Architecture Guide](docs/guides/EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md) | Conceptual walkthrough of UI Automation, Win32 systems programming, and FlaUI caching. |
-| 🚀 [First Real-World Use Case: Caster Dynamic Terminal Grammars](docs/guides/FIRST_REAL_WORLD_USE_CASE_CASTER_DYNAMIC_TERMINAL_GRAMMARS.md) | Production integration: Dynamic voice grammar activation in VS Code / Antigravity IDE via SSE streaming. |
-| 👁️ [ADCE Focus & Zone Detection Explained](docs/guides/ADCE_FOCUS_AND_ZONE_DETECTION_EXPLAINED.md) | Practical visual guide to Windows focus mechanics, parent-chain traversal, and semantic zone detection. |
-
-### 🔬 Engineering Postmortems & Retrospectives
-| Ledger | Focus Area | Key Architectural Finding |
+### Application Profiles & Operational Guides
+| Document | Category | Description |
 | :--- | :--- | :--- |
-| 📚 [Master Postmortems Index](docs/postmortems/README.md) | Master Ledger | Comprehensive catalog of development milestones and system retrospectives. |
-| 🔬 [Claim Verifier Deprecation Postmortem](docs/postmortems/CLAIM_VERIFIER_DEPRECATION_AND_SELF_CONFIRMATION_LOOP_POSTMORTEM.md) | Verification | Retrospective on the self-confirmation loop anti-pattern and return to standard xUnit testing. |
-| 🔬 [Hardware Acceleration & UIA Immunity](docs/postmortems/LESSONS_LEARNED_HARDWARE_ACCELERATED_SCREENSHOTS_AND_UIA.md) | Graphics / UIA | DirectComposition clipping, PrintWindow capture modes, and UIA semantic immunity. |
-| 🔬 [STA Threading & HUD Postmortem](docs/postmortems/STA_THREADING_AND_HUD_CASTER_INTEGRATION_POSTMORTEM.md) | Threading | STA WinForms message pump isolation and non-activating floating HUD window styles. |
+| 📚 [Application Profiles Catalog](docs/app_hierarchies/README.md) | Profiles | Container structures and UIA selectors for [Waterfox](docs/app_hierarchies/01_waterfox.md), [Antigravity IDE](docs/app_hierarchies/02_antigravity_ide.md), and [Windows Terminal](docs/app_hierarchies/03_windows_terminal.md). |
+| 🚀 [Caster Dynamic Terminal Grammars](docs/guides/FIRST_REAL_WORLD_USE_CASE_CASTER_DYNAMIC_TERMINAL_GRAMMARS.md) | Integration Guide | Production integration: Dynamic voice grammar activation in VS Code / Antigravity IDE via SSE streaming. |
+| 👁️ [Focus & Zone Detection Explained](docs/guides/ADCE_FOCUS_AND_ZONE_DETECTION_EXPLAINED.md) | Operational Guide | Step-by-step guide to Windows focus mechanics, parent-chain traversal, and semantic zone detection. |
+| 📘 [Educational Refresher & Architecture Guide](docs/guides/EDUCATIONAL_GUIDE_AND_ARCHITECTURE_REFRESHER.md) | Architecture Guide | Walkthrough of UI Automation, Win32 systems programming, and FlaUI caching fundamentals. |
+| 🔬 [Engineering Postmortems Directory](docs/postmortems/README.md) | Retrospectives | Catalog of 11 development milestone retrospectives, including [Claim Verifier Deprecation](docs/postmortems/CLAIM_VERIFIER_DEPRECATION_AND_SELF_CONFIRMATION_LOOP_POSTMORTEM.md). |
 
-### 🗄️ Historical & Non-Normative Archive
+### Historical Archive
 Superseded test run outputs, exploratory research into unused third-party libraries, and deprecated custom claim verification matrices are archived in [`docs/archive/`](docs/archive/README.md).
 
 > 🧭 *Navigation for AI Agents:* Restrict architectural reasoning to **[`docs/CONTEXT.md`](docs/CONTEXT.md)** and [`docs/architecture/`](docs/architecture/). Do not index or cite files in `docs/archive/`.
@@ -125,16 +121,16 @@ Superseded test run outputs, exploratory research into unused third-party librar
 
 ## 6. Engineering Roadmap & Milestone Status
 
-Following our **4-Gate Epistemic Protocol**, ADCE engineering is structured across clear progressive phases:
+Following our **Engineering Verification Workflow**, ADCE engineering is structured across clear progressive phases:
 
 | Phase / Milestone | Description | Status | Deliverables & Artifacts |
 | :--- | :--- | :--- | :--- |
 | **Phase 1: Physical Observation** | Identify DOM traversal traps and latency bottlenecks across real-world apps. | `[x]` Complete | • [Doc 010: DOM Traversal Telemetry](https://github.com/amirf147/caster-user-directory-and-notes/blob/master/docs/accessibility_mcp/010_telemetry_benchmarks_and_live_findings.md)<br/>• Exposed 6,800-node DOM COM stall. |
-| **Phase 2: Adversarial Evaluation & Spikes** | Gate 2 & Gate 3 empirical tests validating container targeting and Win32 gating. | `[x]` Complete | • [Micro-Spike 1 Telemetry (FlaUI UIA3)](docs/benchmarks/001_micro_spike_1_flaui_telemetry.md)<br/>• [Micro-Spike 2 Telemetry (Win32 Shallow)](docs/benchmarks/002_micro_spike_2_python_shallow_telemetry.md) |
+| **Phase 2: Adversarial Evaluation & Spikes** | Empirical tests validating container targeting and Win32 shallow gating. | `[x]` Complete | • [Micro-Spike 1 Telemetry (FlaUI UIA3)](docs/benchmarks/001_micro_spike_1_flaui_telemetry.md)<br/>• [Micro-Spike 2 Telemetry (Win32 Shallow)](docs/benchmarks/002_micro_spike_2_python_shallow_telemetry.md) |
 | **Phase 3: Ecosystem Audit & Synthesis** | Deep-dive audits of leading open-source Windows/COM/UIA tooling catalogs. | `[x]` Complete | • [Simon Mourier Ecosystem Suite](docs/archive/external_research/README.md)<br/>• [Roman Baeriswyl (Roemer / FlaUI) Deep Dive](docs/archive/external_research/FlaUI_And_Roemer_Ecosystem.md)<br/>• [Synthesis & Wheel Reinvention Audit](docs/archive/external_research/SYNTHESIS_AND_WHEEL_REINVENTION_AUDIT.md) |
-| **Phase 4: Architectural Specs & SSOT** | Formalize ground-truth target zones, heuristic discovery archetypes, and MCP schemas. | `[x]` Complete | • [UI Automation SSOT Reference](docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md)<br/>• [Dynamic Discovery & Requirements Spec](docs/architecture/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md)<br/>• [MCP JSON Schema Specification](docs/architecture/MCP_SCHEMA_SPEC.md) |
+| **Phase 4: Architecture Specifications & Schema Contracts** | Formalize target zones, heuristic discovery archetypes, and MCP schemas. | `[x]` Complete | • [UI Automation Reference Matrix](docs/architecture/UI_AUTOMATION_STRUCTURES_REFERENCE.md)<br/>• [Dynamic Discovery & Requirements Spec](docs/architecture/REQUIREMENTS_AND_DYNAMIC_DISCOVERY_SPEC.md)<br/>• [MCP JSON Schema Specification](docs/architecture/MCP_SCHEMA_SPEC.md) |
 | **Phase 5: Production Daemon Suite** | Build modular multi-project solution (`ADCE.slnx`), event pipeline, storage, and MCP server. | `[x]` Complete | • **Milestone 1:** `ADCE.Core` domain models, events & serialization (`[x]` Complete)<br/>• **Milestone 2:** `ADCE.Extraction` standalone context grabber (`[x]` Complete)<br/>• **Milestone 3:** Low-overhead event pipeline (`SetWinEventHook` + channel debouncer) (`[x]` Complete)<br/>• **Milestone 4:** SQLite WAL store & in-memory live cache (`[x]` Complete)<br/>• **Milestone 4.5:** Ground-Truth Stimulus Test Harness (`[x]` Complete)<br/>• **Milestone 5:** High-Performance MCP Server (Stdio & SSE/HTTP) (`[x]` Complete)<br/>• **Milestone 6:** Windows System Tray Daemon & Live DevTools HUD (`[x]` Complete) |
-| **Phase 6: Application Layout Hierarchy Profiling & Viewport Boundary Hardening (Milestone 7)** | Build verified empirical ground-truth profiles across desktop application archetypes, tracing leaf-to-root ancestor chains, isolating window chrome from client document viewports, and generating annotated visual proof. | `[ ]` Active | • **WP 7.1:** Known Limitations & Technical Gaps specification (`[x]` Complete)<br/>• **WP 7.2:** Application Hierarchy Catalog (`docs/app_hierarchies/`) & Profile Specification (`[x]` Complete)<br/>• **WP 7.3:** Waterfox (`Gecko`) Empirical Profile & Viewport Boundary Lock (`01_waterfox.md`) (`[x]` Complete)<br/>• **WP 7.4:** Antigravity IDE / VS Code (`Monaco/Electron`) Profile (`02_antigravity_ide.md`) (`[x]` Complete)<br/>• **WP 7.5:** Windows Terminal (`Cascadia`) & Shell Profiles (`[ ]` Scheduled) |
+| **Phase 6: Application Layout Hierarchy Profiling & Viewport Boundary Hardening (Milestone 7)** | Build verified empirical ground-truth profiles across desktop application archetypes, tracing leaf-to-root ancestor chains, isolating window chrome from client document viewports, and generating annotated visual proof. | `[ ]` Active | • **WP 7.1:** Known Limitations & Technical Gaps specification (`[x]` Complete)<br/>• **WP 7.2:** Application Hierarchy Catalog (`docs/app_hierarchies/`) & Profile Specification (`[x]` Complete)<br/>• **WP 7.3:** Waterfox (`Gecko`) Empirical Profile & Viewport Boundary Lock (`01_waterfox.md`) (`[x]` Complete)<br/>• **WP 7.4:** Antigravity IDE / VS Code (`Monaco/Electron`) Profile (`02_antigravity_ide.md`) (`[x]` Complete)<br/>• **WP 7.5:** Windows Terminal (`Cascadia`) Baseline Profile ([`03_windows_terminal.md`](docs/app_hierarchies/03_windows_terminal.md)) (`[x]` Baseline Complete) |
 | **Phase 7: Declarative App Definitions & Telemetry Self-Healing (Milestone 8)** | Externalize layout rules into `app_definitions.json` and implement unmapped control logging to support dynamic voice and agent self-labeling overrides without modifying C# core code. | `[ ]` Scheduled | • **WP 8.1:** Declarative App Definitions Engine (`app_definitions.json` hot-reloader)<br/>• **WP 8.2:** Unmapped `[Unknown]` Subtree Telemetry Logger<br/>• **WP 8.3:** Dynamic Voice Labeling & Caster Semantic Alias Hooks |
 | **Phase 8: Advanced Context Primitives (Milestone 9)** | Extract text selections, caret offsets, and on-demand full document buffers. | `[ ]` Scheduled | • **WP 9.1:** Caret position & active text selection extraction (`TextPattern`)<br/>• **WP 9.2:** Opt-in full document & editor buffer extraction (`get_document_text`)<br/>• **WP 9.3:** Multi-tier configurable privacy depth levels |
 | **Phase 9: External Voice & Agent Bindings (Milestone 10)** | Connect Caster Dragonfly grammars and local AI assistants to live MCP streaming endpoints. | `[ ]` Deferred | • **WP 10.1:** Caster / Dragonfly dynamic voice grammar bindings<br/>• **WP 10.2:** Local AI coding assistant dynamic prompt injection loops |
@@ -191,7 +187,7 @@ dotnet run --project src/ADCE.Spikes -- --timeline 20
 
 ### Running Test Suite & Spikes
 ```powershell
-# Run full automated unit test suite across all 5 projects (263 tests)
+# Run full automated unit test suite across all 5 projects (274 tests)
 dotnet test --configuration Release
 
 # Run Milestone 6 Daemon & End-to-End integration verification spike
@@ -214,7 +210,7 @@ ADCE's technical architecture is informed by foundational research across the Wi
 * **[FlaUI](https://github.com/FlaUI/FlaUI)** by **Roman Baeriswyl (`Roemer`)** (MIT License): Powers ADCE's high-throughput UIA3 COM vtable automation and `CacheRequest` batch extraction.
 * **Microsoft.Data.Sqlite** (MIT License) & **[SQLitePCLRaw](https://github.com/ericsink/SQLitePCL.raw)** by **Eric Sink** (Apache-2.0): Powers ADCE's embedded time-series state persistence.
 * **[Simon Mourier (`smourier`)](https://github.com/smourier)**: Open-source systems tools (`HwndExplorer`, `UInspect`) audited during exploratory research for low-overhead Win32 filtering techniques.
-* **[Caster Upstream Lineage](https://github.com/amirf147/caster-user-directory-and-notes/tree/master/docs/accessibility_mcp)**: Research documents 001–018 detailing the initial DOM traversal benchmarks and epistemic protocols that originated this engine.
+* **[Caster Upstream Lineage](https://github.com/amirf147/caster-user-directory-and-notes/tree/master/docs/accessibility_mcp)**: Research documents 001 to 018 detailing the initial DOM traversal benchmarks that originated this engine.
 
 ---
 

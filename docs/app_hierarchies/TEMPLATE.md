@@ -68,7 +68,7 @@ graph TD
 
 ## 5. Resting-State Empirical Telemetry Matrix
 
-| Step | Surface Name | Focus Stimulus | Leaf ControlType | Leaf AutomationId | Ancestor Chain (Leaf ➔ Root, Max Depth 5) | Verified Zone Tag | Screenshot |
+| Step | Surface Name | Focus Stimulus | Leaf ControlType | Leaf AutomationId | Ancestor Chain (Leaf ➔ Root, Max Depth 8) | Verified Zone Tag | Screenshot |
 | :---: | :--- | :--- | :--- | :--- | :--- | :--- | :---: |
 | 1 | **Main Input / Buffer** | Click main text area | `Edit` | `active-input-id` | `[Input, Container, Viewport, Window]` | `EditorBuffer` | `step_01.png` |
 | 2 | **Navigation Tab** | Focus active tab | `TabItem` | `tab-id` | `[TabItem, TabStrip, TopBar, Window]` | `TabBar` | `step_02.png` |
@@ -83,10 +83,10 @@ graph TD
 
 ---
 
-## 7. Epistemic Blind Spots & Unknown Unknowns
+## 7. Unverified Surfaces & Known Limitations
 
 > [!IMPORTANT]
-> This section enforces epistemic humility. It explicitly catalogs what has **not** been tested, potential failure modes, and areas where accessibility APIs may provide degraded information.
+> This section explicitly catalogs what has **not** been tested, potential failure modes, and areas where accessibility APIs may provide degraded information.
 
 ### 7.1 Unobserved Surfaces & States
 - [ ] **Modal & Dialog Overlays:** Behavior during file pickers, alert dialogs, or settings modals has not been observed.
@@ -99,7 +99,7 @@ graph TD
 - [ ] *Does the application require an external bridge or command-line flag (e.g. `--force-renderer-accessibility`) to expose full telemetry?*
 
 ### 7.3 Alternative Perception Paths
-- If UIA fails or experiences RPC stalls on this application, what secondary source of truth exists?
+- If UIA fails or experiences RPC stalls on this application, what secondary fallback perception path exists?
   - Native socket / Extension bridge (e.g. CDP, VS Code extension pipe)?
   - Surface vision (DirectX capture + OCR)?
   - Win32 standard messages?
