@@ -191,6 +191,39 @@ public class SqliteDesktopStateStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task MaintenancePruning_WhenDisablePruningIsTrue_PreservesAllSnapshots()
+    {
+        var options = new StorageOptions
+        {
+            DatabasePath = _testDbPath,
+            MaxRetentionCount = 10,
+            MaintenanceCommitCadence = 5,
+            DisablePruning = true
+        };
+
+        var store = new SqliteDesktopStateStore(options);
+        await store.InitializeAsync();
+
+        for (int i = 1; i <= 25; i++)
+        {
+            store.UpdateCurrentSnapshot(CreateTestSnapshot($"Snapshot #{i}", "test.exe", $"item_{i}", DesktopSemanticZone.EditorBuffer, DateTimeOffset.UtcNow.AddSeconds(-30 + i)));
+        }
+
+        await store.DisposeAsync();
+
+        await using var queryStore = new SqliteDesktopStateStore(options);
+        await queryStore.InitializeAsync();
+
+        var allItems = new List<DesktopContextSnapshot>();
+        await foreach (var item in queryStore.GetHistoryAsync(DateTimeOffset.UtcNow.AddHours(-1), limit: 100))
+        {
+            allItems.Add(item);
+        }
+
+        Assert.Equal(25, allItems.Count);
+    }
+
+    [Fact]
     public async Task ContainerHierarchy_PersistsToSqlite_AndRoundTripsViaGetHistory()
     {
         var options = new StorageOptions { DatabasePath = _testDbPath };

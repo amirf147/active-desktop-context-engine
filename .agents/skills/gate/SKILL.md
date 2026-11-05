@@ -1,4 +1,5 @@
----
+﻿---
+name: gate
 description: Structured 4-Gate Epistemic Protocol for milestone verification and adversarial red-teaming.
 ---
 <!-- SPDX-License-Identifier: Apache-2.0 -->

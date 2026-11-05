@@ -441,30 +441,36 @@ public sealed class SqliteDesktopStateStore : IDesktopStateStore, IAsyncDisposab
     {
         try
         {
-            long cutoffUnixMs = DateTimeOffset.UtcNow.Subtract(_options.RetentionWindow).ToUnixTimeMilliseconds();
-
-            const string pruneSql = """
-                DELETE FROM desktop_snapshots WHERE timestamp_unix_ms < @cutoff;
-                """;
-
-            await using (var pruneCmd = new SqliteCommand(pruneSql, connection))
+            if (!_options.DisablePruning)
             {
-                pruneCmd.Parameters.AddWithValue("@cutoff", cutoffUnixMs);
-                await pruneCmd.ExecuteNonQueryAsync(CancellationToken.None);
-            }
+                if (_options.RetentionWindow > TimeSpan.Zero && _options.RetentionWindow != Timeout.InfiniteTimeSpan)
+                {
+                    long cutoffUnixMs = DateTimeOffset.UtcNow.Subtract(_options.RetentionWindow).ToUnixTimeMilliseconds();
 
-            // Enforce max retention count clamp
-            if (_options.MaxRetentionCount > 0)
-            {
-                const string countPruneSql = """
-                    DELETE FROM desktop_snapshots WHERE id IN (
-                        SELECT id FROM desktop_snapshots ORDER BY timestamp_unix_ms DESC, id DESC LIMIT -1 OFFSET @maxCount
-                    );
-                    """;
+                    const string pruneSql = """
+                        DELETE FROM desktop_snapshots WHERE timestamp_unix_ms < @cutoff;
+                        """;
 
-                await using var countCmd = new SqliteCommand(countPruneSql, connection);
-                countCmd.Parameters.AddWithValue("@maxCount", _options.MaxRetentionCount);
-                await countCmd.ExecuteNonQueryAsync(CancellationToken.None);
+                    await using (var pruneCmd = new SqliteCommand(pruneSql, connection))
+                    {
+                        pruneCmd.Parameters.AddWithValue("@cutoff", cutoffUnixMs);
+                        await pruneCmd.ExecuteNonQueryAsync(CancellationToken.None);
+                    }
+                }
+
+                // Enforce max retention count clamp
+                if (_options.MaxRetentionCount > 0)
+                {
+                    const string countPruneSql = """
+                        DELETE FROM desktop_snapshots WHERE id IN (
+                            SELECT id FROM desktop_snapshots ORDER BY timestamp_unix_ms DESC, id DESC LIMIT -1 OFFSET @maxCount
+                        );
+                        """;
+
+                    await using var countCmd = new SqliteCommand(countPruneSql, connection);
+                    countCmd.Parameters.AddWithValue("@maxCount", _options.MaxRetentionCount);
+                    await countCmd.ExecuteNonQueryAsync(CancellationToken.None);
+                }
             }
 
             // Passive checkpoint to keep WAL file bounded without blocking readers

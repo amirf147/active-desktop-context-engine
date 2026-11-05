@@ -93,6 +93,12 @@ public sealed class DaemonOptions
     public bool EnableSemanticZones { get; init; } = true;
 
     /// <summary>
+    /// Gets whether to disable retention pruning to retain full desktop context history indefinitely.
+    /// Default is false.
+    /// </summary>
+    public bool DisablePruning { get; init; }
+
+    /// <summary>
     /// Resolves the effective SQLite database file path.
     /// </summary>
     public string ResolveEffectiveDatabasePath()
@@ -132,6 +138,7 @@ public sealed class DaemonOptions
         bool showHudTree = false;
         bool showLogs = false;
         bool enableSemanticZones = true;
+        bool disablePruning = false;
         ADCE.Core.Logging.AdceLogLevel logLevel = ADCE.Core.Logging.AdceLogLevel.Info;
 
         for (int i = 0; i < args.Length; i++)
@@ -229,6 +236,12 @@ public sealed class DaemonOptions
                 dbPath = args[i + 1];
                 i++;
             }
+            else if (arg.Equals("--no-prune", StringComparison.OrdinalIgnoreCase) ||
+                     arg.Equals("--never-delete", StringComparison.OrdinalIgnoreCase) ||
+                     arg.Equals("--disable-pruning", StringComparison.OrdinalIgnoreCase))
+            {
+                disablePruning = true;
+            }
             else if (arg.Equals("--debounce", StringComparison.OrdinalIgnoreCase) &&
                      i + 1 < args.Length && int.TryParse(args[i + 1], out int d) && d >= 0)
             {
@@ -259,7 +272,8 @@ public sealed class DaemonOptions
             ShowHudTree = showHudTree,
             ShowLogs = showLogs,
             LogLevel = logLevel,
-            EnableSemanticZones = enableSemanticZones
+            EnableSemanticZones = enableSemanticZones,
+            DisablePruning = disablePruning
         };
     }
 
@@ -279,6 +293,7 @@ public sealed class DaemonOptions
           -l, --logs, --diagnostics Dump recent diagnostic logs and system health
           --log-level <level>      Set logging severity (Debug, Info, Warn, Error, None)
           --explicit-only, --no-zones Disable semantic zone heuristics (pure explicit structural mode)
+          --no-prune, --never-delete Retain all history indefinitely (disable 24h / 10k snapshot pruning)
           -H, --hud                Launch with non-activating floating HUD overlay
           --hud-tree, --tree       Launch floating HUD with DOM & Structural Tree View expanded
           -n, --headless, --no-tray Run daemon in background console mode without tray icon

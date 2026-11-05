@@ -146,6 +146,18 @@ public sealed class DaemonOptionsTests
     }
 
     [Fact]
+    public void Parse_DisablePruningFlags_SetsDisablePruningTrue()
+    {
+        var opt1 = DaemonOptions.Parse(new[] { "--no-prune" });
+        var opt2 = DaemonOptions.Parse(new[] { "--never-delete" });
+        var opt3 = DaemonOptions.Parse(new[] { "--disable-pruning" });
+
+        Assert.True(opt1.DisablePruning);
+        Assert.True(opt2.DisablePruning);
+        Assert.True(opt3.DisablePruning);
+    }
+
+    [Fact]
     public void GetHelpText_ContainsAllCoreOptions()
     {
         var help = DaemonOptions.GetHelpText();
@@ -154,6 +166,7 @@ public sealed class DaemonOptionsTests
         Assert.Contains("--stdio", help);
         Assert.Contains("--sse", help);
         Assert.Contains("--port", help);
+        Assert.Contains("--no-prune", help);
         Assert.Contains("8424", help);
     }
 }

@@ -76,6 +76,6 @@
 ## 3. Maintenance & Retention Policy
 
 To bound disk utilization and maintain indexing efficiency on long-running developer machines:
-1. **Periodic Pruning:** Every 500 committed snapshots (`MaintenanceCommitCadence`) or 5 minutes of runtime (`MaintenanceInterval`), the background writer executes bounded maintenance pruning records older than the retention window (default: 24 hours per `StorageOptions.RetentionWindow`).
-2. **Capacity Bounds:** The store enforces a maximum retention count (default: 10,000 snapshots via `MaxRetentionCount`), pruning oldest records if row counts exceed this threshold.
+1. **Periodic Pruning:** Every 500 committed snapshots (`MaintenanceCommitCadence`) or 5 minutes of runtime (`MaintenanceInterval`), the background writer executes bounded maintenance pruning records older than the retention window (default: 24 hours per `StorageOptions.RetentionWindow`). Setting `DisablePruning = true` (or `--no-prune` / `--never-delete` via CLI) bypasses pruning while keeping WAL checkpoints active.
+2. **Capacity Bounds:** The store enforces a maximum retention count (default: 10,000 snapshots via `MaxRetentionCount`), pruning oldest records if row counts exceed this threshold unless `DisablePruning` is enabled.
 3. **WAL Checkpointing:** Passive checkpointing runs periodically during maintenance passes to bound `.db-wal` file size.

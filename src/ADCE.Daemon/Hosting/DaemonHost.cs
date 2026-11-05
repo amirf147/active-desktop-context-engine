@@ -90,7 +90,8 @@ public sealed class DaemonHost : IAsyncDisposable, IDisposable
         var dbPath = _options.ResolveEffectiveDatabasePath();
         _store = store ?? new SqliteDesktopStateStore(new StorageOptions
         {
-            DatabasePath = dbPath
+            DatabasePath = dbPath,
+            DisablePruning = _options.DisablePruning
         });
 
         _extractor = extractor ?? new UiaExtractionEngine();

@@ -38,6 +38,13 @@
 
 ### Version Control & Safety Hygiene
 - **NEVER execute `git commit` or `git push` autonomously.**
-- Stage verified files (`git add`) and format a copy-paste ready conventional commit message following the `/commit` workflow for user review and manual execution.
+- Stage verified files (`git add`) and format a copy-paste ready conventional commit message following the `/commit` skill for user review and manual execution.
 - **Path Hygiene:** Never introduce hardcoded absolute user paths (e.g. personal profiles or user directories). Verified by `scripts/check_repo_safety.py`.
 - **SPDX Headers:** All `.cs`, `.csproj`, `.py`, and `.md` files must include standard SPDX Apache-2.0 headers.
+
+### Solution Target & Process Lock Hygiene
+- **Solution Target:** The solution format is modern XML (`ADCE.slnx`). Do not execute `dotnet test active-desktop-context-engine.sln`.
+- **Pre-Build Process Cleanliness:** If build fails with `CSC : error CS2012` or `error MSB3027` (file locked by process), terminate background daemon or MCP instances before retrying:
+  `Get-Process | Where-Object { $_.ProcessName -like "*ADCE*" } | Stop-Process -Force`
+- **Automated Test Runner:** Always run the change-aware Merkle test runner:
+  `python scripts/test_runner.py`

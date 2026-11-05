@@ -1,4 +1,5 @@
----
+﻿---
+name: commit
 description: Generates a copy-paste ready conventional commit message from staged changes after running automated safety and path checks.
 ---
 <!-- SPDX-License-Identifier: Apache-2.0 -->

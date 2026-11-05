@@ -30,6 +30,12 @@ public sealed class StorageOptions
     public int MaxRetentionCount { get; set; } = 10_000;
 
     /// <summary>
+    /// Gets or sets whether to disable retention pruning, preserving all historical snapshots indefinitely.
+    /// Default: false.
+    /// </summary>
+    public bool DisablePruning { get; set; }
+
+    /// <summary>
     /// Background write channel queue capacity.
     /// Default: 512.
     /// </summary>
