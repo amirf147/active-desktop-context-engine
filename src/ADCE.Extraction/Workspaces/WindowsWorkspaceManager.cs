@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using ADCE.Core.Interfaces;
 using ADCE.Core.Models;
 using ADCE.Extraction.Win32;
+using ADCE.Extraction.Workspaces.Win32Com;
 
 namespace ADCE.Extraction.Workspaces;
 
@@ -18,16 +19,41 @@ namespace ADCE.Extraction.Workspaces;
 public sealed class WindowsWorkspaceManager : IWorkspaceManager
 {
     private static readonly Guid DefaultDesktopId = Guid.Empty;
+    private const string DefaultDesktopName = "Current Desktop";
+    private readonly IVirtualDesktopSessionProvider _sessionProvider;
+
+    public WindowsWorkspaceManager()
+        : this(DefaultVirtualDesktopSessionProvider.Instance)
+    {
+    }
+
+    internal WindowsWorkspaceManager(IVirtualDesktopSessionProvider sessionProvider)
+    {
+        _sessionProvider = sessionProvider ?? DefaultVirtualDesktopSessionProvider.Instance;
+    }
 
     public ValueTask<WorkspaceEnvelope> GetCurrentWorkspaceAsync(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var monitorBounds = GetPrimaryMonitorBounds();
 
+        VirtualDesktopInfo? currentDesktop = null;
+        try
+        {
+            currentDesktop = _sessionProvider.GetCurrentDesktop();
+        }
+        catch
+        {
+            // Graceful degradation when shell COM interface is unavailable
+        }
+
         var envelope = new WorkspaceEnvelope
         {
-            VirtualDesktopId = DefaultDesktopId,
-            DesktopIndex = 0,
-            VirtualDesktopName = "Current Desktop",
+            VirtualDesktopId = currentDesktop?.Id ?? DefaultDesktopId,
+            DesktopIndex = currentDesktop?.Index ?? 0,
+            VirtualDesktopName = !string.IsNullOrWhiteSpace(currentDesktop?.Name)
+                ? currentDesktop.Value.Name
+                : DefaultDesktopName,
             MonitorIndex = 0,
             MonitorBounds = monitorBounds
         };
@@ -35,27 +61,103 @@ public sealed class WindowsWorkspaceManager : IWorkspaceManager
         return ValueTask.FromResult(envelope);
     }
 
-    public ValueTask<WorkspaceEnvelope> GetWindowWorkspaceAsync(nint hwnd, CancellationToken cancellationToken = default)
+    public async ValueTask<WorkspaceEnvelope> GetWindowWorkspaceAsync(nint hwnd, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var monitorBounds = GetMonitorBoundsForWindow(hwnd);
 
+        if (hwnd == nint.Zero)
+        {
+            var cur = await GetCurrentWorkspaceAsync(cancellationToken).ConfigureAwait(false);
+            return cur with { MonitorBounds = monitorBounds };
+        }
+
+        Guid? windowDesktopId = null;
+        try
+        {
+            windowDesktopId = _sessionProvider.GetWindowDesktopId(hwnd);
+        }
+        catch
+        {
+            // Graceful degradation
+        }
+
+        if (!windowDesktopId.HasValue || windowDesktopId.Value == Guid.Empty)
+        {
+            var cur = await GetCurrentWorkspaceAsync(cancellationToken).ConfigureAwait(false);
+            return cur with { MonitorBounds = monitorBounds };
+        }
+
+        IReadOnlyList<VirtualDesktopInfo> desktops = [];
+        try
+        {
+            desktops = _sessionProvider.GetAllDesktops();
+        }
+        catch
+        {
+            // Graceful degradation
+        }
+
+        VirtualDesktopInfo? matchedDesktop = null;
+        for (int i = 0; i < desktops.Count; i++)
+        {
+            if (desktops[i].Id == windowDesktopId.Value)
+            {
+                matchedDesktop = desktops[i];
+                break;
+            }
+        }
+
         var envelope = new WorkspaceEnvelope
         {
-            VirtualDesktopId = DefaultDesktopId,
-            DesktopIndex = 0,
-            VirtualDesktopName = "Current Desktop",
+            VirtualDesktopId = windowDesktopId.Value,
+            DesktopIndex = matchedDesktop?.Index ?? 0,
+            VirtualDesktopName = !string.IsNullOrWhiteSpace(matchedDesktop?.Name)
+                ? matchedDesktop.Value.Name
+                : DefaultDesktopName,
             MonitorIndex = 0,
             MonitorBounds = monitorBounds
         };
 
-        return ValueTask.FromResult(envelope);
+        return envelope;
     }
 
-    public ValueTask<IReadOnlyList<WorkspaceEnvelope>> GetAllWorkspacesAsync(CancellationToken cancellationToken = default)
+    public async ValueTask<IReadOnlyList<WorkspaceEnvelope>> GetAllWorkspacesAsync(CancellationToken cancellationToken = default)
     {
-        var current = GetCurrentWorkspaceAsync(cancellationToken).Result;
-        IReadOnlyList<WorkspaceEnvelope> list = [current];
-        return ValueTask.FromResult(list);
+        cancellationToken.ThrowIfCancellationRequested();
+        var primaryMonitorBounds = GetPrimaryMonitorBounds();
+
+        IReadOnlyList<VirtualDesktopInfo> desktops = [];
+        try
+        {
+            desktops = _sessionProvider.GetAllDesktops();
+        }
+        catch
+        {
+            // Graceful degradation
+        }
+
+        if (desktops.Count == 0)
+        {
+            var current = await GetCurrentWorkspaceAsync(cancellationToken).ConfigureAwait(false);
+            return [current];
+        }
+
+        var envelopes = new WorkspaceEnvelope[desktops.Count];
+        for (int i = 0; i < desktops.Count; i++)
+        {
+            var d = desktops[i];
+            envelopes[i] = new WorkspaceEnvelope
+            {
+                VirtualDesktopId = d.Id,
+                DesktopIndex = d.Index,
+                VirtualDesktopName = !string.IsNullOrWhiteSpace(d.Name) ? d.Name : $"Desktop {d.Index + 1}",
+                MonitorIndex = 0,
+                MonitorBounds = primaryMonitorBounds
+            };
+        }
+
+        return envelopes;
     }
 
     private static BoundingRectangle GetPrimaryMonitorBounds()

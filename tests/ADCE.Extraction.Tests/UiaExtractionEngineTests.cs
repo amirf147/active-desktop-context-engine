@@ -2,8 +2,12 @@
 // Copyright (c) 2026 Amir Farhadi
 
 using System;
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using ADCE.Core.Enums;
+using ADCE.Core.Interfaces;
+using ADCE.Core.Models;
 using ADCE.Extraction.Engine;
 using Xunit;
 
@@ -61,5 +65,72 @@ public class UiaExtractionEngineTests
 
         engine.EnableSemanticZones = false;
         Assert.False(engine.EnableSemanticZones);
+    }
+
+    [Fact]
+    public async Task ExtractSnapshotAsync_EnrichesWorkspace_FromInjectedWorkspaceManager()
+    {
+        var expectedGuid = Guid.NewGuid();
+        var customEnvelope = new WorkspaceEnvelope
+        {
+            VirtualDesktopId = expectedGuid,
+            DesktopIndex = 2,
+            VirtualDesktopName = "Workspace-Code",
+            MonitorIndex = 1,
+            MonitorBounds = new BoundingRectangle(0, 0, 1920, 1080)
+        };
+
+        var mockManager = new MockWorkspaceManager(customEnvelope);
+        using var engine = new UiaExtractionEngine(workspaceManager: mockManager);
+
+        var snapshot = await engine.ExtractSnapshotAsync(nint.Zero);
+
+        Assert.NotNull(snapshot.Workspace);
+        Assert.Equal(expectedGuid, snapshot.Workspace.VirtualDesktopId);
+        Assert.Equal(2, snapshot.Workspace.DesktopIndex);
+        Assert.Equal("Workspace-Code", snapshot.Workspace.VirtualDesktopName);
+    }
+
+    [Fact]
+    public async Task ExtractSnapshotAsync_FallsBackGracefully_OnWorkspaceManagerFailure()
+    {
+        var failingManager = new MockWorkspaceManager(new WorkspaceEnvelope { VirtualDesktopId = Guid.Empty, DesktopIndex = 0 }, shouldThrow: true);
+        using var engine = new UiaExtractionEngine(workspaceManager: failingManager);
+
+        var snapshot = await engine.ExtractSnapshotAsync(nint.Zero);
+
+        Assert.NotNull(snapshot.Workspace);
+        Assert.Equal(Guid.Empty, snapshot.Workspace.VirtualDesktopId);
+        Assert.Equal("Current Desktop", snapshot.Workspace.VirtualDesktopName);
+    }
+
+    private sealed class MockWorkspaceManager : IWorkspaceManager
+    {
+        private readonly WorkspaceEnvelope _envelope;
+        private readonly bool _shouldThrow;
+
+        public MockWorkspaceManager(WorkspaceEnvelope envelope, bool shouldThrow = false)
+        {
+            _envelope = envelope;
+            _shouldThrow = shouldThrow;
+        }
+
+        public ValueTask<WorkspaceEnvelope> GetCurrentWorkspaceAsync(CancellationToken cancellationToken = default)
+        {
+            if (_shouldThrow) throw new InvalidOperationException("Simulated failure");
+            return ValueTask.FromResult(_envelope);
+        }
+
+        public ValueTask<WorkspaceEnvelope> GetWindowWorkspaceAsync(nint hwnd, CancellationToken cancellationToken = default)
+        {
+            if (_shouldThrow) throw new InvalidOperationException("Simulated failure");
+            return ValueTask.FromResult(_envelope);
+        }
+
+        public ValueTask<IReadOnlyList<WorkspaceEnvelope>> GetAllWorkspacesAsync(CancellationToken cancellationToken = default)
+        {
+            if (_shouldThrow) throw new InvalidOperationException("Simulated failure");
+            return ValueTask.FromResult<IReadOnlyList<WorkspaceEnvelope>>(new[] { _envelope });
+        }
     }
 }

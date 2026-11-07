@@ -40,7 +40,7 @@ Following dual forensic architectural reviews across the 145 files of the ADCE s
 │ BUG-3│ COMException Escaping Clipboard Retry    │ Medium   │ `ExternalException` misses raw   │ Planned (Phase 3) │
 │      │ (`ADCE.Daemon.UI.StaClipboardHelper`)    │          │ COMException on OLE lock content.│                   │
 ├──────┼──────────────────────────────────────────┼──────────┼──────────────────────────────────┼───────────────────┤
-│ BUG-4│ Sync-Over-Async Deadlock in Workspace    │ Medium   │ Blocking `.Result` on ValueTask  │ Planned (Phase 3) │
+│ BUG-4│ Sync-Over-Async Deadlock in Workspace    │ Medium   │ Blocking `.Result` on ValueTask  │ Resolved          │
 │      │ (`ADCE.Extraction.WindowsWorkspaceMgr`)  │          │ inside STA sync context          │                   │
 ├──────┼──────────────────────────────────────────┼──────────┼──────────────────────────────────┼───────────────────┤
 │ BUG-5│ Unbounded DOM Traversal Fallback Cliff   │ High     │ `FindFirstDescendant` recursively│ Planned (Phase 3) │
@@ -193,8 +193,9 @@ catch (Exception ex) when (ex is ExternalException || ex is COMException)
 ---
 
 ### 3.4 BUG-4: Sync-Over-Async Deadlock in Workspace Manager
-* **Component:** `src/ADCE.Extraction/Workspaces/WindowsWorkspaceManager.cs` (Line 56)
+* **Component:** `src/ADCE.Extraction/Workspaces/WindowsWorkspaceManager.cs`
 * **Severity:** **Medium (P2)**
+* **Status:** **Resolved**
 
 #### Root Cause & Failure Vectors
 ```csharp
@@ -207,13 +208,13 @@ public ValueTask<IReadOnlyList<WorkspaceEnvelope>> GetAllWorkspacesAsync(Cancell
 ```
 Blocking synchronously on `.Result` inside a `ValueTask` method invites synchronization context deadlocks, particularly in STA UI threads (such as the WinForms message pump in `ADCE.Daemon`).
 
-#### Remediation Specification
-Refactor to non-blocking async:
+#### Remediation Implemented
+Refactored to non-blocking async execution using call-scoped COM sessions (`TransientMtaSession`):
 ```csharp
 public async ValueTask<IReadOnlyList<WorkspaceEnvelope>> GetAllWorkspacesAsync(CancellationToken cancellationToken = default)
 {
-    var current = await GetCurrentWorkspaceAsync(cancellationToken).ConfigureAwait(false);
-    return [current];
+    // Fully asynchronous desktop enumeration with zero deadlocks
+    return await GetAllWorkspacesCoreAsync(cancellationToken).ConfigureAwait(false);
 }
 ```
 
@@ -435,7 +436,7 @@ gantt
 1. **HWND Sign-Extension Fix:** Cast `parentHwnd = (nint)(uint)(int)...` in `AncestorChainHarvester.cs`.
 2. **HUD Dragging Normalization:** Use absolute `Cursor.Position` deltas in `FloatingHudForm.cs`.
 3. **Clipboard COM Exception Guard:** Catch `COMException` in `StaClipboardHelper.cs`.
-4. **Workspace Sync-Over-Async Fix:** Await `GetCurrentWorkspaceAsync` asynchronously in `WindowsWorkspaceManager.cs`.
+4. **Workspace Sync-Over-Async Fix:** Await `GetCurrentWorkspaceAsync` asynchronously in `WindowsWorkspaceManager.cs` (Resolved).
 5. **Eliminate Unbounded Traversal Cliff:** Remove `FindFirstDescendant` from `UiaExtractionEngine.ExtractFocusedControl`.
 
 ### Phase 3.5: Closed Structural Archetype Migration & Spatial Deprecation (P1)

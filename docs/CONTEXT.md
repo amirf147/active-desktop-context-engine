@@ -6,7 +6,7 @@
 > **Target System:** Active Desktop Context Engine (ADCE)
 > **Runtime:** .NET 10 (x64) + `FlaUI.UIA3 5.0.0`
 > **Architecture:** Decoupled Layered Pipeline (Win32 Event Hooks + FlaUI.UIA3 + SQLite WAL + MCP Server)
-> **Active Verification Baseline:** 281 Passing Unit Tests Across 5 Test Suites (`dotnet test`)
+> **Active Verification Baseline:** 304 Passing Unit Tests Across 5 Test Suites (`dotnet test`)
 > **Canonical Architecture Specifications:** [`docs/architecture/`](./architecture/)
 
 ---
@@ -19,7 +19,7 @@ The **Active Desktop Context Engine (ADCE)** is a background Windows daemon and 
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
 │                                ADCE SYSTEM ARCHITECTURE                                │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
-│  [Windows OS Events] ──▶ SetWinEventHook (Foreground / Focus Transitions)              │
+│  [Windows OS Events] ──▶ SetWinEventHook + VirtualDesktopNotificationSink              │
 │                                    │                                                   │
 │                                    ▼ (STA WinEvent Pump in ADCE.Daemon)                │
 │                 [Debounced Desktop Event Pipeline] (50 ms quiet window)                │
@@ -28,7 +28,8 @@ The **Active Desktop Context Engine (ADCE)** is a background Windows daemon and 
 │        [FlaUI.UIA3 Targeted Extractor] (Zero Unbounded DOM Crawling)                   │
 │        ├── VS Code / Antigravity: tabs, monaco-editor, chat-input, terminal            │
 │        ├── Waterfox / Gecko: tabs, urlbar-input, web document body                     │
-│        └── WinUI / Cascadia: Windows Terminal, console controls                        │
+│        ├── WinUI / Cascadia: Windows Terminal, console controls                        │
+│        └── Workspace Manager: Virtual Desktop GUID, Name, Index, Monitors              │
 │                                    │                                                   │
 │                                    ▼                                                   │
 │                 [Dynamic Rule Engine & Archetype Classifier]                           │
@@ -60,7 +61,7 @@ Documentation is organized into five functional tiers to keep developers and AI 
 │ TIER 1: PRODUCTION CODE & AUTOMATED TESTS (Ground Truth Baseline)                      │
 │ • Production Projects: src/ADCE.Core, ADCE.Extraction, ADCE.Storage, ADCE.Mcp,         │
 │   ADCE.Daemon                                                                          │
-│ • Automated Test Suites: tests/ (281 passing unit tests across 5 test assemblies)      │
+│ • Automated Test Suites: tests/ (304 passing unit tests across 5 test assemblies)      │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
 │ TIER 2: ARCHITECTURE SPECIFICATIONS (Normative Contracts)                              │
 │ • Core Engine: CORE_DOMAIN_MODEL.md, EXTRACTION_PIPELINE.md, STORAGE_ARCHITECTURE.md   │

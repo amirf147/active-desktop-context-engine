@@ -32,9 +32,9 @@ Desktop context is structured in a four-tier aggregate hierarchy: Workspace Enve
 ├────────────────────────────────────────────────────────────────────────────────────────┤
 │ DateTimeOffset Timestamp: ISO-8601 UTC capture timestamp                               │
 │ WorkspaceEnvelope Workspace:                                                           │
-│   - VirtualDesktopId (Guid): Default Guid.Empty (Virtual Desktop GUID extraction scheduled for Phase 8 / Slion-VirtualDesktop integration due to Windows 11 vtable & window pinning constraints) │
-│   - DesktopIndex (int): 0-based virtual desktop workspace index                        │
-│   - VirtualDesktopName (string): User-assigned or system desktop name                  │
+│   - VirtualDesktopId (Guid): Active virtual desktop GUID (resolved via IVirtualDesktopManagerInternal or IVirtualDesktopManager.GetWindowDesktopId) │
+│   - DesktopIndex (int): 0-based virtual desktop workspace index resolved from desktop enumeration │
+│   - VirtualDesktopName (string): User-assigned or system desktop name read via HSTRING (WindowsGetStringRawBuffer) │
 │   - MonitorIndex (int): Display monitor index hosting window center                    │
 │   - MonitorBounds (BoundingRectangle): Screen bounds for the target monitor            │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
@@ -74,6 +74,16 @@ Desktop context is structured in a four-tier aggregate hierarchy: Workspace Enve
 │ double ExtractionDurationMs: Pipeline extraction latency in milliseconds               │
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+### 2.1 Workspace Envelope & Virtual Desktop Subsystem
+
+The `WorkspaceEnvelope` records the macro spatial context of the active window:
+* **Active Desktop Identity:** Resolved dynamically via `WindowsWorkspaceManager` using an out-of-process, zero-cached-state COM session (`TransientMtaSession`).
+* **VTable Slot Adaptation:** `VirtualDesktopVtableConfig` maps method slot offsets across Windows build tiers (Build 26100+, 22631, 22621, 22000, 19041). It acquires `IVirtualDesktopManagerInternal` from `CLSID_ImmersiveShell` via `IServiceProvider.QueryService`.
+* **String Decoding:** Desktop names are read directly from unmanaged `HSTRING` handles using `combase.dll!WindowsGetStringRawBuffer`.
+* **Event Ingress:** Desktop switches are captured on the STA hook pump via `VirtualDesktopNotificationSink` implementing `IVirtualDesktopNotification` (Win11 IID `B9E5E94D-233E-49AB-AF5C-2B4541C3AADE`, Win10 IID `C17949F0-3DE2-4DD0-BE55-520B342BD7AC`). Switches emit `EVENT_SYSTEM_DESKTOPSWITCH` (`0x0020`) into the event pipeline without unmanaged reference leaks.
 
 ---
 

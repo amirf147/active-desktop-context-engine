@@ -8,6 +8,7 @@ using System.Threading.Channels;
 using ADCE.Core.Events;
 using ADCE.Core.Interfaces;
 using ADCE.Extraction.Win32;
+using ADCE.Extraction.Workspaces.Win32Com;
 
 namespace ADCE.Extraction.Events;
 
@@ -28,6 +29,7 @@ public sealed class WinEventHookProvider : IEventHookProvider
     private nint _focusHookHandle;
     private nint _selectionHookHandle;
     private nint _nameChangeHookHandle;
+    private VirtualDesktopNotificationRegistration? _virtualDesktopRegistration;
     private int _isRunning;
     private bool _disposed;
 
@@ -146,7 +148,17 @@ public sealed class WinEventHookProvider : IEventHookProvider
                 0,
                 NativeMethods.WINEVENT_OUTOFCONTEXT | NativeMethods.WINEVENT_SKIPOWNPROCESS);
 
-            // 3. Signal initialization barrier so Start() can unblock safely
+            // 3. Register Virtual Desktop Notification Sink on dedicated STA thread message pump
+            try
+            {
+                _virtualDesktopRegistration = VirtualDesktopNotificationSink.TryRegister(OnVirtualDesktopChanged);
+            }
+            catch
+            {
+                // Non-fatal if virtual desktop notification service is unavailable
+            }
+
+            // 4. Signal initialization barrier so Start() can unblock safely
             _initBarrier.Set();
 
             if (_foregroundHookHandle == nint.Zero && _focusHookHandle == nint.Zero &&
@@ -188,8 +200,34 @@ public sealed class WinEventHookProvider : IEventHookProvider
                 _nameChangeHookHandle = nint.Zero;
             }
 
+            if (_virtualDesktopRegistration != null)
+            {
+                try
+                {
+                    _virtualDesktopRegistration.Dispose();
+                }
+                catch { }
+                _virtualDesktopRegistration = null;
+            }
+
             _initBarrier.Set(); // Guard against hangs if exception occurred before set
         }
+    }
+
+    private void OnVirtualDesktopChanged()
+    {
+        nint hwnd = NativeMethods.GetForegroundWindow();
+        if (hwnd == nint.Zero || !NativeMethods.IsWindow(hwnd))
+        {
+            hwnd = NativeMethods.GetShellWindow();
+        }
+        if (hwnd == nint.Zero || !NativeMethods.IsWindow(hwnd))
+        {
+            hwnd = NativeMethods.GetDesktopWindow();
+        }
+
+        uint tick = (uint)Environment.TickCount;
+        _channel.Writer.TryWrite(new DesktopEventToken((ushort)NativeMethods.EVENT_SYSTEM_DESKTOPSWITCH, hwnd, tick));
     }
 
     private void OnWinEvent(

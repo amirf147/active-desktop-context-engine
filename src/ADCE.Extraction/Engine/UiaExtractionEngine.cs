@@ -18,6 +18,7 @@ using ADCE.Extraction.Resolvers;
 using ADCE.Extraction.Security;
 using ADCE.Extraction.Spatial;
 using ADCE.Extraction.Win32;
+using ADCE.Extraction.Workspaces;
 using FlaUI.Core.AutomationElements;
 using FlaUI.UIA3;
 
@@ -41,6 +42,7 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
     private readonly UIA3Automation _automation;
     private readonly IArchetypeClassifier _classifier;
     private readonly ISemanticRuleEngine _ruleEngine;
+    private readonly IWorkspaceManager _workspaceManager;
     private bool _disposed;
 
     /// <summary>
@@ -55,26 +57,31 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
     /// </summary>
     public bool EnableSemanticZones { get; set; } = true;
 
-    public UiaExtractionEngine(IArchetypeClassifier? classifier = null, ISemanticRuleEngine? ruleEngine = null)
+    public UiaExtractionEngine(
+        IArchetypeClassifier? classifier = null,
+        ISemanticRuleEngine? ruleEngine = null,
+        IWorkspaceManager? workspaceManager = null)
     {
         _classifier = classifier ?? ArchetypeClassifier.Default;
         _ruleEngine = ruleEngine ?? new Rules.SemanticRuleEngine();
+        _workspaceManager = workspaceManager ?? new WindowsWorkspaceManager();
         _automation = new UIA3Automation();
         ConfigureTransactionTimeouts(_automation, 50);
     }
 
-    public ValueTask<DesktopContextSnapshot> ExtractForegroundSnapshotAsync(CancellationToken cancellationToken = default)
+    public async ValueTask<DesktopContextSnapshot> ExtractForegroundSnapshotAsync(CancellationToken cancellationToken = default)
     {
         nint fgHwnd = NativeMethods.GetForegroundWindow();
         if (fgHwnd == nint.Zero)
         {
-            return ValueTask.FromResult(CreateEmptySnapshot(nint.Zero, "No Active Window", string.Empty, 0, string.Empty, DesktopAppArchetype.Unknown, 0.0));
+            var workspace = await _workspaceManager.GetCurrentWorkspaceAsync(cancellationToken).ConfigureAwait(false);
+            return CreateEmptySnapshot(nint.Zero, "No Active Window", string.Empty, 0, string.Empty, DesktopAppArchetype.Unknown, 0.0, workspace);
         }
 
-        return ExtractSnapshotAsync(fgHwnd, cancellationToken);
+        return await ExtractSnapshotAsync(fgHwnd, cancellationToken).ConfigureAwait(false);
     }
 
-    public ValueTask<DesktopContextSnapshot> ExtractSnapshotAsync(nint hwnd, CancellationToken cancellationToken = default)
+    public async ValueTask<DesktopContextSnapshot> ExtractSnapshotAsync(nint hwnd, CancellationToken cancellationToken = default)
     {
         var sw = Stopwatch.StartNew();
 
@@ -88,29 +95,46 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
             }
         }
 
+        // Asynchronously resolve workspace envelope for target window
+        WorkspaceEnvelope workspace;
+        try
+        {
+            workspace = await _workspaceManager.GetWindowWorkspaceAsync(hwnd, cancellationToken).ConfigureAwait(false);
+        }
+        catch
+        {
+            workspace = new WorkspaceEnvelope
+            {
+                VirtualDesktopId = Guid.Empty,
+                DesktopIndex = 0,
+                VirtualDesktopName = "Current Desktop",
+                MonitorIndex = 0,
+                MonitorBounds = Win32Gating.GetMonitorBounds(hwnd)
+            };
+        }
+
         // 1. Fast Win32 Gating (< 0.5 ms)
         if (!Win32Gating.GetWindowIdentityFast(hwnd, out string title, out string className, out int pid, out string processName))
         {
             sw.Stop();
-            return ValueTask.FromResult(CreateEmptySnapshot(hwnd, "Invalid Window Handle", string.Empty, 0, string.Empty, DesktopAppArchetype.Unknown, sw.Elapsed.TotalMilliseconds));
+            return CreateEmptySnapshot(hwnd, "Invalid Window Handle", string.Empty, 0, string.Empty, DesktopAppArchetype.Unknown, sw.Elapsed.TotalMilliseconds, workspace);
         }
 
         // 1b. DWM Cloaking Gating: drop windows on other Virtual Desktops in sub-microsecond time (< 0.01 ms)
         if (Win32Gating.IsWindowCloaked(hwnd))
         {
             sw.Stop();
-            return ValueTask.FromResult(CreateEmptySnapshot(hwnd, "Cloaked Window (Other Desktop)", className, pid, processName, DesktopAppArchetype.Unknown, sw.Elapsed.TotalMilliseconds));
+            return CreateEmptySnapshot(hwnd, "Cloaked Window (Other Desktop)", className, pid, processName, DesktopAppArchetype.Unknown, sw.Elapsed.TotalMilliseconds, workspace);
         }
 
         var bounds = Win32Gating.GetWindowBounds(hwnd);
-        var monitorBounds = Win32Gating.GetMonitorBounds(hwnd);
         var archetype = _classifier.Classify(className, processName, title);
 
         // 2. UIPI Gating: If target runs elevated and ADCE is standard user, return Win32 shallow context
         if (!Win32Gating.CanAccessProcess(hwnd))
         {
             sw.Stop();
-            return ValueTask.FromResult(CreateShallowSnapshot(hwnd, title, className, pid, processName, archetype, bounds, sw.Elapsed.TotalMilliseconds));
+            return CreateShallowSnapshot(hwnd, title, className, pid, processName, archetype, bounds, sw.Elapsed.TotalMilliseconds, workspace);
         }
 
         // 3. Safe Window Binding
@@ -118,7 +142,7 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
         if (windowElement == null)
         {
             sw.Stop();
-            return ValueTask.FromResult(CreateShallowSnapshot(hwnd, title, className, pid, processName, archetype, bounds, sw.Elapsed.TotalMilliseconds));
+            return CreateShallowSnapshot(hwnd, title, className, pid, processName, archetype, bounds, sw.Elapsed.TotalMilliseconds, workspace);
         }
 
         // 4. Specialized Multi-Zone Extraction based on Archetype
@@ -171,14 +195,7 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
         var snapshot = new DesktopContextSnapshot
         {
             Timestamp = DateTimeOffset.UtcNow,
-            Workspace = new WorkspaceEnvelope
-            {
-                VirtualDesktopId = Guid.Empty,
-                DesktopIndex = 0,
-                VirtualDesktopName = "Current Desktop",
-                MonitorIndex = 0,
-                MonitorBounds = !monitorBounds.IsEmpty ? monitorBounds : bounds
-            },
+            Workspace = workspace,
             Window = new WindowEnvelope
             {
                 Hwnd = hwnd,
@@ -199,7 +216,7 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
             ExtractionDurationMs = sw.Elapsed.TotalMilliseconds
         };
 
-        return ValueTask.FromResult(snapshot);
+        return snapshot;
     }
 
     internal static bool IsSameOrChildProcess(int controlPid, int windowPid, string windowProcessName)
@@ -575,20 +592,23 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
 
     private static DesktopContextSnapshot CreateShallowSnapshot(
         nint hwnd, string title, string className, int pid, string processName,
-        DesktopAppArchetype archetype, BoundingRectangle bounds, double durationMs)
+        DesktopAppArchetype archetype, BoundingRectangle bounds, double durationMs,
+        WorkspaceEnvelope? workspace = null)
     {
         var monitorBounds = hwnd != nint.Zero ? Win32Gating.GetMonitorBounds(hwnd) : BoundingRectangle.Empty;
+        var resolvedWorkspace = workspace ?? new WorkspaceEnvelope
+        {
+            VirtualDesktopId = Guid.Empty,
+            DesktopIndex = 0,
+            VirtualDesktopName = "Current Desktop",
+            MonitorIndex = 0,
+            MonitorBounds = !monitorBounds.IsEmpty ? monitorBounds : bounds
+        };
+
         return new DesktopContextSnapshot
         {
             Timestamp = DateTimeOffset.UtcNow,
-            Workspace = new WorkspaceEnvelope
-            {
-                VirtualDesktopId = Guid.Empty,
-                DesktopIndex = 0,
-                VirtualDesktopName = "Current Desktop",
-                MonitorIndex = 0,
-                MonitorBounds = !monitorBounds.IsEmpty ? monitorBounds : bounds
-            },
+            Workspace = resolvedWorkspace,
             Window = new WindowEnvelope
             {
                 Hwnd = hwnd,
@@ -616,9 +636,10 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
 
     private static DesktopContextSnapshot CreateEmptySnapshot(
         nint hwnd, string title, string className, int pid, string processName,
-        DesktopAppArchetype archetype, double durationMs)
+        DesktopAppArchetype archetype, double durationMs,
+        WorkspaceEnvelope? workspace = null)
     {
-        return CreateShallowSnapshot(hwnd, title, className, pid, processName, archetype, BoundingRectangle.Empty, durationMs);
+        return CreateShallowSnapshot(hwnd, title, className, pid, processName, archetype, BoundingRectangle.Empty, durationMs, workspace);
     }
 
     public void Dispose()

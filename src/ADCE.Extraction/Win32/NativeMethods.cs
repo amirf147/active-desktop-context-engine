@@ -20,6 +20,7 @@ internal static partial class NativeMethods
     public const uint EVENT_SYSTEM_FOREGROUND = 0x0003;
     public const uint EVENT_SYSTEM_MINIMIZESTART = 0x0016;
     public const uint EVENT_SYSTEM_MINIMIZEEND = 0x0017;
+    public const uint EVENT_SYSTEM_DESKTOPSWITCH = 0x0020;
     public const uint EVENT_OBJECT_FOCUS = 0x8005;
     public const uint EVENT_OBJECT_SELECTION = 0x8006;
     public const uint EVENT_OBJECT_NAMECHANGE = 0x800C;
@@ -154,6 +155,12 @@ internal static partial class NativeMethods
 
     [DllImport("user32.dll")]
     public static extern nint GetForegroundWindow();
+
+    [DllImport("user32.dll")]
+    public static extern nint GetShellWindow();
+
+    [DllImport("user32.dll")]
+    public static extern nint GetDesktopWindow();
 
     public const uint GA_PARENT = 1;
     public const uint GA_ROOT = 2;
