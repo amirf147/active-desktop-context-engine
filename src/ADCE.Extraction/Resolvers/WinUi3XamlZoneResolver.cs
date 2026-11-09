@@ -118,6 +118,20 @@ public sealed class WinUi3XamlZoneResolver : IArchetypeZoneResolver
             return true;
         }
 
+        // 7. Text Editor Buffer / RichEdit Surface (WinUI 3 Notepad, TextBoxes)
+        if (cls.Contains("RichEdit", StringComparison.OrdinalIgnoreCase) ||
+            cls.Contains("TextBox", StringComparison.OrdinalIgnoreCase) ||
+            cType.Equals("Document", StringComparison.OrdinalIgnoreCase) ||
+            cType.Equals("Edit", StringComparison.OrdinalIgnoreCase))
+        {
+            resolution = new SemanticResolution(
+                DesktopSemanticZone.EditorBuffer,
+                WindowPaneLocation.MainContent,
+                "Editor",
+                null);
+            return true;
+        }
+
         resolution = SemanticResolution.Unresolved;
         return false;
     }

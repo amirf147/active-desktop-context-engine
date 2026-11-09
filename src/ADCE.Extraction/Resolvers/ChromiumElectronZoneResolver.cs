@@ -30,6 +30,11 @@ public sealed class ChromiumElectronZoneResolver : IArchetypeZoneResolver
         var paths = ancestors.ContainerPaths;
         var classes = ancestors.ContainerClasses;
 
+        bool isChromiumWebContent = (cls.Contains("Chrome_RenderWidgetHost", StringComparison.OrdinalIgnoreCase) ||
+                                     classes.Any(c => c.Contains("Chrome_RenderWidgetHost", StringComparison.OrdinalIgnoreCase)) ||
+                                     cType.Equals("Document", StringComparison.OrdinalIgnoreCase)) &&
+                                    !paths.Any(p => p.Contains("workbench", StringComparison.OrdinalIgnoreCase));
+
         // 1. Ephemeral top-bar menu items and dropdown overlays (Action-Invoker Guard)
         if (cType.Equals("MenuItem", StringComparison.OrdinalIgnoreCase) ||
             cType.Equals("Menu", StringComparison.OrdinalIgnoreCase) ||
@@ -60,10 +65,11 @@ public sealed class ChromiumElectronZoneResolver : IArchetypeZoneResolver
         }
 
         // 3. AI Agent Auxiliary Drawer (Chat Prompt & Conversation Stream)
-        if (autoId.Contains("antigravity.agentSidePanelInputBox", StringComparison.OrdinalIgnoreCase) ||
-            name.Equals("Message input", StringComparison.OrdinalIgnoreCase) ||
-            cls.Contains("chat-input", StringComparison.OrdinalIgnoreCase) ||
-            cls.Contains("interactive-session", StringComparison.OrdinalIgnoreCase))
+        if (!isChromiumWebContent &&
+            (autoId.Contains("antigravity.agentSidePanelInputBox", StringComparison.OrdinalIgnoreCase) ||
+             name.Equals("Message input", StringComparison.OrdinalIgnoreCase) ||
+             cls.Contains("chat-input", StringComparison.OrdinalIgnoreCase) ||
+             cls.Contains("interactive-session", StringComparison.OrdinalIgnoreCase)))
         {
             resolution = new SemanticResolution(
                 DesktopSemanticZone.ChatPrompt,
@@ -73,12 +79,13 @@ public sealed class ChromiumElectronZoneResolver : IArchetypeZoneResolver
             return true;
         }
 
-        if (autoId.Equals("conversation", StringComparison.OrdinalIgnoreCase) ||
-            name.Equals("Agent Conversation", StringComparison.OrdinalIgnoreCase) ||
-            name.Contains("Toggle Agent", StringComparison.OrdinalIgnoreCase) ||
-            cls.Contains("codicon-layout-sidebar-right", StringComparison.OrdinalIgnoreCase) ||
-            cls.Contains("antigravity-agent-side-panel", StringComparison.OrdinalIgnoreCase) ||
-            paths.Any(p => p.Contains("workbench.parts.auxiliarybar", StringComparison.OrdinalIgnoreCase)))
+        if (!isChromiumWebContent &&
+            (autoId.Equals("conversation", StringComparison.OrdinalIgnoreCase) ||
+             name.Equals("Agent Conversation", StringComparison.OrdinalIgnoreCase) ||
+             name.Contains("Toggle Agent", StringComparison.OrdinalIgnoreCase) ||
+             cls.Contains("codicon-layout-sidebar-right", StringComparison.OrdinalIgnoreCase) ||
+             cls.Contains("antigravity-agent-side-panel", StringComparison.OrdinalIgnoreCase) ||
+             paths.Any(p => p.Contains("workbench.parts.auxiliarybar", StringComparison.OrdinalIgnoreCase))))
         {
             resolution = new SemanticResolution(
                 DesktopSemanticZone.ChatConversation,
@@ -226,6 +233,91 @@ public sealed class ChromiumElectronZoneResolver : IArchetypeZoneResolver
                 DesktopSemanticZone.StatusBar,
                 WindowPaneLocation.StatusBar,
                 "StatusBar",
+                null);
+            return true;
+        }
+
+        // 10. Chromium Browser Omnibox / Address Bar
+        if (cls.Contains("OmniboxViewViews", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("Address and search bar", StringComparison.OrdinalIgnoreCase) ||
+            autoId.Contains("Omnibox", StringComparison.OrdinalIgnoreCase) ||
+            autoId.Contains("view_1004", StringComparison.OrdinalIgnoreCase))
+        {
+            resolution = new SemanticResolution(
+                DesktopSemanticZone.AddressBar,
+                WindowPaneLocation.TopBar,
+                "NavigationBar",
+                null);
+            return true;
+        }
+
+        // 11. Chromium In-Page Web Document & Controls (Chrome, Edge, Brave, etc.)
+        if (isChromiumWebContent)
+        {
+            if (cType.Equals("Edit", StringComparison.OrdinalIgnoreCase) ||
+                cls.Contains("chat-input", StringComparison.OrdinalIgnoreCase) ||
+                cls.Contains("textbox", StringComparison.OrdinalIgnoreCase))
+            {
+                // AI chat assistant prompts
+                if (name.Contains("message", StringComparison.OrdinalIgnoreCase) ||
+                    name.Contains("prompt", StringComparison.OrdinalIgnoreCase) ||
+                    name.Contains("chat", StringComparison.OrdinalIgnoreCase) ||
+                    name.Contains("ask", StringComparison.OrdinalIgnoreCase) ||
+                    autoId.Contains("prompt", StringComparison.OrdinalIgnoreCase) ||
+                    autoId.Contains("chat", StringComparison.OrdinalIgnoreCase) ||
+                    cls.Contains("chat", StringComparison.OrdinalIgnoreCase) ||
+                    cls.Contains("composer", StringComparison.OrdinalIgnoreCase))
+                {
+                    resolution = new SemanticResolution(
+                        DesktopSemanticZone.ChatPrompt,
+                        WindowPaneLocation.MainContent,
+                        "WebDocument",
+                        "ChatPrompt");
+                    return true;
+                }
+
+                // In-page search boxes
+                if (name.Contains("search", StringComparison.OrdinalIgnoreCase) ||
+                    name.Contains("find", StringComparison.OrdinalIgnoreCase) ||
+                    autoId.Contains("search", StringComparison.OrdinalIgnoreCase) ||
+                    cls.Contains("search", StringComparison.OrdinalIgnoreCase))
+                {
+                    resolution = new SemanticResolution(
+                        DesktopSemanticZone.QuickOpen,
+                        WindowPaneLocation.MainContent,
+                        "WebDocument",
+                        "Search");
+                    return true;
+                }
+
+                // In-page code editor buffers (Monaco, CodeMirror, Ace)
+                if (cls.Contains("monaco-editor", StringComparison.OrdinalIgnoreCase) ||
+                    cls.Contains("cm-content", StringComparison.OrdinalIgnoreCase) ||
+                    cls.Contains("ace_editor", StringComparison.OrdinalIgnoreCase) ||
+                    cls.Contains("code", StringComparison.OrdinalIgnoreCase) ||
+                    autoId.Contains("editor", StringComparison.OrdinalIgnoreCase))
+                {
+                    resolution = new SemanticResolution(
+                        DesktopSemanticZone.EditorBuffer,
+                        WindowPaneLocation.MainContent,
+                        "WebDocument",
+                        "CodeEditor");
+                    return true;
+                }
+
+                // General web text input
+                resolution = new SemanticResolution(
+                    DesktopSemanticZone.EditorBuffer,
+                    WindowPaneLocation.MainContent,
+                    "WebDocument",
+                    "Input");
+                return true;
+            }
+
+            resolution = new SemanticResolution(
+                DesktopSemanticZone.WebDocument,
+                WindowPaneLocation.MainContent,
+                "WebDocument",
                 null);
             return true;
         }

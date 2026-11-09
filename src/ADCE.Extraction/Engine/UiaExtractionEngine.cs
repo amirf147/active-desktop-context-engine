@@ -365,92 +365,6 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
 
         var descriptor = new FocusedControlDescriptor(cType, name, autoId, cls, boundingBox, isOverlay);
 
-        WindowPaneLocation pane = WindowPaneLocation.Unknown;
-        string? activeView = null;
-        string? sectionName = null;
-        var zone = DesktopSemanticZone.Unknown;
-
-        if (enableSemanticZones)
-        {
-            // 1. Declarative Custom Rules take precedence
-            var matchedRule = ruleEngine?.FindMatchingRule(processName, cType, name, autoId, cls, ancestors.ContainerPaths);
-            if (matchedRule != null)
-            {
-                if (matchedRule.TargetZone != DesktopSemanticZone.Unknown) zone = matchedRule.TargetZone;
-                if (matchedRule.TargetPane.HasValue && matchedRule.TargetPane.Value != WindowPaneLocation.Unknown) pane = matchedRule.TargetPane.Value;
-                if (!string.IsNullOrEmpty(matchedRule.TargetView)) activeView = matchedRule.TargetView;
-                if (!string.IsNullOrEmpty(matchedRule.TargetSection)) sectionName = matchedRule.TargetSection;
-            }
-
-            // 2. Archetype Strategy Resolver
-            if (zone == DesktopSemanticZone.Unknown && Resolvers.TryGetValue(archetype, out var resolver))
-            {
-                if (resolver.TryResolve(descriptor, ancestors, out var res))
-                {
-                    zone = res.Zone;
-                    pane = res.Pane;
-                    activeView = res.ActiveView;
-                    sectionName = res.SectionName;
-                }
-            }
-
-            // 3. Fallback Heuristics
-            if (zone == DesktopSemanticZone.Unknown)
-            {
-                zone = ResolveSemanticZone(cType, name, autoId, cls, archetype, isOverlay);
-            }
-        }
-
-        // Infer pane from zone if still unknown
-        if (pane == WindowPaneLocation.Unknown && zone != DesktopSemanticZone.Unknown)
-        {
-            pane = SemanticZoneInference.InferPaneFromZone(zone);
-        }
-
-        // Viewport Boundary Isolation for Web Documents
-        bool isInsideWebDocument = zone == DesktopSemanticZone.WebDocument ||
-                                   cType.Equals("Document", StringComparison.OrdinalIgnoreCase) ||
-                                   cls.Contains("MozillaContentWindowClass", StringComparison.OrdinalIgnoreCase) ||
-                                   ancestors.ContainerClasses.Any(c => c.Contains("MozillaContentWindowClass", StringComparison.OrdinalIgnoreCase)) ||
-                                   ancestors.ContainerPaths.Any(p => p.Contains("tabbrowser-tabpanels", StringComparison.OrdinalIgnoreCase) ||
-                                                                     p.Contains("appcontent", StringComparison.OrdinalIgnoreCase));
-
-        if (isInsideWebDocument)
-        {
-            pane = WindowPaneLocation.MainContent;
-            if (zone == DesktopSemanticZone.Unknown) zone = DesktopSemanticZone.WebDocument;
-            activeView ??= "WebDocument";
-        }
-        else if (pane == WindowPaneLocation.Unknown || zone == DesktopSemanticZone.Unknown)
-        {
-            // Closed default canvas resolution (zero spatial guessing)
-            if (IsBrowserWindow(archetype, processName, activeFilePath))
-            {
-                if (pane == WindowPaneLocation.Unknown) pane = WindowPaneLocation.MainContent;
-                if (zone == DesktopSemanticZone.Unknown) zone = DesktopSemanticZone.WebDocument;
-            }
-            else if (IsIdeWindow(archetype, processName, activeFilePath))
-            {
-                if (pane == WindowPaneLocation.Unknown) pane = WindowPaneLocation.MainContent;
-                if (zone == DesktopSemanticZone.Unknown) zone = DesktopSemanticZone.EditorBuffer;
-            }
-            else
-            {
-                if (pane == WindowPaneLocation.Unknown) pane = WindowPaneLocation.MainContent;
-                if (zone == DesktopSemanticZone.Unknown) zone = DesktopSemanticZone.Unknown;
-            }
-        }
-
-        activeView ??= SemanticZoneInference.InferViewFromZone(zone);
-        sectionName ??= SemanticZoneInference.InferSectionFromZone(zone);
-
-        // Assemble semantic path
-        var pathBuilder = System.Collections.Immutable.ImmutableArray.CreateBuilder<string>(3);
-        if (pane != WindowPaneLocation.Unknown) pathBuilder.Add(pane.ToString());
-        if (!string.IsNullOrWhiteSpace(activeView)) pathBuilder.Add(activeView);
-        if (!string.IsNullOrWhiteSpace(sectionName)) pathBuilder.Add(sectionName);
-        var semanticPath = pathBuilder.ToImmutable();
-
         bool isPassword = false;
         try { isPassword = focused.Properties.IsPassword.ValueOrDefault; } catch { }
 
@@ -473,6 +387,150 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
             }
         }
 
+        return ResolveControlInfo(
+            descriptor,
+            ancestors,
+            processName,
+            archetype,
+            enableSemanticZones,
+            ruleEngine,
+            activeFilePath,
+            sanitizedValue);
+    }
+
+    internal static FocusedControlInfo ResolveControlInfo(
+        FocusedControlDescriptor descriptor,
+        AncestorChain ancestors,
+        string processName,
+        DesktopAppArchetype archetype,
+        bool enableSemanticZones = true,
+        ISemanticRuleEngine? ruleEngine = null,
+        string? activeFilePath = null,
+        string? sanitizedValue = null)
+    {
+        string cType = descriptor.ControlType;
+        string name = descriptor.Name;
+        string autoId = descriptor.AutomationId;
+        string cls = descriptor.ClassName;
+        bool isOverlay = descriptor.IsOverlay;
+        var boundingBox = descriptor.BoundingBox;
+
+        WindowPaneLocation pane = WindowPaneLocation.Unknown;
+        string? activeView = null;
+        string? sectionName = null;
+        var zone = DesktopSemanticZone.Unknown;
+        string? resolutionSource = null;
+
+        if (enableSemanticZones)
+        {
+            // 1. Declarative Custom Rules take precedence
+            var matchedRule = ruleEngine?.FindMatchingRule(processName, cType, name, autoId, cls, ancestors.ContainerPaths);
+            if (matchedRule != null)
+            {
+                if (matchedRule.TargetZone != DesktopSemanticZone.Unknown)
+                {
+                    zone = matchedRule.TargetZone;
+                    resolutionSource = $"Rule:{matchedRule.RuleId}";
+                }
+                if (matchedRule.TargetPane.HasValue && matchedRule.TargetPane.Value != WindowPaneLocation.Unknown) pane = matchedRule.TargetPane.Value;
+                if (!string.IsNullOrEmpty(matchedRule.TargetView)) activeView = matchedRule.TargetView;
+                if (!string.IsNullOrEmpty(matchedRule.TargetSection)) sectionName = matchedRule.TargetSection;
+            }
+
+            // 2. Archetype Strategy Resolver
+            if (zone == DesktopSemanticZone.Unknown && Resolvers.TryGetValue(archetype, out var resolver))
+            {
+                if (resolver.TryResolve(descriptor, ancestors, out var res))
+                {
+                    zone = res.Zone;
+                    pane = res.Pane;
+                    activeView = res.ActiveView;
+                    sectionName = res.SectionName;
+                    resolutionSource = $"Resolver:{archetype}";
+                }
+            }
+
+            // 3. Fallback Heuristics
+            if (zone == DesktopSemanticZone.Unknown)
+            {
+                zone = ResolveSemanticZone(cType, name, autoId, cls, archetype, isOverlay);
+                if (zone != DesktopSemanticZone.Unknown)
+                {
+                    resolutionSource = "Fallback:ResolveSemanticZone";
+                }
+            }
+
+            // Infer pane from zone if still unknown
+            if (pane == WindowPaneLocation.Unknown && zone != DesktopSemanticZone.Unknown)
+            {
+                pane = SemanticZoneInference.InferPaneFromZone(zone);
+            }
+
+            // Viewport Boundary Isolation for Web Documents
+            bool isInsideWebDocument = zone == DesktopSemanticZone.WebDocument ||
+                                       (IsBrowserWindow(archetype, processName, activeFilePath) && cType.Equals("Document", StringComparison.OrdinalIgnoreCase)) ||
+                                       cls.Contains("MozillaContentWindowClass", StringComparison.OrdinalIgnoreCase) ||
+                                       ancestors.ContainerClasses.Any(c => c.Contains("MozillaContentWindowClass", StringComparison.OrdinalIgnoreCase)) ||
+                                       ancestors.ContainerPaths.Any(p => p.Contains("tabbrowser-tabpanels", StringComparison.OrdinalIgnoreCase) ||
+                                                                         p.Contains("appcontent", StringComparison.OrdinalIgnoreCase));
+
+            if (isInsideWebDocument)
+            {
+                pane = WindowPaneLocation.MainContent;
+                if (zone == DesktopSemanticZone.Unknown)
+                {
+                    zone = DesktopSemanticZone.WebDocument;
+                    resolutionSource ??= "Fallback:WebDocumentCanvas";
+                }
+                activeView ??= "WebDocument";
+            }
+            else if (pane == WindowPaneLocation.Unknown || zone == DesktopSemanticZone.Unknown)
+            {
+                // Closed default canvas resolution (zero spatial guessing)
+                if (IsBrowserWindow(archetype, processName, activeFilePath))
+                {
+                    if (pane == WindowPaneLocation.Unknown) pane = WindowPaneLocation.MainContent;
+                    if (zone == DesktopSemanticZone.Unknown)
+                    {
+                        zone = DesktopSemanticZone.WebDocument;
+                        resolutionSource ??= "Fallback:BrowserDefault";
+                    }
+                }
+                else if (IsIdeWindow(archetype, processName, activeFilePath))
+                {
+                    if (pane == WindowPaneLocation.Unknown) pane = WindowPaneLocation.MainContent;
+                    if (zone == DesktopSemanticZone.Unknown)
+                    {
+                        zone = DesktopSemanticZone.EditorBuffer;
+                        resolutionSource ??= "Fallback:IdeDefault";
+                    }
+                }
+                else
+                {
+                    if (pane == WindowPaneLocation.Unknown) pane = WindowPaneLocation.MainContent;
+                    if (zone == DesktopSemanticZone.Unknown)
+                    {
+                        zone = DesktopSemanticZone.Unknown;
+                        resolutionSource ??= "Fallback:UnknownDefault";
+                    }
+                }
+            }
+
+            activeView ??= SemanticZoneInference.InferViewFromZone(zone);
+            sectionName ??= SemanticZoneInference.InferSectionFromZone(zone);
+        }
+        else
+        {
+            resolutionSource = "ExplicitOnly";
+        }
+
+        // Assemble semantic path
+        var pathBuilder = System.Collections.Immutable.ImmutableArray.CreateBuilder<string>(3);
+        if (pane != WindowPaneLocation.Unknown) pathBuilder.Add(pane.ToString());
+        if (!string.IsNullOrWhiteSpace(activeView)) pathBuilder.Add(activeView);
+        if (!string.IsNullOrWhiteSpace(sectionName)) pathBuilder.Add(sectionName);
+        var semanticPath = pathBuilder.ToImmutable();
+
         return new FocusedControlInfo
         {
             ControlType = cType,
@@ -488,7 +546,8 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
             ContainerPath = ancestors.ContainerPaths,
             ContainerClasses = ancestors.ContainerClasses,
             IsOverlay = isOverlay,
-            ValueSnippet = sanitizedValue
+            ValueSnippet = sanitizedValue,
+            ResolutionSource = resolutionSource
         };
     }
 
@@ -510,7 +569,8 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
             ContainerPath = System.Collections.Immutable.ImmutableArray<string>.Empty,
             ContainerClasses = System.Collections.Immutable.ImmutableArray<string>.Empty,
             IsOverlay = false,
-            ValueSnippet = null
+            ValueSnippet = null,
+            ResolutionSource = "Default:WindowFallback"
         };
     }
 
@@ -628,7 +688,8 @@ public sealed class UiaExtractionEngine : IExtractionEngine, IDisposable
                 AutomationId = string.Empty,
                 ClassName = className,
                 BoundingBox = bounds,
-                SemanticZone = DesktopSemanticZone.Unknown
+                SemanticZone = DesktopSemanticZone.Unknown,
+                ResolutionSource = "ShallowSnapshot"
             },
             ExtractionDurationMs = durationMs
         };

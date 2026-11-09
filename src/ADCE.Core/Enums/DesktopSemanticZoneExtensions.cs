@@ -192,6 +192,9 @@ public static class DesktopSemanticZoneExtensions
             DesktopSemanticZone.EditorBuffer => "Editor",
             DesktopSemanticZone.Terminal => "Terminal",
             DesktopSemanticZone.ActivityBar => "ActivityBar",
+            DesktopSemanticZone.AddressBar => "NavigationBar",
+            DesktopSemanticZone.TabBar => "TabStrip",
+            DesktopSemanticZone.WebDocument => "WebDocument",
             DesktopSemanticZone.StatusBar => "StatusBar",
             DesktopSemanticZone.QuickOpen or DesktopSemanticZone.CommandPalette => "QuickOpen",
             _ => null

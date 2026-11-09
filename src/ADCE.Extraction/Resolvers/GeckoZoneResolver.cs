@@ -127,12 +127,74 @@ public sealed class GeckoZoneResolver : IArchetypeZoneResolver
         }
 
         // 5. Rendered Web Document Viewport (including in-page DOM elements)
-        if (cType.Equals("Document", StringComparison.OrdinalIgnoreCase) ||
-            cls.Contains("MozillaContentWindowClass", StringComparison.OrdinalIgnoreCase) ||
-            classes.Any(c => c.Contains("MozillaContentWindowClass", StringComparison.OrdinalIgnoreCase)) ||
-            paths.Any(p => p.Contains("tabbrowser-tabpanels", StringComparison.OrdinalIgnoreCase) ||
-                           p.Contains("appcontent", StringComparison.OrdinalIgnoreCase)))
+        bool isGeckoWebContent = cType.Equals("Document", StringComparison.OrdinalIgnoreCase) ||
+                                 cls.Contains("MozillaContentWindowClass", StringComparison.OrdinalIgnoreCase) ||
+                                 classes.Any(c => c.Contains("MozillaContentWindowClass", StringComparison.OrdinalIgnoreCase)) ||
+                                 paths.Any(p => p.Contains("tabbrowser-tabpanels", StringComparison.OrdinalIgnoreCase) ||
+                                                p.Contains("appcontent", StringComparison.OrdinalIgnoreCase));
+
+        if (isGeckoWebContent)
         {
+            if (cType.Equals("Edit", StringComparison.OrdinalIgnoreCase) ||
+                cls.Contains("chat-input", StringComparison.OrdinalIgnoreCase) ||
+                cls.Contains("textbox", StringComparison.OrdinalIgnoreCase))
+            {
+                // AI chat assistant prompts
+                if (name.Contains("message", StringComparison.OrdinalIgnoreCase) ||
+                    name.Contains("prompt", StringComparison.OrdinalIgnoreCase) ||
+                    name.Contains("chat", StringComparison.OrdinalIgnoreCase) ||
+                    name.Contains("ask", StringComparison.OrdinalIgnoreCase) ||
+                    autoId.Contains("prompt", StringComparison.OrdinalIgnoreCase) ||
+                    autoId.Contains("chat", StringComparison.OrdinalIgnoreCase) ||
+                    cls.Contains("chat", StringComparison.OrdinalIgnoreCase) ||
+                    cls.Contains("composer", StringComparison.OrdinalIgnoreCase))
+                {
+                    resolution = new SemanticResolution(
+                        DesktopSemanticZone.ChatPrompt,
+                        WindowPaneLocation.MainContent,
+                        "WebDocument",
+                        "ChatPrompt");
+                    return true;
+                }
+
+                // In-page search boxes
+                if (name.Contains("search", StringComparison.OrdinalIgnoreCase) ||
+                    name.Contains("find", StringComparison.OrdinalIgnoreCase) ||
+                    autoId.Contains("search", StringComparison.OrdinalIgnoreCase) ||
+                    cls.Contains("search", StringComparison.OrdinalIgnoreCase))
+                {
+                    resolution = new SemanticResolution(
+                        DesktopSemanticZone.QuickOpen,
+                        WindowPaneLocation.MainContent,
+                        "WebDocument",
+                        "Search");
+                    return true;
+                }
+
+                // In-page code editor buffers (Monaco, CodeMirror, Ace)
+                if (cls.Contains("monaco-editor", StringComparison.OrdinalIgnoreCase) ||
+                    cls.Contains("cm-content", StringComparison.OrdinalIgnoreCase) ||
+                    cls.Contains("ace_editor", StringComparison.OrdinalIgnoreCase) ||
+                    cls.Contains("code", StringComparison.OrdinalIgnoreCase) ||
+                    autoId.Contains("editor", StringComparison.OrdinalIgnoreCase))
+                {
+                    resolution = new SemanticResolution(
+                        DesktopSemanticZone.EditorBuffer,
+                        WindowPaneLocation.MainContent,
+                        "WebDocument",
+                        "CodeEditor");
+                    return true;
+                }
+
+                // General web text input
+                resolution = new SemanticResolution(
+                    DesktopSemanticZone.EditorBuffer,
+                    WindowPaneLocation.MainContent,
+                    "WebDocument",
+                    "Input");
+                return true;
+            }
+
             resolution = new SemanticResolution(
                 DesktopSemanticZone.WebDocument,
                 WindowPaneLocation.MainContent,

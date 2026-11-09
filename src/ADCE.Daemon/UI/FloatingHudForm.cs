@@ -305,14 +305,23 @@ public sealed class FloatingHudForm : Form
         {
             string zone = snapshot.Focus?.SemanticZone.ToString() ?? "Unknown";
             string overlayStr = snapshot.Focus?.IsOverlay == true ? " | Overlay: True" : string.Empty;
-            _zoneLabel.Text = $"Zone: [{zone}]{paneStr}{overlayStr}";
+            string sourceStr = !string.IsNullOrWhiteSpace(snapshot.Focus?.ResolutionSource)
+                ? $" [{snapshot.Focus.ResolutionSource}]"
+                : string.Empty;
+            _zoneLabel.Text = $"Zone: [{zone}]{paneStr}{overlayStr}{sourceStr}";
             _zoneLabel.ForeColor = Color.FromArgb(160, 230, 150);
+
+            if (snapshot.Focus?.ResolutionSource != null)
+            {
+                _hudToolTip.SetToolTip(_zoneLabel, $"Resolution Source: {snapshot.Focus.ResolutionSource}");
+            }
         }
         else
         {
             string overlayStr = snapshot.Focus?.IsOverlay == true ? " (Overlay: True)" : string.Empty;
             _zoneLabel.Text = $"[Explicit Inspection Mode]{paneStr}{overlayStr}";
             _zoneLabel.ForeColor = Color.FromArgb(200, 180, 255); // Lavender
+            _hudToolTip.SetToolTip(_zoneLabel, "Explicit Inspection Mode: Heuristic semantic zones disabled");
         }
 
         // Structural & Semantic Hierarchy Path
@@ -471,7 +480,10 @@ public sealed class FloatingHudForm : Form
                     currentSemanticNode = sectionNode;
                 }
 
-                var targetZoneNode = new TreeNode($"🎯 Target Zone: {snapshot.Focus.SemanticZone} [{snapshot.Focus.ControlType}]")
+                string srcTag = !string.IsNullOrWhiteSpace(snapshot.Focus.ResolutionSource)
+                    ? $" ({snapshot.Focus.ResolutionSource})"
+                    : string.Empty;
+                var targetZoneNode = new TreeNode($"🎯 Target Zone: {snapshot.Focus.SemanticZone} [{snapshot.Focus.ControlType}]{srcTag}")
                 {
                     ForeColor = Color.FromArgb(160, 230, 150)
                 };
@@ -724,7 +736,10 @@ public sealed class FloatingHudForm : Form
 
         if (focus.SemanticZone != DesktopSemanticZone.Unknown)
         {
-            focusNode.Nodes.Add(new TreeNode($"Semantic Zone: {focus.SemanticZone}")
+            string srcTag = !string.IsNullOrWhiteSpace(focus.ResolutionSource)
+                ? $" [Source: {focus.ResolutionSource}]"
+                : string.Empty;
+            focusNode.Nodes.Add(new TreeNode($"Semantic Zone: {focus.SemanticZone}{srcTag}")
             {
                 ForeColor = Color.FromArgb(160, 230, 150)
             });
@@ -775,7 +790,7 @@ public sealed class FloatingHudForm : Form
         if (e.Button == MouseButtons.Left)
         {
             _isDragging = true;
-            _dragStartPoint = e.Location;
+            _dragStartPoint = Cursor.Position;
         }
     }
 
@@ -783,8 +798,11 @@ public sealed class FloatingHudForm : Form
     {
         if (_isDragging)
         {
-            var currentScreenPos = PointToScreen(e.Location);
-            Location = new Point(currentScreenPos.X - _dragStartPoint.X, currentScreenPos.Y - _dragStartPoint.Y);
+            var currentCursorPos = Cursor.Position;
+            int dx = currentCursorPos.X - _dragStartPoint.X;
+            int dy = currentCursorPos.Y - _dragStartPoint.Y;
+            Location = new Point(Location.X + dx, Location.Y + dy);
+            _dragStartPoint = currentCursorPos;
         }
     }
 

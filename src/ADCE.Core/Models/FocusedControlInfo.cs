@@ -55,6 +55,9 @@ public sealed record FocusedControlInfo : IEquatable<FocusedControlInfo>
     /// <summary>Optional sanitized text or value snippet extracted from ValuePattern / TextPattern.</summary>
     public string? ValueSnippet { get; init; }
 
+    /// <summary>Provenance indicator recording which rule, resolver, or fallback classified this control.</summary>
+    public string? ResolutionSource { get; init; }
+
     public bool Equals(FocusedControlInfo? other)
     {
         if (other is null) return false;
@@ -70,7 +73,8 @@ public sealed record FocusedControlInfo : IEquatable<FocusedControlInfo>
             SectionName != other.SectionName ||
             IsOverlay != other.IsOverlay ||
             ValueSnippet != other.ValueSnippet ||
-            BoundingBox != other.BoundingBox)
+            BoundingBox != other.BoundingBox ||
+            ResolutionSource != other.ResolutionSource)
         {
             return false;
         }
@@ -94,6 +98,7 @@ public sealed record FocusedControlInfo : IEquatable<FocusedControlInfo>
         hash.Add(IsOverlay);
         hash.Add(ValueSnippet);
         hash.Add(BoundingBox);
+        hash.Add(ResolutionSource);
 
         if (!SemanticPath.IsDefault)
         {

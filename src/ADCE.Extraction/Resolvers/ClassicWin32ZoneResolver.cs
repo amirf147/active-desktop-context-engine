@@ -60,6 +60,20 @@ public sealed class ClassicWin32ZoneResolver : IArchetypeZoneResolver
             return true;
         }
 
+        // 4. Text Editor Buffers (Notepad, RichEdit, Edit controls)
+        if (cls.Equals("Edit", StringComparison.OrdinalIgnoreCase) ||
+            cls.StartsWith("RichEdit", StringComparison.OrdinalIgnoreCase) ||
+            cType.Equals("Document", StringComparison.OrdinalIgnoreCase) ||
+            cType.Equals("Edit", StringComparison.OrdinalIgnoreCase))
+        {
+            resolution = new SemanticResolution(
+                DesktopSemanticZone.EditorBuffer,
+                WindowPaneLocation.MainContent,
+                "Editor",
+                null);
+            return true;
+        }
+
         resolution = SemanticResolution.Unresolved;
         return false;
     }
